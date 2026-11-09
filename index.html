@@ -231,6 +231,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div id="toast" class="toast"></div>
 
 <script>
+/* ========== 常量 ========== */
 const $ = id => document.getElementById(id);
 const KEY = {
   logs: "council_logs", store: "council_store",
@@ -250,15 +251,22 @@ const STATUS_MAP = {
 };
 const RELATION = { REVISION: "revision", FOLLOWUP: "followup", REFERENCE: "reference" };
 
+/* ========== 安全读写 ========== */
 function loadJSON(k, fb) {
-  try { const r = localStorage.getItem(k); if (!r) return fb; const v = JSON.parse(r); return v == null ? fb : v; }
-  catch (e) { return fb; }
+  try {
+    const r = localStorage.getItem(k);
+    if (!r) return fb;
+    const v = JSON.parse(r);
+    return v == null ? fb : v;
+  } catch (e) { return fb; }
 }
 function saveJSON(k, v) {
-  try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; }
+  try { localStorage.setItem(k, JSON.stringify(v)); return true; }
+  catch (e) { return false; }
 }
 function removeJSON(k) {
-  try { localStorage.removeItem(k); return true; } catch (e) { return false; }
+  try { localStorage.removeItem(k); return true; }
+  catch (e) { return false; }
 }
 function nowStr() { return new Date().toLocaleString(); }
 function escapeHTML(s) {
@@ -269,6 +277,7 @@ function requestTimestamp(r) {
   return m ? Number(m[1]) : 0;
 }
 
+/* ========== 状态 ========== */
 let store = { schemaVersion: SCHEMA_VERSION, requests: [], activeId: null };
 let requests = [];
 let activeId = null;
@@ -283,6 +292,7 @@ let editingParent = null;
 let draftTimer = null;
 let storageWarned = false;
 
+/* ========== 状态合法性 ========== */
 function isValidStatus(s) {
   if (typeof s !== "string") return false;
   if (VALID_STATUSES.includes(s)) return true;
@@ -290,7 +300,7 @@ function isValidStatus(s) {
 }
 function statusInfo(s) { return STATUS_MAP[s] || { cls: "unknown", label: "待核实" }; }
 
-/* ========== 内容快照与哈希（防篡改） ========== */
+/* ========== 内容哈希与防篡改 ========== */
 function simpleHash(str) {
   let h = 5381;
   for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
@@ -320,14 +330,49 @@ function isContentTampered(req) {
   if (!approvedHash) return false;
   return computeContentHash(req) !== approvedHash;
 }
+
+/* ========== 审批历史：只允许追加，并校验快照哈希 ========== */
 function validateHistoryAppend(oldHistory, newHistory) {
-  if (!Array.isArray(oldHistory) || !Array.isArray(newHistory)) return false;
-  if (newHistory.length !== oldHistory.length + 1) return false;
-  for (let i = 0; i < oldHistory.length; i++) {
-    const a = oldHistory[i], b = newHistory[i];
-    if (!a || !b) return false;
-    if (a.time !== b.time || a.action !== b.action || a.note !== b.note) return false;
+  if (!Array.isArray(oldHistory) ||
+      !Array.isArray(newHistory)) return false;
+
+  if (newHistory.length !== oldHistory.length + 1) {
+    return false;
   }
+
+  // 原有历史必须完全一致，不能修改任何字段
+  for (let i = 0; i < oldHistory.length; i++) {
+    if (stableStringify(oldHistory[i]) !==
+        stableStringify(newHistory[i])) {
+      return false;
+    }
+  }
+
+  // 检查新增审批记录
+  const entry = newHistory[newHistory.length - 1];
+
+  if (!entry || typeof entry !== "object") return false;
+
+  if (typeof entry.time !== "string" ||
+      typeof entry.action !== "string" ||
+      typeof entry.note !== "string" ||
+      typeof entry.contentHash !== "string") {
+    return false;
+  }
+
+  const s = entry.snapshot;
+
+  if (!s || typeof s !== "object") return false;
+
+  for (const key of ["project", "reason", "changes", "risk"]) {
+    if (typeof s[key] !== "string") return false;
+  }
+
+  // 确认审批快照与内容哈希一致
+  const snapshotHash = computeContentHash(s);
+
+  if (snapshotHash !== entry.contentHash) return false;
+
   return true;
 }
 function hasChildVersions(req) {
@@ -335,16 +380,30 @@ function hasChildVersions(req) {
   return requests.some(r => r && r.parentId === req.id);
 }
 
-/* ========== 存储事务 ========== */
+/* ========== 备份与恢复 ========== */
 function backupStorageKeys(keys) {
   const backup = {};
-  keys.forEach(key => {
-    try { const v = localStorage.getItem(key); backup[key] = { existed: v !== null, value: v }; }
-    catch (e) { backup[key] = { existed: false, value: null }; }
-  });
+
+  for (const key of keys) {
+    try {
+      const value = localStorage.getItem(key);
+
+      backup[key] = {
+        existed: value !== null,
+        value: value
+      };
+
+    } catch (e) {
+      // 任何一个键读取失败，都不允许继续导入
+      console.error("备份读取失败：", key, e);
+      return null;
+    }
+  }
+
   return backup;
 }
 function verifyBackup(backup) {
+  if (!backup) return false;
   for (const key of Object.keys(backup)) {
     try {
       const c = localStorage.getItem(key);
@@ -356,6 +415,7 @@ function verifyBackup(backup) {
   return true;
 }
 function restoreBackup(backup) {
+  if (!backup) return false;
   let ok = true;
   for (const key of Object.keys(backup)) {
     try {
@@ -368,8 +428,11 @@ function restoreBackup(backup) {
   return verifyBackup(backup);
 }
 
+/* ========== 稳定序列化 / Store 校验 ========== */
 function stableStringify(value) {
-  if (Array.isArray(value)) return "[" + value.map(stableStringify).join(",") + "]";
+  if (Array.isArray(value)) {
+    return "[" + value.map(stableStringify).join(",") + "]";
+  }
   if (value && typeof value === "object") {
     return "{" + Object.keys(value).sort().filter(k => value[k] !== undefined).map(k =>
       JSON.stringify(k) + ":" + stableStringify(value[k])
@@ -394,6 +457,14 @@ function storesEqual(a, b) {
   try { if (!validStore(a) || !validStore(b)) return false; return stableStringify(a) === stableStringify(b); }
   catch (e) { return false; }
 }
+
+/* ========== 安全保存 ========== */
+function saveStore(nextStore) {
+  try {
+    localStorage.setItem(KEY.store, JSON.stringify(nextStore));
+    return true;
+  } catch (e) { return false; }
+}
 function saveStoreAndVerify(nextStore) {
   let original;
   try {
@@ -416,22 +487,55 @@ function saveStoreAndVerify(nextStore) {
     return false;
   }
 }
-function commitStore(nextRequests, nextActiveId, expectedBaseRequests) {
-  if (Array.isArray(expectedBaseRequests)) {
-    const current = loadJSON(KEY.store, null);
-    const currentReqs = (current && Array.isArray(current.requests)) ? current.requests : [];
+
+/* ========== 提交 Store：完整状态乐观并发检查 ========== */
+function commitStore(nextRequests, nextActiveId, expectedBaseStore) {
+
+  // 检查完整原始数据，防止覆盖其他标签页的修改
+  if (expectedBaseStore && typeof expectedBaseStore === "object") {
     try {
-      if (stableStringify(currentReqs) !== stableStringify(expectedBaseRequests)) {
-        toast("数据已被其他标签页修改，请刷新后重试", "danger");
+      const raw = localStorage.getItem(KEY.store);
+
+      if (raw === null) {
+        toast("数据已发生变化，请刷新后重试", "danger");
         return false;
       }
-    } catch (e) { toast("并发校验失败，请刷新后重试", "danger"); return false; }
+
+      const latest = JSON.parse(raw);
+
+      if (!validStore(latest) ||
+          stableStringify(latest) !== stableStringify(expectedBaseStore)) {
+        toast("检测到其他标签页修改，请刷新后重试", "danger");
+        return false;
+      }
+
+    } catch (e) {
+      toast("并发检查失败，已阻止保存", "danger");
+      return false;
+    }
   }
-  const nextStore = { schemaVersion: SCHEMA_VERSION, requests: nextRequests, activeId: nextActiveId };
-  if (!validStore(nextStore)) { toast("数据校验失败，已阻止保存", "danger"); return false; }
-  if (!saveStoreAndVerify(nextStore)) { toast("保存失败，已尝试恢复原始数据", "danger"); return false; }
-  store = nextStore; requests = nextStore.requests; activeId = nextStore.activeId;
+
+  const nextStore = {
+    schemaVersion: SCHEMA_VERSION,
+    requests: nextRequests,
+    activeId: nextActiveId
+  };
+
+  if (!validStore(nextStore)) {
+    toast("数据校验失败，已阻止保存", "danger");
+    return false;
+  }
+
+  if (!saveStoreAndVerify(nextStore)) {
+    toast("保存失败，已尝试恢复原始数据", "danger");
+    return false;
+  }
+
+  store = nextStore;
+  requests = nextStore.requests;
+  activeId = nextStore.activeId;
   currentRequest = requests.find(r => r.id === activeId) || null;
+
   return true;
 }
 
@@ -497,7 +601,7 @@ function sanitizeLoadedRequests(list, source) {
   return { requests: out, quarantined };
 }
 
-/* ========== 编号 ========== */
+/* ========== 编号生成 ========== */
 function generateRequestId(existingIds) {
   const used = new Set(existingIds || []);
   for (let i = 0; i < 100; i++) {
@@ -509,7 +613,7 @@ function generateRequestId(existingIds) {
   throw new Error("无法生成唯一申请编号，请稍后重试");
 }
 
-/* ========== 迁移 ========== */
+/* ========== 旧数据迁移 ========== */
 function normalizeLegacyRequest(raw) {
   const id = (typeof raw.id === "string" && /^REQ-\d+$/.test(raw.id)) ? raw.id
     : (function () { try { return generateRequestId([]); } catch (e) { return "REQ-" + Date.now(); } })();
@@ -1062,7 +1166,6 @@ function startEditFrom(req) {
   if (!["退回重新讨论","用户已批准（待接入执行引擎）","用户已拒绝"].includes(req.status)) {
     toast("当前状态不支持基于此申请修改", "warning"); return;
   }
-  /* 新增：已有子版本时，不允许再做退回修订/后续修改；reference 不受影响 */
   if (req.status !== "用户已拒绝" && hasChildVersions(req)) {
     toast("该申请已有后续版本，请基于最新版本操作（" + req.id + " 已有子版本）", "warning");
     return;
@@ -1080,7 +1183,7 @@ function editFromActive() { if (currentRequest) startEditFrom(currentRequest); }
 function editFromId(id) { const req = requests.find(r => r.id === id); if (req) startEditFrom(req); }
 function cancelEdit() { editingParent = null; hideEditHint(); clearForm(); clearDraft(); }
 
-/* ========== 提交申请 ========== */
+/* ========== 提交申请（传入完整 store 做并发检查） ========== */
 function createRequest() {
   const latestStore = loadJSON(KEY.store, null);
   if (!latestStore || typeof latestStore !== "object" || !Array.isArray(latestStore.requests)) {
@@ -1092,7 +1195,7 @@ function createRequest() {
   const pendingInLatest = latestRequests.find(r => r.status === "待用户审批");
   if (pendingInLatest) {
     toast("检测到其他标签页有申请等待审批（" + pendingInLatest.id + "）", "warning");
-    if (commitStore(latestRequests, pendingInLatest.id, latestRequests)) {
+    if (commitStore(latestRequests, pendingInLatest.id, latestStore)) {
       renderApproval(); renderArchive();
       $("sec-approval").scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -1118,7 +1221,6 @@ function createRequest() {
     }
   }
 
-  /* 防御性检查：已有子版本时禁止 revision/followup */
   if (editingParent && relation !== RELATION.REFERENCE && hasChildVersions(editingParent)) {
     toast("该申请已有后续版本，不能再次创建退回修订/后续修改", "warning");
     return;
@@ -1142,7 +1244,7 @@ function createRequest() {
   req.contentHash = computeContentHash(req);
 
   const nextRequests = [req, ...latestRequests];
-  if (!commitStore(nextRequests, req.id, latestRequests)) return;
+  if (!commitStore(nextRequests, req.id, latestStore)) return;
 
   editingParent = null; hideEditHint(); clearForm(); clearDraft();
   archivePage = 1; saveJSON(KEY.page, 1);
@@ -1153,7 +1255,7 @@ function createRequest() {
   $("sec-approval").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-/* ========== 审批（含版本核对、快照、追加检查） ========== */
+/* ========== 审批（完整对象核对 + 快照哈希 + 只追加） ========== */
 function decide(status, message, extraClass, actionName) {
   if (!currentRequest) { toast("没有待处理的申请", "warning"); return; }
   if (currentRequest.status !== "待用户审批") { toast("这份申请已经处理过，不能重复审批", "warning"); return; }
@@ -1173,11 +1275,8 @@ function decide(status, message, extraClass, actionName) {
     renderApproval(); renderArchive(); return;
   }
 
-  /* 审批版本核对：防止审批旧内容 */
-  if (target.version !== currentRequest.version ||
-      target.time !== currentRequest.time ||
-      (target.history || []).length !== (currentRequest.history || []).length ||
-      target.contentHash !== currentRequest.contentHash) {
+  /* 完整对象核对：版本、时间、历史、快照、哈希，任一处不同都视为已变化 */
+  if (stableStringify(target) !== stableStringify(currentRequest)) {
     toast("该申请在你审批期间已被修改，已为你刷新，请重新审阅", "warning");
     store = { schemaVersion: SCHEMA_VERSION, requests: baseRequests, activeId: target.id };
     requests = baseRequests; activeId = target.id; currentRequest = target;
@@ -1185,7 +1284,6 @@ function decide(status, message, extraClass, actionName) {
     return;
   }
 
-  /* 防篡改：如果当前内容哈希与审批记录里的最新哈希不一致，说明内容被改过 */
   if (isContentTampered(target)) {
     toast("内容篡改警告：当前内容与上次审批时不一致，请核实", "danger");
     return;
@@ -1205,7 +1303,6 @@ function decide(status, message, extraClass, actionName) {
   };
   const newHistory = (target.history || []).concat([newEntry]);
 
-  /* 历史只允许追加，不允许覆盖 */
   if (!validateHistoryAppend(target.history || [], newHistory)) {
     toast("审批历史异常（只允许追加，不允许覆盖），已阻止保存", "danger");
     return;
@@ -1218,7 +1315,7 @@ function decide(status, message, extraClass, actionName) {
   });
 
   const nextRequests = baseRequests.map(r => r.id === updated.id ? updated : r);
-  if (!commitStore(nextRequests, updated.id, baseRequests)) return;
+  if (!commitStore(nextRequests, updated.id, latestStore)) return;
 
   renderApproval(); renderArchive(); refreshDataInfo();
   setApprovalMessage(message, extraClass);
@@ -1411,7 +1508,6 @@ function validateImportSafe(rawData) {
     else if (sv !== 3) return { ok: false, errors: ["schemaVersion 必须是 2 或 3"] };
     const full = validateImportFull(data);
     if (!full.valid) return { ok: false, errors: full.errors };
-    /* 导入时补算缺失的 contentHash */
     for (const r of data.requests) {
       if (typeof r.contentHash !== "string" || !r.contentHash) {
         r.contentHash = computeContentHash(r);
@@ -1444,6 +1540,16 @@ function verifyBundle(bundle) {
 function commitImportBundle(bundle) {
   const keys = [KEY.store, KEY.logs, KEY.meetings, KEY.meeting, KEY.filter, KEY.page, KEY.theme];
   const backup = backupStorageKeys(keys);
+
+  // 备份失败（键读取异常）时禁止继续导入，避免误把原数据当作不存在
+  if (!backup) {
+    return {
+      success: false,
+      rolledBack: false,
+      message: "无法完整备份现有数据，已取消导入。"
+    };
+  }
+
   try {
     localStorage.setItem(KEY.store, JSON.stringify(bundle.store));
     localStorage.setItem(KEY.logs, JSON.stringify(bundle.logs));
@@ -1518,6 +1624,13 @@ function clearAllData() {
   const keys = [KEY.store, KEY.legacyRequests, KEY.legacyActive, KEY.legacyRequest,
     KEY.logs, KEY.meetings, KEY.meeting, KEY.filter, KEY.page, KEY.draft];
   const backup = backupStorageKeys(keys);
+
+  // 备份失败时取消清除，避免把读失败误当作不存在
+  if (!backup) {
+    toast("无法完整备份现有数据，已取消清除操作。", "danger");
+    return;
+  }
+
   let deleteFailed = false;
   try { keys.forEach(k => localStorage.removeItem(k)); }
   catch (e) { deleteFailed = true; }
