@@ -278,159 +278,239 @@ footer {
 </main>
 
 <script>
+const $ = id => document.getElementById(id);
 
-let currentPhase = 0;
-let currentQuestion = "";
+let stage = 0;
+let logs = JSON.parse(localStorage.getItem("council_logs") || "[]");
+let currentRequest = JSON.parse(localStorage.getItem("council_request") || "null");
 
-const phaseNames = [
-  "独立分析",
-  "交叉质疑",
-  "最终裁判"
-];
+function saveData() {
+    localStorage.setItem("council_logs", JSON.stringify(logs.slice(0, 50)));
+    localStorage.setItem("council_request", JSON.stringify(currentRequest));
+    renderHistory();
+}
+
+function addLog(title, detail) {
+    logs.unshift({
+        time: new Date().toLocaleString(),
+        title,
+        detail
+    });
+    saveData();
+}
 
 function startMeeting() {
+    const q = $("question").value.trim();
+    if (!q) return alert("请先输入会议问题");
 
-  const question = document.getElementById("question").value.trim();
-
-  if (!question) {
-    alert("请先输入会议议题。");
-    return;
-  }
-
-  currentQuestion = question;
-  currentPhase = 0;
-
-  document.getElementById("meeting").style.display = "block";
-  document.getElementById("meetingQuestion").innerText =
-    "会议议题：" + question;
-
-  updatePhase();
-
-  document.getElementById("meeting").scrollIntoView({
-    behavior: "smooth"
-  });
+    stage = 1;
+    $("meeting").style.display = "block";
+    updateMeeting();
+    addLog("发起会议", q);
 }
 
-function updatePhase() {
+function updateMeeting() {
+    ["s1", "s2", "s3"].forEach((id, i) => {
+        $(id).className = "step " +
+            (i + 1 < stage ? "done" :
+            i + 1 === stage ? "active" : "");
+    });
 
-  for (let i = 0; i < 3; i++) {
+    const q = $("question").value;
 
-    const box = document.getElementById("phase" + i);
+    const texts = {
+        1: "会议议题：\n" + q +
+        "\n\nGPT：待接入真实模型，负责组织分析。" +
+        "\nClaude：待接入真实模型，负责代码审查。" +
+        "\nGemini：待接入真实模型，负责数据分析。" +
+        "\nDeepSeek：待接入真实模型，负责量化研究。" +
+        "\n\n当前为流程演示。",
 
-    box.className = "phase";
+        2: "交叉质疑阶段\n\n未来各模型将审查其他成员的分析，指出逻辑漏洞、数据问题和潜在风险。\n\n当前尚未调用真实模型。",
 
-    if (i < currentPhase) {
-      box.classList.add("done");
+        3: "最终结论阶段\n\n未来汇总各模型的共同意见、分歧、证据、风险和建议。\n\n所有修改建议必须经过用户审批。\n\n当前为流程演示。"
+    };
+
+    $("meetingText").textContent = texts[stage];
+
+    const nextButton = $("meetingText").nextElementSibling;
+    nextButton.disabled = stage === 3;
+
+    if (stage === 3) {
+        $("meetingText").textContent += "\n\n会议流程演示结束。";
+    }
+}
+
+function nextStage() {
+    if (stage < 3) {
+        stage++;
+        updateMeeting();
+    }
+}
+
+// 创建新申请，或重新提交被退回的申请
+function createRequest() {
+    const project = $("project").value.trim();
+    const reason = $("reason").value.trim();
+    const changes = $("changes").value.trim();
+    const risk = $("risk").value.trim();
+
+    if (!project || !reason || !changes || !risk) {
+        return alert("请完整填写修改申请。");
     }
 
-    if (i === currentPhase) {
-      box.classList.add("active");
+    if (currentRequest &&
+        ["已批准（待接入执行引擎）", "已拒绝"].includes(currentRequest.status)) {
+        return alert("该申请已经结束，请勿重复提交。");
     }
-  }
 
-  document.getElementById("phaseNotice").innerText =
-    "当前阶段：" + phaseNames[currentPhase] +
-    "。此阶段尚未调用真实 AI 模型。";
+    const oldId = currentRequest ? currentRequest.id : null;
 
-  document.getElementById("nextButton").innerText =
-    currentPhase === 2 ? "完成会议演示" : "进入下一阶段";
+    currentRequest = {
+        id: "REQ-" + Date.now(),
+        project,
+        reason,
+        changes,
+        risk,
+        status: "待用户审批",
+        time: new Date().toLocaleString(),
+        previousId: oldId
+    };
+
+    addLog(
+        oldId ? "重新提交修改申请" : "提交修改申请",
+        currentRequest.id + " · " + project
+    );
+
+    renderApproval();
+    $("approvalCard").scrollIntoView({ behavior: "smooth" });
 }
 
-function nextPhase() {
+// 审批操作
+function decide(status, message) {
+    if (!currentRequest) {
+        return alert("没有待处理的申请。");
+    }
 
-  if (currentPhase < 2) {
+    if (currentRequest.status !== "待用户审批") {
+        return alert("该申请已经处理，不能重复审批。");
+    }
 
-    currentPhase++;
+    currentRequest.status = status;
 
-    updatePhase();
+    addLog(status, currentRequest.id + " · " + currentRequest.project);
 
-  } else {
-
-    saveMeeting();
-
-    alert("会议流程演示结束，记录已保存在当前浏览器。");
-
-    resetMeeting();
-  }
+    $("approvalMessage").textContent = message;
+    renderApproval();
 }
 
-function saveMeeting() {
+function approve() {
+    decide(
+        "已批准（待接入执行引擎）",
+        "批准已记录。当前版本不会实际修改任何代码。"
+    );
+}
 
-  let history = JSON.parse(
-    localStorage.getItem("aiCouncilHistory") || "[]"
-  );
+function returnDiscussion() {
+    decide(
+        "已退回",
+        "申请已退回。请修改方案后重新提交。"
+    );
 
-  history.unshift({
-    question: currentQuestion,
-    date: new Date().toLocaleString(),
-    type: "流程演示（未调用真实模型）"
-  });
+    // 把原申请内容放回输入框，方便修改
+    $("project").value = currentRequest.project;
+    $("reason").value = currentRequest.reason;
+    $("changes").value = currentRequest.changes;
+    $("risk").value = currentRequest.risk;
 
-  history = history.slice(0, 30);
+    $("approvalCard").scrollIntoView({ behavior: "smooth" });
+}
 
-  localStorage.setItem(
-    "aiCouncilHistory",
-    JSON.stringify(history)
-  );
+function reject() {
+    decide(
+        "已拒绝",
+        "本次申请已终止，不会执行。"
+    );
+}
 
-  renderHistory();
+// 根据申请状态控制审批按钮
+function renderApproval() {
+    if (!currentRequest) {
+        $("approvalCard").style.display = "none";
+        return;
+    }
+
+    $("approvalCard").style.display = "block";
+
+    $("requestInfo").textContent =
+        "申请编号：" + currentRequest.id +
+        "\n项目：" + currentRequest.project +
+        "\n原因：" + currentRequest.reason +
+        "\n计划修改：" + currentRequest.changes +
+        "\n风险评估：" + currentRequest.risk +
+        "\n申请时间：" + currentRequest.time +
+        "\n当前状态：" + currentRequest.status;
+
+    const buttons = $("approvalCard").querySelectorAll("button");
+
+    const pending = currentRequest.status === "待用户审批";
+
+    buttons[0].disabled = !pending;
+    buttons[1].disabled = !pending;
+    buttons[2].disabled = !pending;
+
+    if (currentRequest.status === "已退回") {
+        $("approvalMessage").textContent =
+            "申请已退回。请修改上方内容，再点击提交修改申请。";
+    } else if (currentRequest.status === "已拒绝") {
+        $("approvalMessage").textContent =
+            "申请已终止，不能再次审批。";
+    } else if (currentRequest.status === "已批准（待接入执行引擎）") {
+        $("approvalMessage").textContent =
+            "已记录批准，等待未来接入安全执行引擎。";
+    } else {
+        $("approvalMessage").textContent = "请审阅申请内容。";
+    }
+}
+
+function escapeHTML(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    }[c]));
 }
 
 function renderHistory() {
+    if (!logs.length) {
+        $("history").innerHTML =
+            '<p class="muted">暂无记录</p>';
+        return;
+    }
 
-  const history = JSON.parse(
-    localStorage.getItem("aiCouncilHistory") || "[]"
-  );
-
-  const box = document.getElementById("history");
-
-  if (history.length === 0) {
-    box.innerHTML =
-      '<p style="color:#9ba8bb">暂无会议记录。</p>';
-    return;
-  }
-
-  box.innerHTML = "";
-
-  history.forEach(item => {
-
-    const div = document.createElement("div");
-
-    div.className = "record";
-
-    const title = document.createElement("strong");
-    title.textContent = item.question;
-
-    const info = document.createElement("small");
-    info.textContent = item.date + " · " + item.type;
-
-    div.appendChild(title);
-    div.appendChild(info);
-
-    box.appendChild(div);
-  });
-}
-
-function resetMeeting() {
-
-  document.getElementById("meeting").style.display = "none";
-
-  currentPhase = 0;
-  currentQuestion = "";
+    $("history").innerHTML = logs.map(x =>
+        '<div class="history"><strong>' +
+        escapeHTML(x.title) +
+        '</strong><div class="muted">' +
+        escapeHTML(x.time) +
+        '</div><div>' +
+        escapeHTML(x.detail) +
+        '</div></div>'
+    ).join("");
 }
 
 function clearHistory() {
-
-  if (confirm("确定清空本地会议记录吗？")) {
-
-    localStorage.removeItem("aiCouncilHistory");
-
-    renderHistory();
-  }
+    if (confirm("确定清除本地操作记录吗？")) {
+        logs = [];
+        saveData();
+    }
 }
 
+// 页面初始化
 renderHistory();
-
+renderApproval();
 </script>
 
 </body>
