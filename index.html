@@ -6,42 +6,8 @@
 <meta name="color-scheme" content="dark light">
 <title>AI COUNCIL V2.0</title>
 <style>
-:root{
-  --bg:#0b1020;--card:#141d30;--card2:#1c2940;--panel:#0d1526;
-  --border:#293650;--input-bg:#0d1526;--input-border:#354663;
-  --text:#e8edf8;--muted:#94a5c1;--soft:#a9bad5;
-  --grad1:#172b50;--grad2:#111827;
-  --primary:#3978ed;--green:#16794d;--red:#9b3545;--gray:#34435c;--orange:#9a6820;
-  --warn-bg:#292417;--warn-text:#f3d69d;--warn-border:#e6a33b;
-  --step-bg:#26334b;--step-active:#2457a7;--step-done:#176344;--step-text:#9bacc7;
-  --success:#6de0a4;--danger:#ff929e;
-  --tag-pending-bg:#3b3018;--tag-pending-text:#f6c66b;
-  --tag-approved-bg:#123a28;--tag-approved-text:#6de0a4;
-  --tag-returned-bg:#3a2c12;--tag-returned-text:#f3b56b;
-  --tag-rejected-bg:#3a1a1e;--tag-rejected-text:#ff929e;
-  --tag-unknown-bg:#2e3440;--tag-unknown-text:#b8c2d0;
-  --demo-bg:#3a2a12;--demo-border:#5c4318;--demo-text:#f3d69d;
-  --toast-bg:#1c2940;--toast-border:#3978ed;
-  --shadow:0 8px 24px rgba(0,0,0,.35);
-}
-body.light-theme{
-  --bg:#eef2f9;--card:#ffffff;--card2:#f0f4fb;--panel:#f5f8fc;
-  --border:#d6dde8;--input-bg:#ffffff;--input-border:#c8d2e0;
-  --text:#1f2937;--muted:#5b6b82;--soft:#4b5b73;
-  --grad1:#dae3f5;--grad2:#eef2f9;
-  --primary:#2563eb;--green:#15803d;--red:#b91c1c;--gray:#64748b;--orange:#b45309;
-  --warn-bg:#fef3c7;--warn-text:#92400e;--warn-border:#f59e0b;
-  --step-bg:#e2e8f0;--step-active:#2563eb;--step-done:#16a34a;--step-text:#64748b;
-  --success:#15803d;--danger:#b91c1c;
-  --tag-pending-bg:#fef3c7;--tag-pending-text:#92400e;
-  --tag-approved-bg:#dcfce7;--tag-approved-text:#15803d;
-  --tag-returned-bg:#ffedd5;--tag-returned-text:#c2410c;
-  --tag-rejected-bg:#fee2e2;--tag-rejected-text:#b91c1c;
-  --tag-unknown-bg:#e5e7eb;--tag-unknown-text:#4b5563;
-  --demo-bg:#fef3c7;--demo-border:#f59e0b;--demo-text:#92400e;
-  --toast-bg:#ffffff;--toast-border:#2563eb;
-  --shadow:0 8px 24px rgba(15,23,42,.15);
-}
+:root{--bg:#0b1020;--card:#141d30;--card2:#1c2940;--panel:#0d1526;--border:#293650;--input-bg:#0d1526;--input-border:#354663;--text:#e8edf8;--muted:#94a5c1;--soft:#a9bad5;--grad1:#172b50;--grad2:#111827;--primary:#3978ed;--green:#16794d;--red:#9b3545;--gray:#34435c;--orange:#9a6820;--warn-bg:#292417;--warn-text:#f3d69d;--warn-border:#e6a33b;--step-bg:#26334b;--step-active:#2457a7;--step-done:#176344;--step-text:#9bacc7;--success:#6de0a4;--danger:#ff929e;--tag-pending-bg:#3b3018;--tag-pending-text:#f6c66b;--tag-approved-bg:#123a28;--tag-approved-text:#6de0a4;--tag-returned-bg:#3a2c12;--tag-returned-text:#f3b56b;--tag-rejected-bg:#3a1a1e;--tag-rejected-text:#ff929e;--tag-unknown-bg:#2e3440;--tag-unknown-text:#b8c2d0;--demo-bg:#3a2a12;--demo-border:#5c4318;--demo-text:#f3d69d;--toast-bg:#1c2940;--toast-border:#3978ed;--shadow:0 8px 24px rgba(0,0,0,.35)}
+body.light-theme{--bg:#eef2f9;--card:#ffffff;--card2:#f0f4fb;--panel:#f5f8fc;--border:#d6dde8;--input-bg:#ffffff;--input-border:#c8d2e0;--text:#1f2937;--muted:#5b6b82;--soft:#4b5b73;--grad1:#dae3f5;--grad2:#eef2f9;--primary:#2563eb;--green:#15803d;--red:#b91c1c;--gray:#64748b;--orange:#b45309;--warn-bg:#fef3c7;--warn-text:#92400e;--warn-border:#f59e0b;--step-bg:#e2e8f0;--step-active:#2563eb;--step-done:#16a34a;--step-text:#64748b;--success:#15803d;--danger:#b91c1c;--tag-pending-bg:#fef3c7;--tag-pending-text:#92400e;--tag-approved-bg:#dcfce7;--tag-approved-text:#15803d;--tag-returned-bg:#ffedd5;--tag-returned-text:#c2410c;--tag-rejected-bg:#fee2e2;--tag-rejected-text:#b91c1c;--tag-unknown-bg:#e5e7eb;--tag-unknown-text:#4b5563;--demo-bg:#fef3c7;--demo-border:#f59e0b;--demo-text:#92400e;--toast-bg:#ffffff;--toast-border:#2563eb;--shadow:0 8px 24px rgba(15,23,42,.15)}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:background .25s,color .25s}
@@ -50,13 +16,7 @@ header{padding:22px 18px 0;background:linear-gradient(135deg,var(--grad1),var(--
 h1{margin:0;font-size:25px;letter-spacing:1px}
 header p{color:var(--soft);font-size:13px;margin:8px 0 0}
 .icon-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:9px;font-size:14px;cursor:pointer;line-height:1}
-.anchor-nav{
-  display:flex;gap:4px;overflow-x:auto;padding:10px 18px;margin:0;
-  border-top:1px solid var(--border);
-  position:sticky;top:0;z-index:30;
-  background:linear-gradient(135deg,var(--grad1),var(--grad2));
-  -webkit-overflow-scrolling:touch;scrollbar-width:none;
-}
+.anchor-nav{display:flex;gap:4px;overflow-x:auto;padding:10px 18px;margin:0;border-top:1px solid var(--border);position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--grad1),var(--grad2));-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .anchor-nav::-webkit-scrollbar{display:none}
 .anchor-nav a{color:var(--soft);text-decoration:none;font-size:12px;padding:6px 10px;border-radius:8px;white-space:nowrap;background:rgba(255,255,255,.06)}
 .anchor-nav a:hover{color:var(--text);background:rgba(255,255,255,.14)}
@@ -271,100 +231,48 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div id="toast" class="toast"></div>
 
 <script>
-/* ============================================================
- * 常量
- * ========================================================== */
 const $ = id => document.getElementById(id);
 const KEY = {
-  logs: "council_logs",
-  store: "council_store",
-  legacyRequests: "council_requests",
-  legacyActive: "council_active",
-  legacyRequest: "council_request",
-  meeting: "council_meeting",
-  meetings: "council_meetings",
-  filter: "council_filter",
-  page: "council_archive_page",
-  draft: "council_draft",
-  theme: "council_theme"
+  logs: "council_logs", store: "council_store",
+  legacyRequests: "council_requests", legacyActive: "council_active", legacyRequest: "council_request",
+  meeting: "council_meeting", meetings: "council_meetings",
+  filter: "council_filter", page: "council_archive_page",
+  draft: "council_draft", theme: "council_theme"
 };
 const SCHEMA_VERSION = 3;
 const PAGE_SIZE = 5;
-
-const VALID_STATUSES = [
-  "待用户审批",
-  "用户已批准（待接入执行引擎）",
-  "退回重新讨论",
-  "用户已拒绝"
-];
-
+const VALID_STATUSES = ["待用户审批","用户已批准（待接入执行引擎）","退回重新讨论","用户已拒绝"];
 const STATUS_MAP = {
   "待用户审批": { cls: "pending", label: "待审批" },
   "用户已批准（待接入执行引擎）": { cls: "approved", label: "已批准" },
   "退回重新讨论": { cls: "returned", label: "已退回" },
   "用户已拒绝": { cls: "rejected", label: "已拒绝" }
 };
+const RELATION = { REVISION: "revision", FOLLOWUP: "followup", REFERENCE: "reference" };
 
-const RELATION = {
-  REVISION: "revision",
-  FOLLOWUP: "followup",
-  REFERENCE: "reference"
-};
-
-/* ============================================================
- * 安全读写
- * ========================================================== */
 function loadJSON(k, fb) {
-  try {
-    const r = localStorage.getItem(k);
-    if (!r) return fb;
-    const v = JSON.parse(r);
-    return v == null ? fb : v;
-  } catch (e) {
-    return fb;
-  }
+  try { const r = localStorage.getItem(k); if (!r) return fb; const v = JSON.parse(r); return v == null ? fb : v; }
+  catch (e) { return fb; }
 }
 function saveJSON(k, v) {
-  try {
-    localStorage.setItem(k, JSON.stringify(v));
-    return true;
-  } catch (e) {
-    return false;
-  }
+  try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; }
 }
 function removeJSON(k) {
-  try {
-    localStorage.removeItem(k);
-    return true;
-  } catch (e) {
-    return false;
-  }
+  try { localStorage.removeItem(k); return true; } catch (e) { return false; }
 }
-function nowStr() {
-  return new Date().toLocaleString();
-}
+function nowStr() { return new Date().toLocaleString(); }
 function escapeHTML(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[c]));
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 function requestTimestamp(r) {
   const m = /^REQ-(\d+)$/.exec((r && r.id) || "");
   return m ? Number(m[1]) : 0;
 }
 
-/* ============================================================
- * 状态
- * ========================================================== */
 let store = { schemaVersion: SCHEMA_VERSION, requests: [], activeId: null };
 let requests = [];
 let activeId = null;
 let currentRequest = null;
-
 let logs = [];
 let meetingHistory = [];
 let meeting = { stage: 0, topic: "", startedAt: null, id: null };
@@ -375,269 +283,191 @@ let editingParent = null;
 let draftTimer = null;
 let storageWarned = false;
 
-/* ============================================================
- * 状态合法性
- * ========================================================== */
 function isValidStatus(s) {
   if (typeof s !== "string") return false;
   if (VALID_STATUSES.includes(s)) return true;
   return /^待核实（原状态：.{0,80}）$/.test(s);
 }
-function statusInfo(s) {
-  return STATUS_MAP[s] || { cls: "unknown", label: "待核实" };
-}
+function statusInfo(s) { return STATUS_MAP[s] || { cls: "unknown", label: "待核实" }; }
 
-/* ============================================================
- * 存储备份 / 恢复（用于导入与清除全部数据）
- * ========================================================== */
-function backupStorageKeys(keys) {
-  const backup = {};
-  keys.forEach(key => {
-    try {
-      const value = localStorage.getItem(key);
-      backup[key] = { existed: value !== null, value };
-    } catch (e) {
-      backup[key] = { existed: false, value: null };
-    }
-  });
-  return backup;
+/* ========== 内容快照与哈希（防篡改） ========== */
+function simpleHash(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+  return h.toString(16).padStart(8, "0");
 }
-
-function verifyBackup(backup) {
-  for (const key of Object.keys(backup)) {
-    try {
-      const current = localStorage.getItem(key);
-      const target = backup[key];
-      if (target.existed) {
-        if (current !== target.value) return false;
-      } else {
-        if (current !== null) return false;
-      }
-    } catch (e) {
-      return false;
-    }
+function computeContentHash(req) {
+  if (!req) return "";
+  try {
+    return simpleHash(stableStringify({
+      project: String(req.project || ""),
+      reason: String(req.reason || ""),
+      changes: String(req.changes || ""),
+      risk: String(req.risk || "")
+    }));
+  } catch (e) { return ""; }
+}
+function getLatestApprovalHash(req) {
+  if (!req || !Array.isArray(req.history)) return null;
+  for (let i = req.history.length - 1; i >= 0; i--) {
+    const h = req.history[i];
+    if (h && typeof h.contentHash === "string" && h.contentHash) return h.contentHash;
+  }
+  return null;
+}
+function isContentTampered(req) {
+  const approvedHash = getLatestApprovalHash(req);
+  if (!approvedHash) return false;
+  return computeContentHash(req) !== approvedHash;
+}
+function validateHistoryAppend(oldHistory, newHistory) {
+  if (!Array.isArray(oldHistory) || !Array.isArray(newHistory)) return false;
+  if (newHistory.length !== oldHistory.length + 1) return false;
+  for (let i = 0; i < oldHistory.length; i++) {
+    const a = oldHistory[i], b = newHistory[i];
+    if (!a || !b) return false;
+    if (a.time !== b.time || a.action !== b.action || a.note !== b.note) return false;
   }
   return true;
 }
+function hasChildVersions(req) {
+  if (!req) return false;
+  return requests.some(r => r && r.parentId === req.id);
+}
 
-function restoreBackup(backup) {
-  let writeOk = true;
+/* ========== 存储事务 ========== */
+function backupStorageKeys(keys) {
+  const backup = {};
+  keys.forEach(key => {
+    try { const v = localStorage.getItem(key); backup[key] = { existed: v !== null, value: v }; }
+    catch (e) { backup[key] = { existed: false, value: null }; }
+  });
+  return backup;
+}
+function verifyBackup(backup) {
   for (const key of Object.keys(backup)) {
     try {
-      const target = backup[key];
-      if (target.existed) {
-        localStorage.setItem(key, target.value);
-      } else {
-        localStorage.removeItem(key);
-      }
-    } catch (e) {
-      writeOk = false;
-    }
+      const c = localStorage.getItem(key);
+      const t = backup[key];
+      if (t.existed) { if (c !== t.value) return false; }
+      else { if (c !== null) return false; }
+    } catch (e) { return false; }
   }
-  if (!writeOk) return false;
+  return true;
+}
+function restoreBackup(backup) {
+  let ok = true;
+  for (const key of Object.keys(backup)) {
+    try {
+      const t = backup[key];
+      if (t.existed) localStorage.setItem(key, t.value);
+      else localStorage.removeItem(key);
+    } catch (e) { ok = false; }
+  }
+  if (!ok) return false;
   return verifyBackup(backup);
 }
 
-/* ============================================================
- * 第五轮：完整数据比较与安全保存
- * ========================================================== */
 function stableStringify(value) {
-  if (Array.isArray(value)) {
-    return "[" + value.map(stableStringify).join(",") + "]";
-  }
-
+  if (Array.isArray(value)) return "[" + value.map(stableStringify).join(",") + "]";
   if (value && typeof value === "object") {
-    return "{" + Object.keys(value).sort().filter(key => value[key] !== undefined).map(key =>
-      JSON.stringify(key) + ":" + stableStringify(value[key])
+    return "{" + Object.keys(value).sort().filter(k => value[k] !== undefined).map(k =>
+      JSON.stringify(k) + ":" + stableStringify(value[k])
     ).join(",") + "}";
   }
-
   return JSON.stringify(value);
 }
-
 function validStore(s) {
   if (!s || typeof s !== "object" || Array.isArray(s)) return false;
   if (!Array.isArray(s.requests)) return false;
-
   const ids = new Set();
-
   for (const r of s.requests) {
     if (!r || typeof r !== "object" || Array.isArray(r)) return false;
     if (typeof r.id !== "string" || !r.id.trim()) return false;
     if (ids.has(r.id)) return false;
     ids.add(r.id);
   }
-
-  if (s.activeId !== null &&
-      (typeof s.activeId !== "string" ||
-       !ids.has(s.activeId))) {
-    return false;
-  }
-
+  if (s.activeId !== null && (typeof s.activeId !== "string" || !ids.has(s.activeId))) return false;
   return true;
 }
-
 function storesEqual(a, b) {
-  try {
-    if (!validStore(a) || !validStore(b)) return false;
-    return stableStringify(a) === stableStringify(b);
-  } catch (e) {
-    return false;
-  }
+  try { if (!validStore(a) || !validStore(b)) return false; return stableStringify(a) === stableStringify(b); }
+  catch (e) { return false; }
 }
-
-/* 保留原样，当前无外部调用点；若需外部直接写 store，请改用 saveStoreAndVerify */
-function saveStore(nextStore) {
-  try {
-    localStorage.setItem(KEY.store, JSON.stringify(nextStore));
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
 function saveStoreAndVerify(nextStore) {
   let original;
-
   try {
     if (!validStore(nextStore)) return false;
-
     original = localStorage.getItem(KEY.store);
-
     const serialized = JSON.stringify(nextStore);
     if (typeof serialized !== "string") return false;
-
     localStorage.setItem(KEY.store, serialized);
-
     const savedRaw = localStorage.getItem(KEY.store);
     if (savedRaw === null) throw new Error("保存后无法读取");
-
     const saved = JSON.parse(savedRaw);
-
-    if (storesEqual(saved, JSON.parse(serialized))) {
-      return true;
-    }
-
+    if (storesEqual(saved, JSON.parse(serialized))) return true;
     throw new Error("保存数据与目标数据不一致");
-
   } catch (e) {
     try {
-      if (original === null || original === undefined) {
-        localStorage.removeItem(KEY.store);
-      } else {
-        localStorage.setItem(KEY.store, original);
-      }
-
-      if (localStorage.getItem(KEY.store) !== original) {
-        console.error("严重错误：原始数据恢复失败", e);
-      }
-    } catch (restoreError) {
-      console.error("严重错误：无法恢复原始数据", restoreError);
-    }
-
+      if (original === null || original === undefined) localStorage.removeItem(KEY.store);
+      else localStorage.setItem(KEY.store, original);
+      if (localStorage.getItem(KEY.store) !== original) console.error("严重错误：原始数据恢复失败", e);
+    } catch (re) { console.error("严重错误：无法恢复原始数据", re); }
     return false;
   }
 }
-
 function commitStore(nextRequests, nextActiveId, expectedBaseRequests) {
-  /* 并发保护：调用方若提供读取时的基础数据，先确认当前 store 未被其他标签页修改 */
   if (Array.isArray(expectedBaseRequests)) {
     const current = loadJSON(KEY.store, null);
-    const currentReqs = (current && Array.isArray(current.requests))
-      ? current.requests
-      : [];
+    const currentReqs = (current && Array.isArray(current.requests)) ? current.requests : [];
     try {
       if (stableStringify(currentReqs) !== stableStringify(expectedBaseRequests)) {
         toast("数据已被其他标签页修改，请刷新后重试", "danger");
         return false;
       }
-    } catch (e) {
-      toast("并发校验失败，请刷新后重试", "danger");
-      return false;
-    }
+    } catch (e) { toast("并发校验失败，请刷新后重试", "danger"); return false; }
   }
-
-  const nextStore = {
-    schemaVersion: SCHEMA_VERSION,
-    requests: nextRequests,
-    activeId: nextActiveId
-  };
-
-  if (!validStore(nextStore)) {
-    toast("数据校验失败，已阻止保存", "danger");
-    return false;
-  }
-
-  if (!saveStoreAndVerify(nextStore)) {
-    toast("保存失败，已尝试恢复原始数据", "danger");
-    return false;
-  }
-
-  store = nextStore;
-  requests = nextStore.requests;
-  activeId = nextStore.activeId;
+  const nextStore = { schemaVersion: SCHEMA_VERSION, requests: nextRequests, activeId: nextActiveId };
+  if (!validStore(nextStore)) { toast("数据校验失败，已阻止保存", "danger"); return false; }
+  if (!saveStoreAndVerify(nextStore)) { toast("保存失败，已尝试恢复原始数据", "danger"); return false; }
+  store = nextStore; requests = nextStore.requests; activeId = nextStore.activeId;
   currentRequest = requests.find(r => r.id === activeId) || null;
-
   return true;
 }
 
-/* ============================================================
- * 启动/迁移时的异常记录隔离（不静默丢弃）
- * ========================================================== */
+/* ========== 异常记录隔离 ========== */
 function makeQuarantineRequest(raw, index, source, knownIds) {
   const now = Date.now();
-  let id;
-  let attempt = 0;
-  do {
-    id = "REQ-" + (now + index * 1000 + attempt);
-    attempt++;
-  } while (knownIds.has(id) && attempt < 1000);
+  let id; let attempt = 0;
+  do { id = "REQ-" + (now + index * 1000 + attempt); attempt++; }
+  while (knownIds.has(id) && attempt < 1000);
   knownIds.add(id);
-
   let rawPreview = "";
-  try {
-    rawPreview = JSON.stringify(raw).slice(0, 200);
-  } catch (e) {
-    rawPreview = String(raw).slice(0, 200);
-  }
-
-  return {
-    id,
-    project: "[数据损坏待核实]",
+  try { rawPreview = JSON.stringify(raw).slice(0, 200); } catch (e) { rawPreview = String(raw).slice(0, 200); }
+  const req = {
+    id, project: "[数据损坏待核实]",
     reason: "启动或迁移时发现无法识别的申请记录（来源：" + source + "）",
     changes: "原始数据预览：" + rawPreview,
     risk: "该记录缺少必要字段，已保留为待核实，不会参与正常审批。",
-    status: "待核实（原状态：数据损坏）",
-    time: nowStr(),
-    parentId: null,
-    relation: null,
-    referenceId: null,
-    version: 1,
-    history: [{
-      time: nowStr(),
-      action: "隔离",
-      note: "自动隔离的异常记录，来源 " + source + "，索引 " + index
-    }]
+    status: "待核实（原状态：数据损坏）", time: nowStr(),
+    parentId: null, relation: null, referenceId: null, version: 1,
+    history: [{ time: nowStr(), action: "隔离", note: "自动隔离的异常记录，来源 " + source + "，索引 " + index }]
   };
+  req.contentHash = computeContentHash(req);
+  return req;
 }
-
 function sanitizeLoadedRequests(list, source) {
-  const out = [];
-  let quarantined = 0;
+  const out = []; let quarantined = 0;
   if (!Array.isArray(list)) return { requests: [], quarantined: 0 };
-
   const knownIds = new Set();
   for (const r of list) {
-    if (r && typeof r === "object" && !Array.isArray(r) &&
-        typeof r.id === "string" && r.id.trim()) {
+    if (r && typeof r === "object" && !Array.isArray(r) && typeof r.id === "string" && r.id.trim()) {
       knownIds.add(r.id);
     }
   }
-
   for (let i = 0; i < list.length; i++) {
     const r = list[i];
-    if (!r || typeof r !== "object" || Array.isArray(r) ||
-        typeof r.id !== "string" || !r.id.trim()) {
+    if (!r || typeof r !== "object" || Array.isArray(r) || typeof r.id !== "string" || !r.id.trim()) {
       out.push(makeQuarantineRequest(r, i, source, knownIds));
       quarantined++;
       continue;
@@ -653,25 +483,21 @@ function sanitizeLoadedRequests(list, source) {
     if (copy.relation === undefined) copy.relation = null;
     if (copy.referenceId === undefined) copy.referenceId = null;
     if (!Array.isArray(copy.history)) copy.history = [];
-
     if (!isValidStatus(copy.status)) {
       const original = String(copy.status == null ? "未知" : copy.status).slice(0, 80);
       copy.status = "待核实（原状态：" + original + "）";
-      copy.history.push({
-        time: nowStr(),
-        action: "状态待核实",
-        note: "原状态：" + original
-      });
+      copy.history.push({ time: nowStr(), action: "状态待核实", note: "原状态：" + original });
       quarantined++;
+    }
+    if (typeof copy.contentHash !== "string" || !copy.contentHash) {
+      copy.contentHash = computeContentHash(copy);
     }
     out.push(copy);
   }
   return { requests: out, quarantined };
 }
 
-/* ============================================================
- * 申请编号
- * ========================================================== */
+/* ========== 编号 ========== */
 function generateRequestId(existingIds) {
   const used = new Set(existingIds || []);
   for (let i = 0; i < 100; i++) {
@@ -683,25 +509,16 @@ function generateRequestId(existingIds) {
   throw new Error("无法生成唯一申请编号，请稍后重试");
 }
 
-/* ============================================================
- * 旧数据迁移
- * ========================================================== */
+/* ========== 迁移 ========== */
 function normalizeLegacyRequest(raw) {
-  const id = (typeof raw.id === "string" && /^REQ-\d+$/.test(raw.id))
-    ? raw.id
-    : (function () {
-        try { return generateRequestId([]); }
-        catch (e) { return "REQ-" + Date.now(); }
-      })();
-
+  const id = (typeof raw.id === "string" && /^REQ-\d+$/.test(raw.id)) ? raw.id
+    : (function () { try { return generateRequestId([]); } catch (e) { return "REQ-" + Date.now(); } })();
   let status;
-  if (isValidStatus(raw.status)) {
-    status = raw.status;
-  } else {
+  if (isValidStatus(raw.status)) status = raw.status;
+  else {
     const original = String(raw.status == null ? "未知" : raw.status).slice(0, 80);
     status = "待核实（原状态：" + original + "）";
   }
-
   const history = Array.isArray(raw.history)
     ? raw.history.filter(h => h && typeof h === "object").map(h => ({
         time: typeof h.time === "string" ? h.time : nowStr(),
@@ -709,76 +526,48 @@ function normalizeLegacyRequest(raw) {
         note: typeof h.note === "string" ? h.note : ""
       }))
     : [];
-
   history.unshift({
     time: typeof raw.time === "string" ? raw.time : nowStr(),
     action: "迁移",
-    note: "从旧版本 council_request 迁移" +
-      (isValidStatus(raw.status) ? "" : "（原状态待核实）")
+    note: "从旧版本 council_request 迁移" + (isValidStatus(raw.status) ? "" : "（原状态待核实）")
   });
-
-  return {
-    id,
-    project: String(raw.project || ""),
-    reason: String(raw.reason || ""),
-    changes: String(raw.changes || ""),
-    risk: String(raw.risk || ""),
-    status,
-    time: typeof raw.time === "string" ? raw.time : nowStr(),
-    parentId: null,
-    relation: null,
-    referenceId: null,
-    version: 1,
-    history
+  const req = {
+    id, project: String(raw.project || ""), reason: String(raw.reason || ""),
+    changes: String(raw.changes || ""), risk: String(raw.risk || ""),
+    status, time: typeof raw.time === "string" ? raw.time : nowStr(),
+    parentId: null, relation: null, referenceId: null, version: 1, history
   };
+  req.contentHash = computeContentHash(req);
+  return req;
 }
-
 function ensureMeetingHistory() {
   if (!meeting || meeting.stage < 3) return true;
-  if (!meeting.id) {
-    meeting.id = "MT-" + Date.now();
-    saveJSON(KEY.meeting, meeting);
-  }
+  if (!meeting.id) { meeting.id = "MT-" + Date.now(); saveJSON(KEY.meeting, meeting); }
   if (meetingHistory.find(m => m.id === meeting.id)) return true;
-
-  const record = {
-    id: meeting.id,
-    topic: meeting.topic,
-    startedAt: meeting.startedAt,
-    finishedAt: nowStr()
-  };
-  const nextHistory = [record, ...meetingHistory].slice(0, 20);
-  if (!saveJSON(KEY.meetings, nextHistory)) return false;
-  meetingHistory = nextHistory;
+  const record = { id: meeting.id, topic: meeting.topic, startedAt: meeting.startedAt, finishedAt: nowStr() };
+  const next = [record, ...meetingHistory].slice(0, 20);
+  if (!saveJSON(KEY.meetings, next)) return false;
+  meetingHistory = next;
   addLog("补记会议历史", meeting.topic || "（无议题）");
   return true;
 }
-
 function migrateLegacyIfNeeded() {
   const legacySingle = loadJSON(KEY.legacyRequest, null);
   const legacyReqsRaw = loadJSON(KEY.legacyRequests, []);
   const legacyActive = loadJSON(KEY.legacyActive, null);
-
   const legacyReqs = Array.isArray(legacyReqsRaw) ? legacyReqsRaw : [];
-  const hasSingle = !!(legacySingle && typeof legacySingle === "object" &&
-    !Array.isArray(legacySingle) && legacySingle.id);
+  const hasSingle = !!(legacySingle && typeof legacySingle === "object" && !Array.isArray(legacySingle) && legacySingle.id);
   const hasArray = legacyReqs.length > 0;
   const hasActive = typeof legacyActive === "string" && legacyActive.trim() !== "";
-
   if (!hasSingle && !hasArray && !hasActive) return;
 
   const baseRequests = (store && Array.isArray(store.requests)) ? store.requests.slice() : [];
   let merged = baseRequests.slice();
   const known = new Set(merged.map(r => r && r.id).filter(Boolean));
-
   if (hasSingle) {
     const n = normalizeLegacyRequest(legacySingle);
-    if (!known.has(n.id)) {
-      merged = [n, ...merged];
-      known.add(n.id);
-    }
+    if (!known.has(n.id)) { merged = [n, ...merged]; known.add(n.id); }
   }
-
   let quarantinedCount = 0;
   if (hasArray) {
     const sanitized = sanitizeLoadedRequests(legacyReqs, "council_requests");
@@ -789,110 +578,56 @@ function migrateLegacyIfNeeded() {
     }
     quarantinedCount = sanitized.quarantined;
   }
-
-  let mergedActive = (typeof store.activeId === "string" && store.activeId)
-    ? store.activeId
+  let mergedActive = (typeof store.activeId === "string" && store.activeId) ? store.activeId
     : (hasActive ? legacyActive : null);
-
   const mergedIds = new Set(merged.map(r => r.id));
   let activeFixed = false;
-  if (mergedActive !== null && !mergedIds.has(mergedActive)) {
-    mergedActive = null;
-    activeFixed = true;
-  }
+  if (mergedActive !== null && !mergedIds.has(mergedActive)) { mergedActive = null; activeFixed = true; }
 
-  const mergedStore = {
-    schemaVersion: SCHEMA_VERSION,
-    requests: merged,
-    activeId: mergedActive
-  };
-
+  const mergedStore = { schemaVersion: SCHEMA_VERSION, requests: merged, activeId: mergedActive };
   if (saveStoreAndVerify(mergedStore)) {
-    store = mergedStore;
-    requests = mergedStore.requests;
-    activeId = mergedStore.activeId;
-
+    store = mergedStore; requests = mergedStore.requests; activeId = mergedStore.activeId;
     let removeOk = true;
     try {
       const r1 = removeJSON(KEY.legacyRequest);
       const r2 = removeJSON(KEY.legacyRequests);
       const r3 = removeJSON(KEY.legacyActive);
       removeOk = r1 && r2 && r3;
-    } catch (e) {
-      removeOk = false;
-    }
+    } catch (e) { removeOk = false; }
     if (hasSingle || hasArray) addLog("迁移旧数据", "已合并旧申请数据");
-    if (quarantinedCount > 0) {
-      toast("迁移时发现 " + quarantinedCount + " 条异常旧记录，已保留为待核实", "warning");
-    }
-    if (activeFixed) {
-      toast("活动申请指向不存在的记录，迁移时已清空活动申请", "warning");
-    }
-    if (!removeOk) {
-      toast("旧数据已迁移，但旧数据键清理失败；下次启动会自动重试清理", "warning");
-    }
+    if (quarantinedCount > 0) toast("迁移时发现 " + quarantinedCount + " 条异常旧记录，已保留为待核实", "warning");
+    if (activeFixed) toast("活动申请指向不存在的记录，迁移时已清空活动申请", "warning");
+    if (!removeOk) toast("旧数据已迁移，但旧数据键清理失败；下次启动会自动重试清理", "warning");
   } else {
-    /* 保存失败：保留所有旧键，本次使用合并后的内存数据 */
-    store = mergedStore;
-    requests = mergedStore.requests;
-    activeId = mergedStore.activeId;
-    toast("旧数据迁移保存失败，旧数据已保留；本次使用内存合并数据，刷新后可能重复迁移", "warning");
+    store = mergedStore; requests = mergedStore.requests; activeId = mergedStore.activeId;
+    toast("旧数据迁移保存失败，旧数据已保留；本次使用内存合并数据", "warning");
   }
 }
-
 function initData() {
-  logs = loadJSON(KEY.logs, []);
-  if (!Array.isArray(logs)) logs = [];
-
-  meetingHistory = loadJSON(KEY.meetings, []);
-  if (!Array.isArray(meetingHistory)) meetingHistory = [];
-
+  logs = loadJSON(KEY.logs, []); if (!Array.isArray(logs)) logs = [];
+  meetingHistory = loadJSON(KEY.meetings, []); if (!Array.isArray(meetingHistory)) meetingHistory = [];
   meeting = loadJSON(KEY.meeting, { stage: 0, topic: "", startedAt: null, id: null });
-  if (!meeting || typeof meeting !== "object") {
-    meeting = { stage: 0, topic: "", startedAt: null, id: null };
-  }
-  if (typeof meeting.stage !== "number" || ![0, 1, 2, 3].includes(meeting.stage)) {
-    meeting.stage = 0;
-  }
-
+  if (!meeting || typeof meeting !== "object") meeting = { stage: 0, topic: "", startedAt: null, id: null };
+  if (typeof meeting.stage !== "number" || ![0, 1, 2, 3].includes(meeting.stage)) meeting.stage = 0;
   archiveFilter = loadJSON(KEY.filter, "all");
-  if (!["all", "pending", "approved", "returned", "rejected"].includes(archiveFilter)) {
-    archiveFilter = "all";
-  }
+  if (!["all","pending","approved","returned","rejected"].includes(archiveFilter)) archiveFilter = "all";
   archivePage = Number(loadJSON(KEY.page, 1));
   if (!Number.isInteger(archivePage) || archivePage < 1) archivePage = 1;
 
   const rawStore = loadJSON(KEY.store, null);
   if (rawStore && typeof rawStore === "object" && Array.isArray(rawStore.requests)) {
-    /* 启动时发现异常记录：隔离保存，不静默丢弃 */
     const sanitized = sanitizeLoadedRequests(rawStore.requests, "council_store");
     let activeCandidate = typeof rawStore.activeId === "string" ? rawStore.activeId : null;
     const ids = new Set(sanitized.requests.map(r => r.id));
     let activeFixed = false;
-    if (activeCandidate !== null && !ids.has(activeCandidate)) {
-      activeCandidate = null;
-      activeFixed = true;
-    }
-    store = {
-      schemaVersion: SCHEMA_VERSION,
-      requests: sanitized.requests,
-      activeId: activeCandidate
-    };
-    requests = store.requests;
-    activeId = store.activeId;
-
+    if (activeCandidate !== null && !ids.has(activeCandidate)) { activeCandidate = null; activeFixed = true; }
+    store = { schemaVersion: SCHEMA_VERSION, requests: sanitized.requests, activeId: activeCandidate };
+    requests = store.requests; activeId = store.activeId;
     if (sanitized.quarantined > 0 || activeFixed) {
-      const saveOk = saveStoreAndVerify(store);
-      if (saveOk) {
-        if (sanitized.quarantined > 0) {
-          toast("启动时发现 " + sanitized.quarantined + " 条异常记录，已隔离保存，请在档案中查看", "warning");
-        }
-        if (activeFixed) {
-          toast("活动申请指向不存在的记录，已清空活动申请", "warning");
-        }
-      } else {
-        toast("启动时发现异常记录，但修正结果保存失败，请检查本地存储", "danger");
-      }
+      if (saveStoreAndVerify(store)) {
+        if (sanitized.quarantined > 0) toast("启动时发现 " + sanitized.quarantined + " 条异常记录，已隔离保存", "warning");
+        if (activeFixed) toast("活动申请指向不存在的记录，已清空", "warning");
+      } else toast("启动时发现异常记录，但修正结果保存失败，请检查本地存储", "danger");
     }
     migrateLegacyIfNeeded();
   } else {
@@ -900,78 +635,45 @@ function initData() {
     const legacySanitized = sanitizeLoadedRequests(legacyReqsRaw, "council_requests");
     const legacyActive = loadJSON(KEY.legacyActive, null);
     let activeCandidate = typeof legacyActive === "string" ? legacyActive : null;
-
     const legacySingle = loadJSON(KEY.legacyRequest, null);
     let merged = legacySanitized.requests.slice();
     const known = new Set(merged.map(r => r.id));
     if (legacySingle && typeof legacySingle === "object" && !Array.isArray(legacySingle) && legacySingle.id) {
       const n = normalizeLegacyRequest(legacySingle);
-      if (!known.has(n.id)) {
-        merged = [n, ...merged];
-        known.add(n.id);
-      }
+      if (!known.has(n.id)) { merged = [n, ...merged]; known.add(n.id); }
     }
     const quarantinedCount = legacySanitized.quarantined;
-
     const ids = new Set(merged.map(r => r.id));
     let activeFixed = false;
-    if (activeCandidate !== null && !ids.has(activeCandidate)) {
-      activeCandidate = null;
-      activeFixed = true;
-    }
-
-    const nextStore = {
-      schemaVersion: SCHEMA_VERSION,
-      requests: merged,
-      activeId: activeCandidate
-    };
-
+    if (activeCandidate !== null && !ids.has(activeCandidate)) { activeCandidate = null; activeFixed = true; }
+    const nextStore = { schemaVersion: SCHEMA_VERSION, requests: merged, activeId: activeCandidate };
     if (saveStoreAndVerify(nextStore)) {
-      store = nextStore;
-      requests = store.requests;
-      activeId = store.activeId;
+      store = nextStore; requests = store.requests; activeId = store.activeId;
       let removeOk = true;
       try {
         const r1 = removeJSON(KEY.legacyRequests);
         const r2 = removeJSON(KEY.legacyActive);
         const r3 = removeJSON(KEY.legacyRequest);
         removeOk = r1 && r2 && r3;
-      } catch (e) {
-        removeOk = false;
-      }
-      if (quarantinedCount > 0) {
-        toast("迁移时发现 " + quarantinedCount + " 条异常旧记录，已保留为待核实", "warning");
-      }
-      if (activeFixed) {
-        toast("活动申请指向不存在的记录，迁移时已清空活动申请", "warning");
-      }
-      if (!removeOk) {
-        toast("旧数据已迁移，但旧数据键清理失败；下次启动会自动重试清理", "warning");
-      }
+      } catch (e) { removeOk = false; }
+      if (quarantinedCount > 0) toast("迁移时发现 " + quarantinedCount + " 条异常旧记录，已保留为待核实", "warning");
+      if (activeFixed) toast("活动申请指向不存在的记录，迁移时已清空", "warning");
+      if (!removeOk) toast("旧数据已迁移，但旧键清理失败", "warning");
     } else {
-      store = nextStore;
-      requests = store.requests;
-      activeId = store.activeId;
-      toast("数据迁移保存失败，旧数据已保留；当前操作可能无法持久化", "warning");
+      store = nextStore; requests = store.requests; activeId = store.activeId;
+      toast("数据迁移保存失败，旧数据已保留", "warning");
     }
   }
-
-  if (!currentRequest) {
-    currentRequest = requests.find(r => r.id === activeId) || null;
-  }
+  if (!currentRequest) currentRequest = requests.find(r => r.id === activeId) || null;
   if (!currentRequest) activeId = null;
-
   if (meeting && typeof meeting === "object" && meeting.stage > 0 && !meeting.id) {
     meeting.id = "MT-" + Date.now();
     saveJSON(KEY.meeting, meeting);
   }
-
   ensureMeetingHistory();
 }
 
-/* ============================================================
- * Toast
- * ========================================================== */
+/* ========== Toast / 主题 ========== */
 let toastTimer = null;
 function toast(msg, type) {
   const el = $("toast");
@@ -980,10 +682,6 @@ function toast(msg, type) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.className = "toast"; }, 3200);
 }
-
-/* ============================================================
- * 主题
- * ========================================================== */
 function applyTheme(t) {
   const light = t === "light";
   document.body.classList.toggle("light-theme", light);
@@ -996,32 +694,20 @@ function toggleTheme() {
   toast("已切换到" + (next === "light" ? "浅色" : "深色") + "主题");
 }
 
-/* ============================================================
- * 操作记录
- * ========================================================== */
+/* ========== 日志 ========== */
 function saveLogs() {
   logs = logs.slice(0, 50);
   const ok = saveJSON(KEY.logs, logs);
   renderHistory();
-  if (!ok && !storageWarned) {
-    storageWarned = true;
-    toast("本地存储写入失败，操作记录可能未保存", "warning");
-  }
+  if (!ok && !storageWarned) { storageWarned = true; toast("本地存储写入失败，操作记录可能未保存", "warning"); }
   return ok;
 }
 function addLog(title, detail) {
-  logs.unshift({
-    time: nowStr(),
-    title: String(title),
-    detail: String(detail).slice(0, 2000)
-  });
+  logs.unshift({ time: nowStr(), title: String(title), detail: String(detail).slice(0, 2000) });
   saveLogs();
 }
 function renderHistory() {
-  if (!logs.length) {
-    $("history").innerHTML = '<p class="muted">暂无记录</p>';
-    return;
-  }
+  if (!logs.length) { $("history").innerHTML = '<p class="muted">暂无记录</p>'; return; }
   $("history").innerHTML = logs.map(x =>
     '<div class="history"><strong>' + escapeHTML(x.title) + '</strong>' +
     '<div class="muted">' + escapeHTML(x.time) + '</div>' +
@@ -1030,33 +716,19 @@ function renderHistory() {
 }
 function clearHistory() {
   if (!confirm("确定清除本地操作记录吗？")) return;
-  const prev = logs;
-  logs = [];
-  if (!saveJSON(KEY.logs, logs)) {
-    logs = prev;
-    toast("清除失败：本地存储不可用", "danger");
-    return;
-  }
-  renderHistory();
-  toast("操作记录已清除");
+  const prev = logs; logs = [];
+  if (!saveJSON(KEY.logs, logs)) { logs = prev; toast("清除失败：本地存储不可用", "danger"); return; }
+  renderHistory(); toast("操作记录已清除");
 }
 
-/* ============================================================
- * 会议
- * ========================================================== */
+/* ========== 会议 ========== */
 function startMeeting() {
   const q = $("question").value.trim();
   if (!q) { toast("请先输入会议问题", "warning"); return; }
-  if (meeting.stage > 0 && meeting.stage < 3 && !confirm("当前会议尚未结束，重新发起将覆盖进度。继续吗？")) {
-    return;
-  }
+  if (meeting.stage > 0 && meeting.stage < 3 && !confirm("当前会议尚未结束，重新发起将覆盖进度。继续吗？")) return;
   const prev = meeting;
   meeting = { stage: 1, topic: q, startedAt: nowStr(), id: "MT-" + Date.now() };
-  if (!saveJSON(KEY.meeting, meeting)) {
-    meeting = prev;
-    toast("保存失败：本地存储不可用，会议未发起", "danger");
-    return;
-  }
+  if (!saveJSON(KEY.meeting, meeting)) { meeting = prev; toast("保存失败：本地存储不可用", "danger"); return; }
   $("meeting").style.display = "block";
   updateMeeting();
   addLog("发起会议", q);
@@ -1066,11 +738,7 @@ function resetMeeting() {
   if (!confirm("确定重置当前会议进度吗？议题也会清空。")) return;
   const prev = meeting;
   meeting = { stage: 0, topic: "", startedAt: null, id: null };
-  if (!saveJSON(KEY.meeting, meeting)) {
-    meeting = prev;
-    toast("重置失败：本地存储不可用", "danger");
-    return;
-  }
+  if (!saveJSON(KEY.meeting, meeting)) { meeting = prev; toast("重置失败：本地存储不可用", "danger"); return; }
   $("meeting").style.display = "none";
   $("question").value = "";
   $("btnResetMeeting").style.display = "none";
@@ -1078,88 +746,52 @@ function resetMeeting() {
   toast("会议已重置");
 }
 function updateMeeting() {
-  ["s1", "s2", "s3"].forEach((id, i) => {
+  ["s1","s2","s3"].forEach((id, i) => {
     $(id).className = "step " + (i + 1 < meeting.stage ? "done" : i + 1 === meeting.stage ? "active" : "");
   });
   const topic = meeting.topic || "";
   const texts = [
     "",
-    "会议议题：\n" + topic +
-      "\n\n【GPT】待接入真实模型，负责组织独立分析。" +
-      "\n\n【Claude】待接入真实模型，负责代码和安全审查。" +
-      "\n\n【Gemini】待接入真实模型，负责数据分析。" +
-      "\n\n【DeepSeek】待接入真实模型，负责量化研究。" +
-      "\n\n当前为流程演示，尚未调用真实模型。",
-    "交叉质疑阶段\n\n未来每个模型需要审查其他成员的分析，指出逻辑漏洞、数据问题和潜在风险。" +
-      "\n\n当前为流程演示，尚未调用真实模型。",
-    "最终结论阶段\n\n未来将汇总各模型的共同意见、分歧、证据、风险和建议。" +
-      "\n\n任何修改建议都必须进入审批中心，由用户决定是否执行。" +
-      "\n\n当前为流程演示，尚未调用真实模型。" +
-      "\n\n会议流程演示结束。"
+    "会议议题：\n" + topic + "\n\n【GPT】待接入真实模型，负责组织独立分析。\n\n【Claude】待接入真实模型，负责代码和安全审查。\n\n【Gemini】待接入真实模型，负责数据分析。\n\n【DeepSeek】待接入真实模型，负责量化研究。\n\n当前为流程演示，尚未调用真实模型。",
+    "交叉质疑阶段\n\n未来每个模型需要审查其他成员的分析，指出逻辑漏洞、数据问题和潜在风险。\n\n当前为流程演示，尚未调用真实模型。",
+    "最终结论阶段\n\n未来将汇总各模型的共同意见、分歧、证据、风险和建议。\n\n任何修改建议都必须进入审批中心，由用户决定是否执行。\n\n当前为流程演示，尚未调用真实模型。\n\n会议流程演示结束。"
   ];
   $("meetingText").textContent = texts[meeting.stage] || "";
   const btn = $("btnNextStage");
-  if (meeting.stage >= 3) {
-    btn.disabled = true;
-    btn.textContent = "会议已结束";
-  } else {
-    btn.disabled = false;
-    btn.textContent = "进入下一阶段 →";
-  }
+  if (meeting.stage >= 3) { btn.disabled = true; btn.textContent = "会议已结束"; }
+  else { btn.disabled = false; btn.textContent = "进入下一阶段 →"; }
   $("btnResetMeeting").style.display = meeting.stage > 0 ? "inline-block" : "none";
 }
 function completeMeeting() {
-  if (!meeting.id) {
-    meeting.id = "MT-" + Date.now();
-    saveJSON(KEY.meeting, meeting);
-  }
+  if (!meeting.id) { meeting.id = "MT-" + Date.now(); saveJSON(KEY.meeting, meeting); }
   if (meetingHistory.find(m => m.id === meeting.id)) return true;
-  const record = {
-    id: meeting.id,
-    topic: meeting.topic,
-    startedAt: meeting.startedAt,
-    finishedAt: nowStr()
-  };
-  const nextHistory = [record, ...meetingHistory].slice(0, 20);
-  if (!saveJSON(KEY.meetings, nextHistory)) return false;
-  meetingHistory = nextHistory;
+  const record = { id: meeting.id, topic: meeting.topic, startedAt: meeting.startedAt, finishedAt: nowStr() };
+  const next = [record, ...meetingHistory].slice(0, 20);
+  if (!saveJSON(KEY.meetings, next)) return false;
+  meetingHistory = next;
   addLog("会议完成", meeting.topic || "（无议题）");
   renderMeetingHistory();
   return true;
 }
 function nextStage() {
   if (meeting.stage >= 3) return;
-  const prev = meeting.stage;
-  meeting.stage++;
-  if (!saveJSON(KEY.meeting, meeting)) {
-    meeting.stage = prev;
-    toast("保存失败：会议进度未更新", "danger");
-    return;
-  }
+  const prev = meeting.stage; meeting.stage++;
+  if (!saveJSON(KEY.meeting, meeting)) { meeting.stage = prev; toast("保存失败：会议进度未更新", "danger"); return; }
   updateMeeting();
   if (meeting.stage >= 3) {
     const ok = completeMeeting();
-    toast(
-      ok ? "会议已完成，已保存到会议历史" : "会议已完成，但历史保存失败，下次打开会重试",
-      ok ? "success" : "warning"
-    );
+    toast(ok ? "会议已完成，已保存到会议历史" : "会议已完成，但历史保存失败，下次打开会重试", ok ? "success" : "warning");
   }
 }
 function renderMeetingHistory() {
-  if (!meetingHistory.length) {
-    $("meetingHistory").innerHTML = '<p class="muted">暂无已完成会议</p>';
-    return;
-  }
+  if (!meetingHistory.length) { $("meetingHistory").innerHTML = '<p class="muted">暂无已完成会议</p>'; return; }
   $("meetingHistory").innerHTML = meetingHistory.map(m =>
     '<div class="history"><strong>' + escapeHTML(m.topic || "（无议题）") + '</strong>' +
-    '<div class="muted">' + escapeHTML(m.startedAt || "") + ' → ' +
-    escapeHTML(m.finishedAt || "") + ' · ' + escapeHTML(m.id || "") + '</div></div>'
+    '<div class="muted">' + escapeHTML(m.startedAt || "") + ' → ' + escapeHTML(m.finishedAt || "") + ' · ' + escapeHTML(m.id || "") + '</div></div>'
   ).join("");
 }
 
-/* ============================================================
- * 版本提示
- * ========================================================== */
+/* ========== 版本提示 ========== */
 function relationLabel(rel) {
   if (rel === RELATION.REVISION) return "退回修订";
   if (rel === RELATION.FOLLOWUP) return "已批准后的后续修改";
@@ -1170,24 +802,17 @@ function buildVersionText(r) {
   if (r.parentId) {
     const parent = requests.find(x => x.id === r.parentId);
     const pv = parent ? "v" + parent.version : "v" + Math.max(1, (r.version || 1) - 1);
-    return "\n版本：v" + r.version + "（基于 " + r.parentId + " 的 " + pv + "，" +
-      (relationLabel(r.relation) || "修改后重新提交") + "）";
+    return "\n版本：v" + r.version + "（基于 " + r.parentId + " 的 " + pv + "，" + (relationLabel(r.relation) || "修改后重新提交") + "）";
   }
-  if (r.referenceId) {
-    return "\n版本：v" + r.version + "（新申请，参考已拒绝申请 " + r.referenceId + "，不继承版本）";
-  }
+  if (r.referenceId) return "\n版本：v" + r.version + "（新申请，参考已拒绝申请 " + r.referenceId + "，不继承版本）";
   return "\n版本：v" + r.version + "（初始申请）";
 }
 function buildEditHintText(req) {
   const si = statusInfo(req.status);
   let t = "正在基于 " + req.id + "（v" + req.version + "，" + si.label + "）编辑。";
-  if (req.status === "退回重新讨论") {
-    t += "\n提交后将生成 v" + ((req.version || 1) + 1) + " 新申请，作为退回修订关联原申请。";
-  } else if (req.status === "用户已批准（待接入执行引擎）") {
-    t += "\n提交后将生成 v" + ((req.version || 1) + 1) + " 新申请，作为已批准后的后续修改关联原申请。";
-  } else if (req.status === "用户已拒绝") {
-    t += "\n提交后将生成 v1 新申请，仅记录对已拒绝申请的参考，不继承版本号。";
-  }
+  if (req.status === "退回重新讨论") t += "\n提交后将生成 v" + ((req.version || 1) + 1) + " 新申请，作为退回修订关联原申请。";
+  else if (req.status === "用户已批准（待接入执行引擎）") t += "\n提交后将生成 v" + ((req.version || 1) + 1) + " 新申请，作为已批准后的后续修改关联原申请。";
+  else if (req.status === "用户已拒绝") t += "\n提交后将生成 v1 新申请，仅记录对已拒绝申请的参考，不继承版本号。";
   return t;
 }
 function editButtonLabel(status) {
@@ -1197,9 +822,7 @@ function editButtonLabel(status) {
   return "✎ 基于此申请修改";
 }
 
-/* ============================================================
- * 审批中心
- * ========================================================== */
+/* ========== 审批中心 ========== */
 function setApprovalMessage(text, extraClass) {
   const el = $("approvalMessage");
   el.textContent = text;
@@ -1210,9 +833,7 @@ function renderRequestInfo() {
   const r = currentRequest;
   const si = statusInfo(r.status);
   let statusLabel = si.label;
-  if (si.cls === "unknown" && typeof r.status === "string" && r.status.startsWith("待核实（")) {
-    statusLabel = r.status;
-  }
+  if (si.cls === "unknown" && typeof r.status === "string" && r.status.startsWith("待核实（")) statusLabel = r.status;
   let text =
     "申请编号：" + r.id +
     "\n项目：" + r.project +
@@ -1220,24 +841,25 @@ function renderRequestInfo() {
     "\n计划修改：" + r.changes +
     "\n风险评估：" + r.risk +
     "\n提交时间：" + r.time +
+    "\n内容哈希：" + (r.contentHash || "（无）") +
     buildVersionText(r);
-  if (r.status === "待用户审批") {
-    text += "\n状态：" + statusLabel + "\n\n注意：当前方案尚未经过真实多模型讨论。";
-  } else {
-    text += "\n状态：" + statusLabel + "\n\n当前仅记录审批意向，不会执行任何代码修改。";
+  if (r.status === "待用户审批") text += "\n状态：" + statusLabel + "\n\n注意：当前方案尚未经过真实多模型讨论。";
+  else text += "\n状态：" + statusLabel + "\n\n当前仅记录审批意向，不会执行任何代码修改。";
+
+  if (isContentTampered(r)) {
+    text += "\n\n⚠️ 内容篡改警告：当前内容哈希与最近一次审批记录不一致，申请内容可能已被修改，请核实后再操作。";
   }
+
   text += "\n\n审批历史：";
   const hist = (r.history || []).map(h =>
-    "\n· " + h.time + " · " + h.action + (h.note ? " · " + h.note : "")
+    "\n· " + h.time + " · " + h.action + (h.note ? " · " + h.note : "") +
+    (h.contentHash ? " · 内容哈希 " + h.contentHash : "")
   ).join("");
   text += hist || "\n· 无";
   $("requestInfo").textContent = text;
 }
 function renderApproval() {
-  if (!currentRequest) {
-    $("sec-approval").style.display = "none";
-    return;
-  }
+  if (!currentRequest) { $("sec-approval").style.display = "none"; return; }
   $("sec-approval").style.display = "block";
   renderRequestInfo();
   const pending = currentRequest.status === "待用户审批";
@@ -1245,15 +867,12 @@ function renderApproval() {
   $("btnReturn").disabled = !pending;
   $("btnReject").disabled = !pending;
   $("decisionNote").disabled = !pending;
-  const editable = ["退回重新讨论", "用户已批准（待接入执行引擎）", "用户已拒绝"]
-    .includes(currentRequest.status);
+  const editable = ["退回重新讨论","用户已批准（待接入执行引擎）","用户已拒绝"].includes(currentRequest.status);
   $("btnEditFrom").style.display = editable ? "inline-block" : "none";
   if (editable) $("btnEditFrom").textContent = editButtonLabel(currentRequest.status);
 }
 
-/* ============================================================
- * 档案
- * ========================================================== */
+/* ========== 档案 ========== */
 function matchFilter(r) {
   if (archiveFilter === "all") return true;
   if (archiveFilter === "pending") return r.status === "待用户审批";
@@ -1265,24 +884,17 @@ function matchFilter(r) {
 function matchSearch(r) {
   if (!archiveSearchText) return true;
   const q = archiveSearchText.toLowerCase();
-  const hay = [r.id, r.project, r.reason, r.changes, r.risk].join(" ").toLowerCase();
-  return hay.includes(q);
+  return [r.id, r.project, r.reason, r.changes, r.risk].join(" ").toLowerCase().includes(q);
 }
 function setFilter(f) {
-  archiveFilter = f;
-  archivePage = 1;
-  saveJSON(KEY.filter, f);
-  saveJSON(KEY.page, 1);
+  archiveFilter = f; archivePage = 1;
+  saveJSON(KEY.filter, f); saveJSON(KEY.page, 1);
   document.querySelectorAll("[data-filter]").forEach(btn => {
     btn.style.outline = btn.dataset.filter === f ? "2px solid var(--primary)" : "none";
   });
   renderArchive();
 }
-function gotoArchivePage(p) {
-  archivePage = p;
-  saveJSON(KEY.page, p);
-  renderArchive();
-}
+function gotoArchivePage(p) { archivePage = p; saveJSON(KEY.page, p); renderArchive(); }
 function renderPager(total, totalPages) {
   const el = $("archivePager");
   if (total === 0) { el.innerHTML = ""; return; }
@@ -1295,22 +907,18 @@ function renderPager(total, totalPages) {
 }
 function buildVersionChain(req) {
   if (!req) return [];
-  let root = req;
-  const seen = new Set();
+  let root = req; const seen = new Set();
   while (root && root.parentId && !seen.has(root.id)) {
     seen.add(root.id);
     const p = requests.find(r => r.id === root.parentId);
     if (!p) break;
     root = p;
   }
-  const chain = [];
-  const queue = [root];
-  const visited = new Set();
+  const chain = []; const queue = [root]; const visited = new Set();
   while (queue.length) {
     const cur = queue.shift();
     if (!cur || visited.has(cur.id)) continue;
-    visited.add(cur.id);
-    chain.push(cur);
+    visited.add(cur.id); chain.push(cur);
     requests.filter(r => r.parentId === cur.id).forEach(c => queue.push(c));
   }
   chain.sort((a, b) => {
@@ -1345,36 +953,36 @@ function renderArchive() {
   const start = (archivePage - 1) * PAGE_SIZE;
   const pageItems = list.slice(start, start + PAGE_SIZE);
   if (!pageItems.length) {
-    $("archive").innerHTML = '<p class="muted">' +
-      (requests.length ? "当前筛选或搜索下暂无申请。" : "暂无申请档案。提交一次修改申请后会显示在这里。") +
-      '</p>';
-    renderPager(total, totalPages);
-    return;
+    $("archive").innerHTML = '<p class="muted">' + (requests.length ? "当前筛选或搜索下暂无申请。" : "暂无申请档案。") + '</p>';
+    renderPager(total, totalPages); return;
   }
   $("archive").innerHTML = pageItems.map(r => {
     const si = statusInfo(r.status);
     const children = requests.filter(x => x.parentId === r.id);
     const hist = (r.history || []).map(h =>
       '<div class="muted">' + escapeHTML(h.time) + " · " + escapeHTML(h.action) +
-      (h.note ? " · " + escapeHTML(h.note) : "") + "</div>"
+      (h.note ? " · " + escapeHTML(h.note) : "") + '</div>'
     ).join("") || '<div class="muted">无</div>';
     const parentLine = r.parentId ? '<div>源自：' + escapeHTML(r.parentId) + '</div>' : "";
     const refLine = r.referenceId ? '<div>参考（不继承版本）：' + escapeHTML(r.referenceId) + '</div>' : "";
     const childrenLine = children.length
-      ? '<div>后续版本：' + children.map(c => escapeHTML(c.id) + "（v" + (c.version || 1) + "）").join("、") + '</div>'
-      : "";
+      ? '<div>后续版本：' + children.map(c => escapeHTML(c.id) + "（v" + (c.version || 1) + "）").join("、") + '</div>' : "";
+    const tampered = isContentTampered(r)
+      ? '<div style="color:var(--danger);margin-top:4px">⚠️ 内容已被修改：当前哈希与最近审批记录不一致</div>' : "";
     return '<details class="archive-item">' +
       '<summary><strong>' + escapeHTML(r.id) + '</strong>' +
       '<span>' + escapeHTML(r.project) + '</span>' +
       '<span>v' + (r.version || 1) + '</span>' +
       '<span class="tag ' + si.cls + '">' + si.label + '</span>' +
+      (isContentTampered(r) ? '<span class="tag unknown">已篡改</span>' : '') +
       '</summary>' +
       '<div class="panel">' +
         '<div>原因：' + escapeHTML(r.reason) + '</div>' +
         '<div>计划修改：' + escapeHTML(r.changes) + '</div>' +
         '<div>风险评估：' + escapeHTML(r.risk) + '</div>' +
         '<div>提交时间：' + escapeHTML(r.time) + '</div>' +
-        parentLine + refLine + childrenLine +
+        '<div>内容哈希：' + escapeHTML(r.contentHash || "（无）") + '</div>' +
+        parentLine + refLine + childrenLine + tampered +
         '<div style="margin-top:8px"><strong>审批历史</strong></div>' + hist +
         renderVersionChain(r) +
         '<div style="margin-top:8px"><button class="gray" style="padding:6px 10px;font-size:12px" ' +
@@ -1384,37 +992,22 @@ function renderArchive() {
   renderPager(total, totalPages);
 }
 
-/* ============================================================
- * 项目名
- * ========================================================== */
+/* ========== 项目名 ========== */
 function renderProjectList() {
   const names = [...new Set(requests.map(r => r.project).filter(Boolean))].slice(0, 20);
-  $("projectList").innerHTML = names.map(n =>
-    '<option value="' + escapeHTML(n) + '"></option>'
-  ).join("");
+  $("projectList").innerHTML = names.map(n => '<option value="' + escapeHTML(n) + '"></option>').join("");
 }
 
-/* ============================================================
- * 草稿
- * ========================================================== */
-function scheduleSaveDraft() {
-  clearTimeout(draftTimer);
-  draftTimer = setTimeout(saveDraft, 500);
-}
+/* ========== 草稿 ========== */
+function scheduleSaveDraft() { clearTimeout(draftTimer); draftTimer = setTimeout(saveDraft, 500); }
 function saveDraft() {
   const d = {
-    project: $("project").value,
-    reason: $("reason").value,
-    changes: $("changes").value,
-    risk: $("risk").value,
-    editingParentId: editingParent ? editingParent.id : null,
-    savedAt: nowStr()
+    project: $("project").value, reason: $("reason").value,
+    changes: $("changes").value, risk: $("risk").value,
+    editingParentId: editingParent ? editingParent.id : null, savedAt: nowStr()
   };
-  if (!d.project && !d.reason && !d.changes && !d.risk) {
-    removeJSON(KEY.draft);
-  } else {
-    saveJSON(KEY.draft, d);
-  }
+  if (!d.project && !d.reason && !d.changes && !d.risk) removeJSON(KEY.draft);
+  else saveJSON(KEY.draft, d);
 }
 function restoreDraft() {
   const d = loadJSON(KEY.draft, null);
@@ -1425,32 +1018,22 @@ function restoreDraft() {
   $("risk").value = typeof d.risk === "string" ? d.risk : "";
   if (d.editingParentId) {
     const p = requests.find(r => r.id === d.editingParentId);
-    if (p && ["退回重新讨论", "用户已批准（待接入执行引擎）", "用户已拒绝"].includes(p.status)) {
-      editingParent = p;
-      showEditHint(p);
+    if (p && ["退回重新讨论","用户已批准（待接入执行引擎）","用户已拒绝"].includes(p.status)) {
+      editingParent = p; showEditHint(p);
     }
   }
   updateAllCounters();
 }
-function clearDraft() {
-  removeJSON(KEY.draft);
-}
+function clearDraft() { removeJSON(KEY.draft); }
 
-/* ============================================================
- * 计数
- * ========================================================== */
+/* ========== 计数 ========== */
 function updateCounter(id) {
-  const el = $(id);
-  const cnt = $(id + "Count");
+  const el = $(id); const cnt = $(id + "Count");
   if (el && cnt) cnt.textContent = el.value.length + " / " + el.maxLength;
 }
-function updateAllCounters() {
-  ["reason", "changes", "risk"].forEach(updateCounter);
-}
+function updateAllCounters() { ["reason","changes","risk"].forEach(updateCounter); }
 
-/* ============================================================
- * 编辑模式
- * ========================================================== */
+/* ========== 编辑 ========== */
 function showEditHint(req) {
   $("editHint").style.display = "block";
   $("editHintText").textContent = buildEditHintText(req);
@@ -1470,20 +1053,18 @@ function fillForm(req) {
   updateAllCounters();
 }
 function clearForm() {
-  $("project").value = "";
-  $("reason").value = "";
-  $("changes").value = "";
-  $("risk").value = "";
+  $("project").value = ""; $("reason").value = ""; $("changes").value = ""; $("risk").value = "";
   updateAllCounters();
 }
 function startEditFrom(req) {
   if (!req) return;
-  if (req.status === "待用户审批") {
-    toast("该申请仍在审批中，请先处理审批结果", "warning");
-    return;
+  if (req.status === "待用户审批") { toast("该申请仍在审批中，请先处理审批结果", "warning"); return; }
+  if (!["退回重新讨论","用户已批准（待接入执行引擎）","用户已拒绝"].includes(req.status)) {
+    toast("当前状态不支持基于此申请修改", "warning"); return;
   }
-  if (!["退回重新讨论", "用户已批准（待接入执行引擎）", "用户已拒绝"].includes(req.status)) {
-    toast("当前状态不支持基于此申请修改", "warning");
+  /* 新增：已有子版本时，不允许再做退回修订/后续修改；reference 不受影响 */
+  if (req.status !== "用户已拒绝" && hasChildVersions(req)) {
+    toast("该申请已有后续版本，请基于最新版本操作（" + req.id + " 已有子版本）", "warning");
     return;
   }
   const hasContent = $("project").value.trim() || $("reason").value.trim() ||
@@ -1495,42 +1076,24 @@ function startEditFrom(req) {
   scheduleSaveDraft();
   $("sec-request").scrollIntoView({ behavior: "smooth", block: "start" });
 }
-function editFromActive() {
-  if (currentRequest) startEditFrom(currentRequest);
-}
-function editFromId(id) {
-  const req = requests.find(r => r.id === id);
-  if (req) startEditFrom(req);
-}
-function cancelEdit() {
-  editingParent = null;
-  hideEditHint();
-  clearForm();
-  clearDraft();
-}
+function editFromActive() { if (currentRequest) startEditFrom(currentRequest); }
+function editFromId(id) { const req = requests.find(r => r.id === id); if (req) startEditFrom(req); }
+function cancelEdit() { editingParent = null; hideEditHint(); clearForm(); clearDraft(); }
 
-/* ============================================================
- * 提交申请
- * ========================================================== */
+/* ========== 提交申请 ========== */
 function createRequest() {
-  /* 读取最新 store，并验证其结构；不做 sanitize，避免每次提交产生新的隔离记录 */
   const latestStore = loadJSON(KEY.store, null);
   if (!latestStore || typeof latestStore !== "object" || !Array.isArray(latestStore.requests)) {
-    toast("无法读取最新申请数据，请刷新页面后重试", "danger");
-    return;
+    toast("无法读取最新申请数据，请刷新页面后重试", "danger"); return;
   }
-  if (!validStore(latestStore)) {
-    toast("本地数据异常，无法继续，请刷新页面检查", "danger");
-    return;
-  }
+  if (!validStore(latestStore)) { toast("本地数据异常，无法继续，请刷新页面检查", "danger"); return; }
   const latestRequests = latestStore.requests;
 
   const pendingInLatest = latestRequests.find(r => r.status === "待用户审批");
   if (pendingInLatest) {
     toast("检测到其他标签页有申请等待审批（" + pendingInLatest.id + "）", "warning");
     if (commitStore(latestRequests, pendingInLatest.id, latestRequests)) {
-      renderApproval();
-      renderArchive();
+      renderApproval(); renderArchive();
       $("sec-approval").scrollIntoView({ behavior: "smooth", block: "start" });
     }
     return;
@@ -1540,221 +1103,162 @@ function createRequest() {
   const reason = $("reason").value.trim();
   const changes = $("changes").value.trim();
   const risk = $("risk").value.trim();
-  if (!project || !reason || !changes || !risk) {
-    toast("请填写完整的修改申请", "warning");
-    return;
-  }
+  if (!project || !reason || !changes || !risk) { toast("请填写完整的修改申请", "warning"); return; }
 
-  let parent = null;
-  let relation = null;
-  let referenceId = null;
-  let version = 1;
-
+  let parent = null; let relation = null; let referenceId = null; let version = 1;
   if (editingParent) {
     if (editingParent.status === "退回重新讨论") {
-      parent = editingParent;
-      relation = RELATION.REVISION;
-      version = (editingParent.version || 1) + 1;
+      parent = editingParent; relation = RELATION.REVISION; version = (editingParent.version || 1) + 1;
     } else if (editingParent.status === "用户已批准（待接入执行引擎）") {
-      parent = editingParent;
-      relation = RELATION.FOLLOWUP;
-      version = (editingParent.version || 1) + 1;
+      parent = editingParent; relation = RELATION.FOLLOWUP; version = (editingParent.version || 1) + 1;
     } else if (editingParent.status === "用户已拒绝") {
-      parent = null;
-      relation = RELATION.REFERENCE;
-      referenceId = editingParent.id;
-      version = 1;
+      parent = null; relation = RELATION.REFERENCE; referenceId = editingParent.id; version = 1;
     } else {
-      toast("该申请仍在审批中，不能基于它创建新申请", "warning");
-      return;
+      toast("该申请仍在审批中，不能基于它创建新申请", "warning"); return;
     }
   }
 
-  let newId;
-  try {
-    newId = generateRequestId(latestRequests.map(r => r.id));
-  } catch (e) {
-    toast(e.message, "danger");
+  /* 防御性检查：已有子版本时禁止 revision/followup */
+  if (editingParent && relation !== RELATION.REFERENCE && hasChildVersions(editingParent)) {
+    toast("该申请已有后续版本，不能再次创建退回修订/后续修改", "warning");
     return;
   }
+
+  let newId;
+  try { newId = generateRequestId(latestRequests.map(r => r.id)); }
+  catch (e) { toast(e.message, "danger"); return; }
 
   const note = parent
     ? "基于 " + parent.id + "（v" + (parent.version || 1) + "）" +
       (relation === RELATION.REVISION ? "退回修订" : "后续修改") + "，重新提交"
-    : (referenceId
-        ? "参考已拒绝申请 " + referenceId + " 重新发起（不继承版本）"
-        : "初始申请");
+    : (referenceId ? "参考已拒绝申请 " + referenceId + " 重新发起（不继承版本）" : "初始申请");
 
   const req = {
-    id: newId,
-    project, reason, changes, risk,
-    status: "待用户审批",
-    time: nowStr(),
-    parentId: parent ? parent.id : null,
-    relation,
-    referenceId,
-    version,
+    id: newId, project, reason, changes, risk,
+    status: "待用户审批", time: nowStr(),
+    parentId: parent ? parent.id : null, relation, referenceId, version,
     history: [{ time: nowStr(), action: "提交", note }]
   };
+  req.contentHash = computeContentHash(req);
 
   const nextRequests = [req, ...latestRequests];
-  if (!commitStore(nextRequests, req.id, latestRequests)) {
-    return;
-  }
+  if (!commitStore(nextRequests, req.id, latestRequests)) return;
 
-  editingParent = null;
-  hideEditHint();
-  clearForm();
-  clearDraft();
-  archivePage = 1;
-  saveJSON(KEY.page, 1);
-  renderApproval();
-  renderArchive();
-  renderProjectList();
-  refreshDataInfo();
-
+  editingParent = null; hideEditHint(); clearForm(); clearDraft();
+  archivePage = 1; saveJSON(KEY.page, 1);
+  renderApproval(); renderArchive(); renderProjectList(); refreshDataInfo();
   setApprovalMessage("请审阅申请内容。");
   addLog("提交修改申请", req.id + " · " + project + " · v" + version);
   toast("申请已提交，等待审批", "success");
   $("sec-approval").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-/* ============================================================
- * 审批
- * ========================================================== */
+/* ========== 审批（含版本核对、快照、追加检查） ========== */
 function decide(status, message, extraClass, actionName) {
   if (!currentRequest) { toast("没有待处理的申请", "warning"); return; }
-  if (currentRequest.status !== "待用户审批") {
-    toast("这份申请已经处理过，不能重复审批", "warning");
-    return;
-  }
-  if (!VALID_STATUSES.includes(status)) {
-    toast("无效的审批操作", "danger");
-    return;
-  }
+  if (currentRequest.status !== "待用户审批") { toast("这份申请已经处理过，不能重复审批", "warning"); return; }
+  if (!VALID_STATUSES.includes(status)) { toast("无效的审批操作", "danger"); return; }
 
-  /* 读取最新 store，并验证结构 */
   const latestStore = loadJSON(KEY.store, null);
   if (!latestStore || typeof latestStore !== "object" || !Array.isArray(latestStore.requests)) {
-    toast("无法读取最新申请数据，请刷新页面后重试", "danger");
-    return;
+    toast("无法读取最新申请数据，请刷新页面后重试", "danger"); return;
   }
-  if (!validStore(latestStore)) {
-    toast("本地数据异常，无法继续，请刷新页面检查", "danger");
-    return;
-  }
+  if (!validStore(latestStore)) { toast("本地数据异常，无法继续，请刷新页面检查", "danger"); return; }
   const baseRequests = latestStore.requests;
 
   const target = baseRequests.find(r => r.id === currentRequest.id);
-  if (!target) {
-    toast("该申请已不存在，无法审批", "danger");
-    return;
-  }
+  if (!target) { toast("该申请已不存在，无法审批", "danger"); return; }
   if (target.status !== "待用户审批") {
     toast("这份申请已经被处理过，不能重复审批", "warning");
-    renderApproval();
-    renderArchive();
-    return;
+    renderApproval(); renderArchive(); return;
   }
 
   /* 审批版本核对：防止审批旧内容 */
   if (target.version !== currentRequest.version ||
       target.time !== currentRequest.time ||
-      (target.history || []).length !== (currentRequest.history || []).length) {
+      (target.history || []).length !== (currentRequest.history || []).length ||
+      target.contentHash !== currentRequest.contentHash) {
     toast("该申请在你审批期间已被修改，已为你刷新，请重新审阅", "warning");
-    /* 仅同步内存视图，不写 localStorage（数据本身已是最新） */
-    store = {
-      schemaVersion: SCHEMA_VERSION,
-      requests: baseRequests,
-      activeId: target.id
-    };
-    requests = baseRequests;
-    activeId = target.id;
-    currentRequest = target;
-    renderApproval();
-    renderArchive();
+    store = { schemaVersion: SCHEMA_VERSION, requests: baseRequests, activeId: target.id };
+    requests = baseRequests; activeId = target.id; currentRequest = target;
+    renderApproval(); renderArchive();
+    return;
+  }
+
+  /* 防篡改：如果当前内容哈希与审批记录里的最新哈希不一致，说明内容被改过 */
+  if (isContentTampered(target)) {
+    toast("内容篡改警告：当前内容与上次审批时不一致，请核实", "danger");
     return;
   }
 
   const note = $("decisionNote").value.trim();
-  const updated = Object.assign({}, target, {
-    status,
-    history: (target.history || []).concat([{
-      time: nowStr(),
-      action: actionName,
-      note: note || message
-    }])
-  });
+  const contentHash = computeContentHash(target);
+  const snapshot = {
+    project: target.project, reason: target.reason,
+    changes: target.changes, risk: target.risk
+  };
+  const newEntry = {
+    time: nowStr(), action: actionName,
+    note: note || message,
+    contentHash: contentHash,
+    snapshot: snapshot
+  };
+  const newHistory = (target.history || []).concat([newEntry]);
 
-  const nextRequests = baseRequests.map(r => r.id === updated.id ? updated : r);
-  if (!commitStore(nextRequests, updated.id, baseRequests)) {
+  /* 历史只允许追加，不允许覆盖 */
+  if (!validateHistoryAppend(target.history || [], newHistory)) {
+    toast("审批历史异常（只允许追加，不允许覆盖），已阻止保存", "danger");
     return;
   }
 
-  renderApproval();
-  renderArchive();
-  refreshDataInfo();
+  const updated = Object.assign({}, target, {
+    status: status,
+    contentHash: contentHash,
+    history: newHistory
+  });
+
+  const nextRequests = baseRequests.map(r => r.id === updated.id ? updated : r);
+  if (!commitStore(nextRequests, updated.id, baseRequests)) return;
+
+  renderApproval(); renderArchive(); refreshDataInfo();
   setApprovalMessage(message, extraClass);
-  addLog(actionName, currentRequest.id + " · " + currentRequest.project +
-    (note ? " · 备注：" + note : ""));
+  addLog(actionName, currentRequest.id + " · " + currentRequest.project + (note ? " · 备注：" + note : ""));
   $("decisionNote").value = "";
   toast("已记录" + actionName, "success");
 
-  if (status === "退回重新讨论") {
-    startEditFrom(currentRequest);
-  } else {
-    $("sec-request").scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  if (status === "退回重新讨论") startEditFrom(currentRequest);
+  else $("sec-request").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function approve() {
-  decide(
-    "用户已批准（待接入执行引擎）",
+  decide("用户已批准（待接入执行引擎）",
     "已记录你的批准。当前版本不会实际修改代码。\n如需后续修改，可点击「创建后续修改」建立版本关联。",
-    "success",
-    "批准"
-  );
+    "success", "批准");
 }
 function returnDiscussion() {
-  decide(
-    "退回重新讨论",
+  decide("退回重新讨论",
     "申请已退回。已基于原申请预填表单，修改后重新提交将生成退回修订版本并关联原申请。",
-    "",
-    "退回"
-  );
+    "", "退回");
 }
 function reject() {
-  decide(
-    "用户已拒绝",
+  decide("用户已拒绝",
     "已拒绝本次修改申请，不会执行。\n如需新的方案，可点击「重新发起新申请」，将生成 v1 新申请并记录参考关系。",
-    "danger",
-    "拒绝"
-  );
+    "danger", "拒绝");
 }
 
-/* ============================================================
- * 数据管理
- * ========================================================== */
+/* ========== 数据管理 ========== */
 function refreshDataInfo() {
   const draft = loadJSON(KEY.draft, null);
   const draftState = draft ? "有未提交草稿（" + (draft.savedAt || "") + "）" : "无草稿";
   $("dataInfo").textContent =
     "当前数据：申请 " + requests.length + " 份 · 会议历史 " + meetingHistory.length +
-    " 条 · 操作记录 " + logs.length + " 条 · " + draftState +
-    " · 数据版本 v" + SCHEMA_VERSION;
+    " 条 · 操作记录 " + logs.length + " 条 · " + draftState + " · 数据版本 v" + SCHEMA_VERSION;
 }
-
 function exportData() {
   const payload = {
-    schemaVersion: SCHEMA_VERSION,
-    exportedAt: nowStr(),
-    logs,
-    requests,
-    activeId,
-    meeting,
-    meetings: meetingHistory,
+    schemaVersion: SCHEMA_VERSION, exportedAt: nowStr(),
+    logs, requests, activeId, meeting, meetings: meetingHistory,
     draft: loadJSON(KEY.draft, null),
-    filter: archiveFilter,
-    page: archivePage,
+    filter: archiveFilter, page: archivePage,
     theme: document.body.classList.contains("light-theme") ? "light" : "dark"
   };
   try {
@@ -1763,55 +1267,31 @@ function exportData() {
     const a = document.createElement("a");
     a.href = url;
     a.download = "ai-council-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     toast("数据已导出", "success");
     addLog("导出数据", "申请 " + requests.length + " 份");
-  } catch (e) {
-    toast("导出失败：" + e.message, "danger");
-  }
+  } catch (e) { toast("导出失败：" + e.message, "danger"); }
 }
 
-/* ---------- 导入：三阶段验证 ---------- */
+/* ---------- 导入 ---------- */
 function validateImportStructure(data) {
   const errors = [];
-  if (!data || typeof data !== "object" || Array.isArray(data)) {
-    return { valid: false, errors: ["导入文件必须是一个有效的 JSON 对象"] };
-  }
-  if (!Array.isArray(data.requests)) {
-    return { valid: false, errors: ["缺少有效的 requests 数组"] };
-  }
+  if (!data || typeof data !== "object" || Array.isArray(data)) return { valid: false, errors: ["导入文件必须是一个有效的 JSON 对象"] };
+  if (!Array.isArray(data.requests)) return { valid: false, errors: ["缺少有效的 requests 数组"] };
   for (let i = 0; i < data.requests.length; i++) {
     const item = data.requests[i];
-    if (!item || typeof item !== "object" || Array.isArray(item)) {
-      errors.push("第 " + (i + 1) + " 条申请记录格式错误");
-      continue;
-    }
-    if (typeof item.id !== "string" || !item.id.trim()) {
-      errors.push("第 " + (i + 1) + " 条申请缺少有效编号");
-    }
-    if (item.status !== undefined && typeof item.status !== "string") {
-      errors.push("第 " + (i + 1) + " 条申请 status 类型错误");
-    }
-    if (item.version !== undefined && (!Number.isInteger(item.version) || item.version < 1)) {
-      errors.push("第 " + (i + 1) + " 条申请 version 无效");
-    }
-    if (item.parentId !== undefined && item.parentId !== null && typeof item.parentId !== "string") {
-      errors.push("第 " + (i + 1) + " 条申请 parentId 类型错误");
-    }
-    if (item.referenceId !== undefined && item.referenceId !== null && typeof item.referenceId !== "string") {
-      errors.push("第 " + (i + 1) + " 条申请 referenceId 类型错误");
-    }
-    if (item.relation !== undefined && item.relation !== null &&
-        ![RELATION.REVISION, RELATION.FOLLOWUP, RELATION.REFERENCE].includes(item.relation)) {
-      errors.push("第 " + (i + 1) + " 条申请 relation 类型错误");
-    }
+    if (!item || typeof item !== "object" || Array.isArray(item)) { errors.push("第 " + (i + 1) + " 条申请记录格式错误"); continue; }
+    if (typeof item.id !== "string" || !item.id.trim()) errors.push("第 " + (i + 1) + " 条申请缺少有效编号");
+    if (item.status !== undefined && typeof item.status !== "string") errors.push("第 " + (i + 1) + " 条申请 status 类型错误");
+    if (item.version !== undefined && (!Number.isInteger(item.version) || item.version < 1)) errors.push("第 " + (i + 1) + " 条申请 version 无效");
+    if (item.parentId !== undefined && item.parentId !== null && typeof item.parentId !== "string") errors.push("第 " + (i + 1) + " 条申请 parentId 类型错误");
+    if (item.referenceId !== undefined && item.referenceId !== null && typeof item.referenceId !== "string") errors.push("第 " + (i + 1) + " 条申请 referenceId 类型错误");
+    if (item.relation !== undefined && item.relation !== null && ![RELATION.REVISION, RELATION.FOLLOWUP, RELATION.REFERENCE].includes(item.relation)) errors.push("第 " + (i + 1) + " 条申请 relation 类型错误");
+    if (item.contentHash !== undefined && item.contentHash !== null && typeof item.contentHash !== "string") errors.push("第 " + (i + 1) + " 条申请 contentHash 类型错误");
   }
   return { valid: errors.length === 0, errors };
 }
-
 function normalizeImportedV2(data) {
   const reqs = data.requests.map(r => {
     const copy = Object.assign({}, r);
@@ -1823,108 +1303,59 @@ function normalizeImportedV2(data) {
         if (parent && parent.status === "退回重新讨论") copy.relation = RELATION.REVISION;
         else if (parent && parent.status === "用户已批准（待接入执行引擎）") copy.relation = RELATION.FOLLOWUP;
         else copy.relation = RELATION.REVISION;
-      } else {
-        copy.relation = null;
-      }
+      } else copy.relation = null;
     }
     if (copy.history === undefined) copy.history = [];
     return copy;
   });
   return Object.assign({}, data, { requests: reqs, schemaVersion: SCHEMA_VERSION });
 }
-
 function validateImportFull(data) {
   const errors = [];
-  if (data.schemaVersion !== 3) {
-    errors.push("schemaVersion 必须是 3");
-  }
-  const ids = new Set();
-  const byId = new Map();
-
+  if (data.schemaVersion !== 3) errors.push("schemaVersion 必须是 3");
+  const ids = new Set(); const byId = new Map();
   for (let i = 0; i < data.requests.length; i++) {
-    const r = data.requests[i];
-    const at = "requests[" + i + "]";
-    if (!r || typeof r !== "object" || Array.isArray(r)) {
-      errors.push(at + " 不是对象");
-      continue;
-    }
-    if (typeof r.id !== "string" || !/^REQ-\d+$/.test(r.id)) {
-      errors.push(at + ".id 格式应为 REQ-数字");
-    } else if (ids.has(r.id)) {
-      errors.push(at + ".id 重复：" + r.id);
-    } else {
-      ids.add(r.id);
-      byId.set(r.id, r);
-    }
-    ["project", "reason", "changes", "risk", "time"].forEach(f => {
-      if (typeof r[f] !== "string") errors.push(at + "." + f + " 必须是字符串");
-    });
-    if (!isValidStatus(r.status)) {
-      errors.push(at + ".status 无效：" + String(r.status));
-    }
-    if (!Number.isInteger(r.version) || r.version < 1) {
-      errors.push(at + ".version 必须是正整数");
-    }
-    if (r.parentId !== null && r.parentId !== undefined && typeof r.parentId !== "string") {
-      errors.push(at + ".parentId 必须是字符串或 null");
-    }
-    if (r.referenceId !== null && r.referenceId !== undefined && typeof r.referenceId !== "string") {
-      errors.push(at + ".referenceId 必须是字符串或 null");
-    }
-    if (r.relation !== null && r.relation !== undefined &&
-        ![RELATION.REVISION, RELATION.FOLLOWUP, RELATION.REFERENCE].includes(r.relation)) {
-      errors.push(at + ".relation 无效");
-    }
+    const r = data.requests[i]; const at = "requests[" + i + "]";
+    if (!r || typeof r !== "object" || Array.isArray(r)) { errors.push(at + " 不是对象"); continue; }
+    if (typeof r.id !== "string" || !/^REQ-\d+$/.test(r.id)) errors.push(at + ".id 格式应为 REQ-数字");
+    else if (ids.has(r.id)) errors.push(at + ".id 重复：" + r.id);
+    else { ids.add(r.id); byId.set(r.id, r); }
+    ["project","reason","changes","risk","time"].forEach(f => { if (typeof r[f] !== "string") errors.push(at + "." + f + " 必须是字符串"); });
+    if (!isValidStatus(r.status)) errors.push(at + ".status 无效：" + String(r.status));
+    if (!Number.isInteger(r.version) || r.version < 1) errors.push(at + ".version 必须是正整数");
+    if (r.parentId !== null && r.parentId !== undefined && typeof r.parentId !== "string") errors.push(at + ".parentId 必须是字符串或 null");
+    if (r.referenceId !== null && r.referenceId !== undefined && typeof r.referenceId !== "string") errors.push(at + ".referenceId 必须是字符串或 null");
+    if (r.relation !== null && r.relation !== undefined && ![RELATION.REVISION, RELATION.FOLLOWUP, RELATION.REFERENCE].includes(r.relation)) errors.push(at + ".relation 无效");
+    if (r.contentHash !== null && r.contentHash !== undefined && typeof r.contentHash !== "string") errors.push(at + ".contentHash 必须是字符串或 null");
     if (r.history !== undefined) {
-      if (!Array.isArray(r.history)) {
-        errors.push(at + ".history 必须是数组");
-      } else {
-        r.history.forEach((h, j) => {
-          if (!h || typeof h !== "object") {
-            errors.push(at + ".history[" + j + "] 不是对象");
-          } else if (typeof h.time !== "string" || typeof h.action !== "string") {
-            errors.push(at + ".history[" + j + "] 需要 time/action 字符串");
-          }
-        });
-      }
+      if (!Array.isArray(r.history)) errors.push(at + ".history 必须是数组");
+      else r.history.forEach((h, j) => {
+        if (!h || typeof h !== "object") errors.push(at + ".history[" + j + "] 不是对象");
+        else if (typeof h.time !== "string" || typeof h.action !== "string") errors.push(at + ".history[" + j + "] 需要 time/action 字符串");
+      });
     }
   }
-
   data.requests.forEach((r, i) => {
     const at = "requests[" + i + "]";
     if (!r || typeof r !== "object") return;
     if (r.parentId) {
       if (r.parentId === r.id) errors.push(at + " 不能引用自己作为父申请");
       const p = byId.get(r.parentId);
-      if (!p) {
-        errors.push(at + ".parentId 指向不存在的申请：" + r.parentId);
-      } else {
-        if (![RELATION.REVISION, RELATION.FOLLOWUP].includes(r.relation)) {
-          errors.push(at + ".relation 应为 revision 或 followup");
-        }
+      if (!p) errors.push(at + ".parentId 指向不存在的申请：" + r.parentId);
+      else {
+        if (![RELATION.REVISION, RELATION.FOLLOWUP].includes(r.relation)) errors.push(at + ".relation 应为 revision 或 followup");
         if (r.referenceId) errors.push(at + " 不能同时有 parentId 和 referenceId");
-        if (r.relation === RELATION.REVISION && p.status !== "退回重新讨论") {
-          errors.push(at + " 退回修订的父申请状态应为已退回");
-        }
-        if (r.relation === RELATION.FOLLOWUP && p.status !== "用户已批准（待接入执行引擎）") {
-          errors.push(at + " 后续修改的父申请状态应为已批准");
-        }
-        if (r.version !== (p.version || 1) + 1) {
-          errors.push(at + " 版本号应为父版本+1");
-        }
+        if (r.relation === RELATION.REVISION && p.status !== "退回重新讨论") errors.push(at + " 退回修订的父申请状态应为已退回");
+        if (r.relation === RELATION.FOLLOWUP && p.status !== "用户已批准（待接入执行引擎）") errors.push(at + " 后续修改的父申请状态应为已批准");
+        if (r.version !== (p.version || 1) + 1) errors.push(at + " 版本号应为父版本+1");
       }
     } else if (r.referenceId) {
       if (r.referenceId === r.id) errors.push(at + " 不能引用自己作为参考申请");
       const ref = byId.get(r.referenceId);
-      if (!ref) {
-        errors.push(at + ".referenceId 指向不存在的申请：" + r.referenceId);
-      } else {
-        if (r.relation !== RELATION.REFERENCE) {
-          errors.push(at + ".relation 应为 reference");
-        }
-        if (ref.status !== "用户已拒绝") {
-          errors.push(at + " 参考申请状态应为已拒绝");
-        }
+      if (!ref) errors.push(at + ".referenceId 指向不存在的申请：" + r.referenceId);
+      else {
+        if (r.relation !== RELATION.REFERENCE) errors.push(at + ".relation 应为 reference");
+        if (ref.status !== "用户已拒绝") errors.push(at + " 参考申请状态应为已拒绝");
         if (r.version !== 1) errors.push(at + " 参考新申请版本应为 1");
       }
     } else {
@@ -1932,134 +1363,87 @@ function validateImportFull(data) {
       if (r.version !== 1) errors.push(at + " 初始申请版本应为 1");
     }
   });
-
   for (const r of data.requests) {
     if (!r || typeof r !== "object") continue;
-    const seen = new Set();
-    let cur = r;
+    const seen = new Set(); let cur = r;
     while (cur && cur.parentId) {
-      if (seen.has(cur.id)) {
-        errors.push("版本关系存在循环：" + [...seen].join(" -> ") + " -> " + cur.id);
-        break;
-      }
-      seen.add(cur.id);
-      cur = byId.get(cur.parentId);
+      if (seen.has(cur.id)) { errors.push("版本关系存在循环：" + [...seen].join(" -> ") + " -> " + cur.id); break; }
+      seen.add(cur.id); cur = byId.get(cur.parentId);
       if (!cur) break;
     }
   }
-
   if (data.logs !== undefined) {
-    if (!Array.isArray(data.logs)) {
-      errors.push("logs 必须是数组");
-    } else {
-      data.logs.forEach((l, i) => {
-        if (!l || typeof l !== "object" || typeof l.title !== "string" || typeof l.detail !== "string") {
-          errors.push("logs[" + i + "] 格式无效");
-        }
-      });
-    }
+    if (!Array.isArray(data.logs)) errors.push("logs 必须是数组");
+    else data.logs.forEach((l, i) => {
+      if (!l || typeof l !== "object" || typeof l.title !== "string" || typeof l.detail !== "string") errors.push("logs[" + i + "] 格式无效");
+    });
   }
   if (data.meeting !== undefined) {
-    if (!data.meeting || typeof data.meeting !== "object" || Array.isArray(data.meeting)) {
-      errors.push("meeting 必须是对象");
-    } else {
-      if (data.meeting.stage !== undefined && ![0, 1, 2, 3].includes(data.meeting.stage)) {
-        errors.push("meeting.stage 必须是 0-3");
-      }
-      if (data.meeting.topic !== undefined && typeof data.meeting.topic !== "string") {
-        errors.push("meeting.topic 必须是字符串");
-      }
+    if (!data.meeting || typeof data.meeting !== "object" || Array.isArray(data.meeting)) errors.push("meeting 必须是对象");
+    else {
+      if (data.meeting.stage !== undefined && ![0,1,2,3].includes(data.meeting.stage)) errors.push("meeting.stage 必须是 0-3");
+      if (data.meeting.topic !== undefined && typeof data.meeting.topic !== "string") errors.push("meeting.topic 必须是字符串");
     }
   }
   if (data.meetings !== undefined) {
-    if (!Array.isArray(data.meetings)) {
-      errors.push("meetings 必须是数组");
-    } else {
-      data.meetings.forEach((m, i) => {
-        if (!m || typeof m !== "object") {
-          errors.push("meetings[" + i + "] 不是对象");
-        } else if (typeof m.id !== "string" || typeof m.topic !== "string") {
-          errors.push("meetings[" + i + "] 需要 id/topic 字符串");
-        }
-      });
-    }
+    if (!Array.isArray(data.meetings)) errors.push("meetings 必须是数组");
+    else data.meetings.forEach((m, i) => {
+      if (!m || typeof m !== "object") errors.push("meetings[" + i + "] 不是对象");
+      else if (typeof m.id !== "string" || typeof m.topic !== "string") errors.push("meetings[" + i + "] 需要 id/topic 字符串");
+    });
   }
-  if (data.theme !== undefined && !["dark", "light"].includes(data.theme)) {
-    errors.push("theme 必须是 dark 或 light");
-  }
-  if (data.filter !== undefined && !["all", "pending", "approved", "returned", "rejected"].includes(data.filter)) {
-    errors.push("filter 无效");
-  }
-  if (data.page !== undefined && (!Number.isInteger(data.page) || data.page < 1)) {
-    errors.push("page 必须是正整数");
-  }
-  if (data.activeId !== undefined && data.activeId !== null && typeof data.activeId !== "string") {
-    errors.push("activeId 必须是字符串或 null");
-  }
+  if (data.theme !== undefined && !["dark","light"].includes(data.theme)) errors.push("theme 必须是 dark 或 light");
+  if (data.filter !== undefined && !["all","pending","approved","returned","rejected"].includes(data.filter)) errors.push("filter 无效");
+  if (data.page !== undefined && (!Number.isInteger(data.page) || data.page < 1)) errors.push("page 必须是正整数");
+  if (data.activeId !== undefined && data.activeId !== null && typeof data.activeId !== "string") errors.push("activeId 必须是字符串或 null");
   if (typeof data.activeId === "string" && Array.isArray(data.requests)) {
-    if (!data.requests.some(r => r && r.id === data.activeId)) {
-      errors.push("activeId 指向不存在的申请：" + data.activeId);
-    }
+    if (!data.requests.some(r => r && r.id === data.activeId)) errors.push("activeId 指向不存在的申请：" + data.activeId);
   }
-
   return { valid: errors.length === 0, errors };
 }
-
 function validateImportSafe(rawData) {
   try {
     const structure = validateImportStructure(rawData);
     if (!structure.valid) return { ok: false, errors: structure.errors };
-
     let data = rawData;
-    const schemaVersion = data.schemaVersion;
-    if (schemaVersion === 2) {
-      data = normalizeImportedV2(data);
-    } else if (schemaVersion !== 3) {
-      return { ok: false, errors: ["schemaVersion 必须是 2 或 3"] };
-    }
-
+    const sv = data.schemaVersion;
+    if (sv === 2) data = normalizeImportedV2(data);
+    else if (sv !== 3) return { ok: false, errors: ["schemaVersion 必须是 2 或 3"] };
     const full = validateImportFull(data);
     if (!full.valid) return { ok: false, errors: full.errors };
+    /* 导入时补算缺失的 contentHash */
+    for (const r of data.requests) {
+      if (typeof r.contentHash !== "string" || !r.contentHash) {
+        r.contentHash = computeContentHash(r);
+      }
+    }
     return { ok: true, data };
   } catch (e) {
     return { ok: false, errors: ["验证过程异常：" + (e && e.message ? e.message : String(e))] };
   }
 }
-
-/* ---------- 导入：全键写入 + 全键回读验证 + 可验证回滚 ---------- */
 function verifyBundle(bundle) {
   try {
     const savedStore = loadJSON(KEY.store, null);
     if (!savedStore || !storesEqual(savedStore, bundle.store)) return false;
-
     const savedLogs = loadJSON(KEY.logs, undefined);
     if (savedLogs === undefined || JSON.stringify(savedLogs) !== JSON.stringify(bundle.logs)) return false;
-
     const savedMeetings = loadJSON(KEY.meetings, undefined);
     if (savedMeetings === undefined || JSON.stringify(savedMeetings) !== JSON.stringify(bundle.meetings)) return false;
-
     const savedMeeting = loadJSON(KEY.meeting, undefined);
     if (savedMeeting === undefined || JSON.stringify(savedMeeting) !== JSON.stringify(bundle.meeting)) return false;
-
     const savedFilter = loadJSON(KEY.filter, undefined);
     if (savedFilter === undefined || JSON.stringify(savedFilter) !== JSON.stringify(bundle.filter)) return false;
-
     const savedPage = loadJSON(KEY.page, undefined);
     if (savedPage === undefined || JSON.stringify(savedPage) !== JSON.stringify(bundle.page)) return false;
-
     const savedTheme = loadJSON(KEY.theme, undefined);
     if (savedTheme === undefined || JSON.stringify(savedTheme) !== JSON.stringify(bundle.theme)) return false;
-
     return true;
-  } catch (e) {
-    return false;
-  }
+  } catch (e) { return false; }
 }
-
 function commitImportBundle(bundle) {
   const keys = [KEY.store, KEY.logs, KEY.meetings, KEY.meeting, KEY.filter, KEY.page, KEY.theme];
   const backup = backupStorageKeys(keys);
-
   try {
     localStorage.setItem(KEY.store, JSON.stringify(bundle.store));
     localStorage.setItem(KEY.logs, JSON.stringify(bundle.logs));
@@ -2070,44 +1454,25 @@ function commitImportBundle(bundle) {
     localStorage.setItem(KEY.theme, JSON.stringify(bundle.theme));
   } catch (e) {
     const restored = restoreBackup(backup);
-    return {
-      success: false,
-      rolledBack: restored,
-      message: restored
-        ? "导入失败，原有数据已恢复。"
-        : "严重错误：导入失败，部分数据恢复失败，请勿继续操作。"
-    };
+    return { success: false, rolledBack: restored,
+      message: restored ? "导入失败，原有数据已恢复。" : "严重错误：导入失败，部分数据恢复失败，请勿继续操作。" };
   }
-
   if (!verifyBundle(bundle)) {
     const restored = restoreBackup(backup);
-    return {
-      success: false,
-      rolledBack: restored,
-      message: restored
-        ? "导入失败，原有数据已恢复。"
-        : "严重错误：导入失败，部分数据恢复失败，请勿继续操作。"
-    };
+    return { success: false, rolledBack: restored,
+      message: restored ? "导入失败，原有数据已恢复。" : "严重错误：导入失败，部分数据恢复失败，请勿继续操作。" };
   }
-
   return { success: true, rolledBack: false, message: "导入成功" };
 }
-
 function importData(ev) {
   const file = ev.target.files && ev.target.files[0];
   ev.target.value = "";
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = () => {
     let rawData;
-    try {
-      rawData = JSON.parse(reader.result);
-    } catch (e) {
-      toast("导入失败：不是有效的 JSON 文件", "danger");
-      return;
-    }
-
+    try { rawData = JSON.parse(reader.result); }
+    catch (e) { toast("导入失败：不是有效的 JSON 文件", "danger"); return; }
     const result = validateImportSafe(rawData);
     if (!result.ok) {
       const preview = result.errors.slice(0, 6).join("\n");
@@ -2115,213 +1480,110 @@ function importData(ev) {
       toast("导入失败，现有数据未改变：\n" + preview + more, "danger");
       return;
     }
-
     const validData = result.data;
-    if (!confirm("导入将覆盖当前本地数据（申请、会议、记录、草稿、主题等）。\n文件校验已通过，继续吗？")) {
-      return;
-    }
-
-    const nextStore = {
-      schemaVersion: SCHEMA_VERSION,
-      requests: validData.requests,
-      activeId: typeof validData.activeId === "string" ? validData.activeId : null
-    };
+    if (!confirm("导入将覆盖当前本地数据（申请、会议、记录、草稿、主题等）。\n文件校验已通过，继续吗？")) return;
+    const nextStore = { schemaVersion: SCHEMA_VERSION, requests: validData.requests,
+      activeId: typeof validData.activeId === "string" ? validData.activeId : null };
     const bundle = {
       store: nextStore,
       logs: Array.isArray(validData.logs) ? validData.logs : [],
       meetings: Array.isArray(validData.meetings) ? validData.meetings : [],
-      meeting: (validData.meeting && typeof validData.meeting === "object")
-        ? validData.meeting
-        : { stage: 0, topic: "", startedAt: null, id: null },
+      meeting: (validData.meeting && typeof validData.meeting === "object") ? validData.meeting : { stage: 0, topic: "", startedAt: null, id: null },
       filter: typeof validData.filter === "string" ? validData.filter : "all",
       page: Number.isInteger(validData.page) ? validData.page : 1,
       theme: validData.theme === "light" ? "light" : "dark"
     };
-
-    const commitResult = commitImportBundle(bundle);
-    if (!commitResult.success) {
-      toast(commitResult.message, "danger");
-      return;
-    }
-
-    store = nextStore;
-    requests = store.requests;
-    activeId = store.activeId;
+    const cr = commitImportBundle(bundle);
+    if (!cr.success) { toast(cr.message, "danger"); return; }
+    store = nextStore; requests = store.requests; activeId = store.activeId;
     currentRequest = requests.find(r => r.id === activeId) || null;
-    logs = bundle.logs;
-    meetingHistory = bundle.meetings;
-    meeting = bundle.meeting;
-    archiveFilter = bundle.filter;
-    archivePage = bundle.page;
-
+    logs = bundle.logs; meetingHistory = bundle.meetings; meeting = bundle.meeting;
+    archiveFilter = bundle.filter; archivePage = bundle.page;
     applyTheme(bundle.theme);
-    removeJSON(KEY.draft);
-    editingParent = null;
-    hideEditHint();
-    clearForm();
-    archiveSearchText = "";
-    $("archiveSearch").value = "";
-
-    renderHistory();
-    renderProjectList();
-    setFilter(archiveFilter);
-    renderArchive();
-    renderMeetingHistory();
-    renderApproval();
-    restoreMeeting();
-    refreshDataInfo();
-
+    removeJSON(KEY.draft); editingParent = null; hideEditHint(); clearForm();
+    archiveSearchText = ""; $("archiveSearch").value = "";
+    renderHistory(); renderProjectList(); setFilter(archiveFilter); renderArchive();
+    renderMeetingHistory(); renderApproval(); restoreMeeting(); refreshDataInfo();
     addLog("导入数据", "申请 " + requests.length + " 份");
     toast("数据已导入", "success");
   };
-  reader.onerror = () => {
-    toast("读取文件失败", "danger");
-  };
+  reader.onerror = () => { toast("读取文件失败", "danger"); };
   reader.readAsText(file);
 }
 
-/* ---------- 清除全部数据：备份 - 删除 - 验证 - 恢复 ---------- */
+/* ---------- 清除全部数据 ---------- */
 function clearAllData() {
   if (!confirm("将清除申请、会议、操作记录和草稿在内的全部本地数据。\n此操作无法撤销，建议先导出备份。继续吗？")) return;
   if (!confirm("再次确认：确定要清除全部数据吗？")) return;
-
-  const keys = [
-    KEY.store,
-    KEY.legacyRequests,
-    KEY.legacyActive,
-    KEY.legacyRequest,
-    KEY.logs,
-    KEY.meetings,
-    KEY.meeting,
-    KEY.filter,
-    KEY.page,
-    KEY.draft
-  ];
-
+  const keys = [KEY.store, KEY.legacyRequests, KEY.legacyActive, KEY.legacyRequest,
+    KEY.logs, KEY.meetings, KEY.meeting, KEY.filter, KEY.page, KEY.draft];
   const backup = backupStorageKeys(keys);
-
   let deleteFailed = false;
-  try {
-    keys.forEach(k => localStorage.removeItem(k));
-  } catch (e) {
-    deleteFailed = true;
-  }
-
+  try { keys.forEach(k => localStorage.removeItem(k)); }
+  catch (e) { deleteFailed = true; }
   let allCleared = true;
   try {
-    for (const k of keys) {
-      if (localStorage.getItem(k) !== null) {
-        allCleared = false;
-        break;
-      }
-    }
-  } catch (e) {
-    allCleared = false;
-  }
-
+    for (const k of keys) { if (localStorage.getItem(k) !== null) { allCleared = false; break; } }
+  } catch (e) { allCleared = false; }
   if (deleteFailed || !allCleared) {
     const restored = restoreBackup(backup);
-    if (restored) {
-      toast("清除失败，原有数据已恢复。", "danger");
-    } else {
-      toast("严重错误：清除失败，部分数据恢复失败，请勿继续操作。", "danger");
-    }
+    toast(restored ? "清除失败，原有数据已恢复。" : "严重错误：清除失败，部分数据恢复失败，请勿继续操作。", "danger");
     return;
   }
-
   store = { schemaVersion: SCHEMA_VERSION, requests: [], activeId: null };
-  requests = [];
-  activeId = null;
-  currentRequest = null;
-  logs = [];
-  meetingHistory = [];
-  meeting = { stage: 0, topic: "", startedAt: null, id: null };
-  archiveFilter = "all";
-  archivePage = 1;
-  archiveSearchText = "";
-  editingParent = null;
-
-  $("question").value = "";
-  $("archiveSearch").value = "";
-  $("meeting").style.display = "none";
-  $("btnResetMeeting").style.display = "none";
-  clearForm();
-  hideEditHint();
-
-  renderHistory();
-  renderProjectList();
-  setFilter("all");
-  renderArchive();
-  renderMeetingHistory();
-  renderApproval();
-  refreshDataInfo();
+  requests = []; activeId = null; currentRequest = null;
+  logs = []; meetingHistory = []; meeting = { stage: 0, topic: "", startedAt: null, id: null };
+  archiveFilter = "all"; archivePage = 1; archiveSearchText = ""; editingParent = null;
+  $("question").value = ""; $("archiveSearch").value = "";
+  $("meeting").style.display = "none"; $("btnResetMeeting").style.display = "none";
+  clearForm(); hideEditHint();
+  renderHistory(); renderProjectList(); setFilter("all"); renderArchive();
+  renderMeetingHistory(); renderApproval(); refreshDataInfo();
   toast("全部数据已清除", "warning");
 }
 
-/* ============================================================
- * 恢复
- * ========================================================== */
+/* ========== 恢复 ========== */
 function restoreMeeting() {
   if (meeting.stage > 0) {
     $("meeting").style.display = "block";
     $("question").value = meeting.topic || "";
     updateMeeting();
-    if (meeting.stage < 3) {
-      $("meetingText").textContent += "\n\n（已恢复上次未完成的会议进度）";
-    }
+    if (meeting.stage < 3) $("meetingText").textContent += "\n\n（已恢复上次未完成的会议进度）";
   }
   $("btnResetMeeting").style.display = meeting.stage > 0 ? "inline-block" : "none";
 }
 function restoreApproval() {
   renderApproval();
   if (!currentRequest) return;
-  if (currentRequest.status === "待用户审批") {
-    setApprovalMessage("检测到上次未处理的申请，请继续审阅。");
-  } else if (currentRequest.status === "退回重新讨论") {
-    setApprovalMessage("上次申请已被退回。可点击「基于此申请修改（退回修订）」继续编辑，或重新填写表单。");
-  } else if (currentRequest.status === "用户已批准（待接入执行引擎）") {
-    setApprovalMessage("这份申请已批准。如需继续修改，可点击「创建后续修改」建立版本关联。", "success");
-  } else if (currentRequest.status === "用户已拒绝") {
-    setApprovalMessage("这份申请已被拒绝。如需新的方案，可点击「重新发起新申请」，将生成 v1 新申请并记录参考关系。", "danger");
-  } else {
-    setApprovalMessage("当前申请状态：" + statusInfo(currentRequest.status).label);
-  }
+  if (currentRequest.status === "待用户审批") setApprovalMessage("检测到上次未处理的申请，请继续审阅。");
+  else if (currentRequest.status === "退回重新讨论") setApprovalMessage("上次申请已被退回。可点击「基于此申请修改（退回修订）」继续编辑，或重新填写表单。");
+  else if (currentRequest.status === "用户已批准（待接入执行引擎）") setApprovalMessage("这份申请已批准。如需继续修改，可点击「创建后续修改」建立版本关联。", "success");
+  else if (currentRequest.status === "用户已拒绝") setApprovalMessage("这份申请已被拒绝。如需新的方案，可点击「重新发起新申请」，将生成 v1 新申请并记录参考关系。", "danger");
+  else setApprovalMessage("当前申请状态：" + statusInfo(currentRequest.status).label);
 }
 
-/* ============================================================
- * 事件
- * ========================================================== */
+/* ========== 事件 ========== */
 function bindEvents() {
-  ["project", "reason", "changes", "risk"].forEach(id => {
-    $(id).addEventListener("input", () => {
-      scheduleSaveDraft();
-      updateCounter(id);
-    });
+  ["project","reason","changes","risk"].forEach(id => {
+    $(id).addEventListener("input", () => { scheduleSaveDraft(); updateCounter(id); });
   });
   $("archiveSearch").addEventListener("input", e => {
-    archiveSearchText = e.target.value.trim();
-    archivePage = 1;
-    saveJSON(KEY.page, 1);
-    renderArchive();
+    archiveSearchText = e.target.value.trim(); archivePage = 1;
+    saveJSON(KEY.page, 1); renderArchive();
   });
   $("archive").addEventListener("click", e => {
     const btn = e.target.closest("[data-edit-id]");
     if (btn) editFromId(btn.dataset.editId);
   });
   $("sec-request").addEventListener("keydown", e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-      e.preventDefault();
-      createRequest();
-    }
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); createRequest(); }
   });
   document.querySelectorAll("[data-filter]").forEach(btn => {
     btn.style.outline = btn.dataset.filter === archiveFilter ? "2px solid var(--primary)" : "none";
   });
 }
 
-/* ============================================================
- * 启动
- * ========================================================== */
+/* ========== 启动 ========== */
 (function init() {
   initData();
   applyTheme(loadJSON(KEY.theme, "dark"));
