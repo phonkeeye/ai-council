@@ -388,7 +388,7 @@ function statusInfo(s) {
 }
 
 /* ============================================================
- * 存储事务：备份 / 恢复 / 回读验证
+ * 存储备份 / 恢复（用于导入与清除全部数据）
  * ========================================================== */
 function backupStorageKeys(keys) {
   const backup = {};
@@ -439,145 +439,122 @@ function restoreBackup(backup) {
 }
 
 /* ============================================================
- * 第五轮：严格数据校验与事务保存
+ * 第五轮：完整数据比较与安全保存
  * ========================================================== */
-
-// 生成稳定 JSON，完整比较所有字段
-function stableJSON(value) {
-  if (value === undefined) return "null";
-
+function stableStringify(value) {
   if (Array.isArray(value)) {
-    return "[" + value.map(stableJSON).join(",") + "]";
+    return "[" + value.map(stableStringify).join(",") + "]";
   }
 
   if (value && typeof value === "object") {
-    const keys = Object.keys(value).sort();
-    return "{" + keys.map(key =>
-      JSON.stringify(key) + ":" + stableJSON(value[key])
+    return "{" + Object.keys(value).sort().filter(key => value[key] !== undefined).map(key =>
+      JSON.stringify(key) + ":" + stableStringify(value[key])
     ).join(",") + "}";
   }
 
   return JSON.stringify(value);
 }
 
-// 检查申请 ID 是否唯一
-function hasUniqueRequestIds(list) {
-  if (!Array.isArray(list)) return false;
+function validStore(s) {
+  if (!s || typeof s !== "object" || Array.isArray(s)) return false;
+  if (!Array.isArray(s.requests)) return false;
 
   const ids = new Set();
 
-  for (const item of list) {
-    if (!item || typeof item !== "object") return false;
-    if (typeof item.id !== "string" || !item.id.trim()) return false;
-    if (ids.has(item.id)) return false;
-    ids.add(item.id);
+  for (const r of s.requests) {
+    if (!r || typeof r !== "object" || Array.isArray(r)) return false;
+    if (typeof r.id !== "string" || !r.id.trim()) return false;
+    if (ids.has(r.id)) return false;
+    ids.add(r.id);
+  }
+
+  if (s.activeId !== null &&
+      (typeof s.activeId !== "string" ||
+       !ids.has(s.activeId))) {
+    return false;
   }
 
   return true;
 }
 
-// 完整比较两个 Store
 function storesEqual(a, b) {
-  if (!a || !b) return false;
-
-  if (typeof a !== "object" || typeof b !== "object") {
-    return false;
-  }
-
-  if (!Array.isArray(a.requests) ||
-      !Array.isArray(b.requests)) {
-    return false;
-  }
-
-  if (!hasUniqueRequestIds(a.requests) ||
-      !hasUniqueRequestIds(b.requests)) {
-    return false;
-  }
-
-  if (a.activeId !== null &&
-      !a.requests.some(r => r.id === a.activeId)) {
-    return false;
-  }
-
-  if (b.activeId !== null &&
-      !b.requests.some(r => r.id === b.activeId)) {
-    return false;
-  }
-
   try {
-    return stableJSON(a) === stableJSON(b);
+    if (!validStore(a) || !validStore(b)) return false;
+    return stableStringify(a) === stableStringify(b);
   } catch (e) {
     return false;
   }
 }
 
-// 保存并回读验证，失败自动恢复原数据
+/* 保留原样，当前无外部调用点；若需外部直接写 store，请改用 saveStoreAndVerify */
+function saveStore(nextStore) {
+  try {
+    localStorage.setItem(KEY.store, JSON.stringify(nextStore));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function saveStoreAndVerify(nextStore) {
   let original;
 
   try {
+    if (!validStore(nextStore)) return false;
+
     original = localStorage.getItem(KEY.store);
-  } catch (e) {
-    return false;
-  }
 
-  try {
-    if (!hasUniqueRequestIds(nextStore.requests)) {
-      return false;
-    }
+    const serialized = JSON.stringify(nextStore);
+    if (typeof serialized !== "string") return false;
 
-    if (nextStore.activeId !== null &&
-        !nextStore.requests.some(
-          r => r.id === nextStore.activeId
-        )) {
-      return false;
-    }
+    localStorage.setItem(KEY.store, serialized);
 
-    localStorage.setItem(
-      KEY.store,
-      JSON.stringify(nextStore)
-    );
+    const savedRaw = localStorage.getItem(KEY.store);
+    if (savedRaw === null) throw new Error("保存后无法读取");
 
-    const saved = JSON.parse(
-      localStorage.getItem(KEY.store)
-    );
+    const saved = JSON.parse(savedRaw);
 
-    if (storesEqual(saved, nextStore)) {
+    if (storesEqual(saved, JSON.parse(serialized))) {
       return true;
     }
-  } catch (e) {
-    // 保存或验证失败，进入恢复流程
-  }
 
-  // 恢复原始数据
-  try {
-    if (original === null) {
-      localStorage.removeItem(KEY.store);
-    } else {
-      localStorage.setItem(KEY.store, original);
+    throw new Error("保存数据与目标数据不一致");
+
+  } catch (e) {
+    try {
+      if (original === null || original === undefined) {
+        localStorage.removeItem(KEY.store);
+      } else {
+        localStorage.setItem(KEY.store, original);
+      }
+
+      if (localStorage.getItem(KEY.store) !== original) {
+        console.error("严重错误：原始数据恢复失败", e);
+      }
+    } catch (restoreError) {
+      console.error("严重错误：无法恢复原始数据", restoreError);
     }
 
-    const restored = localStorage.getItem(KEY.store);
-
-    if (restored !== original) {
-      console.error("严重错误：原始数据恢复失败");
-    }
-  } catch (e) {
-    console.error("严重错误：无法恢复原始数据", e);
+    return false;
   }
-
-  return false;
 }
 
-// 提交 Store
-function commitStore(nextRequests, nextActiveId) {
-  if (!hasUniqueRequestIds(nextRequests)) {
-    return false;
-  }
-
-  if (nextActiveId !== null &&
-      !nextRequests.some(r => r.id === nextActiveId)) {
-    return false;
+function commitStore(nextRequests, nextActiveId, expectedBaseRequests) {
+  /* 并发保护：调用方若提供读取时的基础数据，先确认当前 store 未被其他标签页修改 */
+  if (Array.isArray(expectedBaseRequests)) {
+    const current = loadJSON(KEY.store, null);
+    const currentReqs = (current && Array.isArray(current.requests))
+      ? current.requests
+      : [];
+    try {
+      if (stableStringify(currentReqs) !== stableStringify(expectedBaseRequests)) {
+        toast("数据已被其他标签页修改，请刷新后重试", "danger");
+        return false;
+      }
+    } catch (e) {
+      toast("并发校验失败，请刷新后重试", "danger");
+      return false;
+    }
   }
 
   const nextStore = {
@@ -586,21 +563,114 @@ function commitStore(nextRequests, nextActiveId) {
     activeId: nextActiveId
   };
 
+  if (!validStore(nextStore)) {
+    toast("数据校验失败，已阻止保存", "danger");
+    return false;
+  }
+
   if (!saveStoreAndVerify(nextStore)) {
+    toast("保存失败，已尝试恢复原始数据", "danger");
     return false;
   }
 
   store = nextStore;
   requests = nextStore.requests;
   activeId = nextStore.activeId;
-  currentRequest =
-    requests.find(r => r.id === activeId) || null;
+  currentRequest = requests.find(r => r.id === activeId) || null;
 
   return true;
 }
 
 /* ============================================================
- * 申请编号（长随机数 + 100 次重试；保存前基于最新数据再查冲突）
+ * 启动/迁移时的异常记录隔离（不静默丢弃）
+ * ========================================================== */
+function makeQuarantineRequest(raw, index, source, knownIds) {
+  const now = Date.now();
+  let id;
+  let attempt = 0;
+  do {
+    id = "REQ-" + (now + index * 1000 + attempt);
+    attempt++;
+  } while (knownIds.has(id) && attempt < 1000);
+  knownIds.add(id);
+
+  let rawPreview = "";
+  try {
+    rawPreview = JSON.stringify(raw).slice(0, 200);
+  } catch (e) {
+    rawPreview = String(raw).slice(0, 200);
+  }
+
+  return {
+    id,
+    project: "[数据损坏待核实]",
+    reason: "启动或迁移时发现无法识别的申请记录（来源：" + source + "）",
+    changes: "原始数据预览：" + rawPreview,
+    risk: "该记录缺少必要字段，已保留为待核实，不会参与正常审批。",
+    status: "待核实（原状态：数据损坏）",
+    time: nowStr(),
+    parentId: null,
+    relation: null,
+    referenceId: null,
+    version: 1,
+    history: [{
+      time: nowStr(),
+      action: "隔离",
+      note: "自动隔离的异常记录，来源 " + source + "，索引 " + index
+    }]
+  };
+}
+
+function sanitizeLoadedRequests(list, source) {
+  const out = [];
+  let quarantined = 0;
+  if (!Array.isArray(list)) return { requests: [], quarantined: 0 };
+
+  const knownIds = new Set();
+  for (const r of list) {
+    if (r && typeof r === "object" && !Array.isArray(r) &&
+        typeof r.id === "string" && r.id.trim()) {
+      knownIds.add(r.id);
+    }
+  }
+
+  for (let i = 0; i < list.length; i++) {
+    const r = list[i];
+    if (!r || typeof r !== "object" || Array.isArray(r) ||
+        typeof r.id !== "string" || !r.id.trim()) {
+      out.push(makeQuarantineRequest(r, i, source, knownIds));
+      quarantined++;
+      continue;
+    }
+    const copy = Object.assign({}, r);
+    if (typeof copy.project !== "string") copy.project = "";
+    if (typeof copy.reason !== "string") copy.reason = "";
+    if (typeof copy.changes !== "string") copy.changes = "";
+    if (typeof copy.risk !== "string") copy.risk = "";
+    if (typeof copy.time !== "string") copy.time = nowStr();
+    if (!Number.isInteger(copy.version) || copy.version < 1) copy.version = 1;
+    if (copy.parentId === undefined) copy.parentId = null;
+    if (copy.relation === undefined) copy.relation = null;
+    if (copy.referenceId === undefined) copy.referenceId = null;
+    if (!Array.isArray(copy.history)) copy.history = [];
+
+    if (!isValidStatus(copy.status)) {
+      const original = String(copy.status == null ? "未知" : copy.status).slice(0, 80);
+      copy.status = "待核实（原状态：" + original + "）";
+      copy.history.push({
+        time: nowStr(),
+        action: "状态待核实",
+        note: "原状态：" + original
+      });
+      quarantined++;
+    }
+    out.push(copy);
+  }
+  return { requests: out, quarantined };
+}
+
+/* ============================================================
+ * 申请编号
  * ========================================================== */
 function generateRequestId(existingIds) {
   const used = new Set(existingIds || []);
@@ -684,7 +754,6 @@ function ensureMeetingHistory() {
   return true;
 }
 
-/* 合并旧数据到新 store，仅在保存并回读验证成功后才删除旧键 */
 function migrateLegacyIfNeeded() {
   const legacySingle = loadJSON(KEY.legacyRequest, null);
   const legacyReqsRaw = loadJSON(KEY.legacyRequests, []);
@@ -694,7 +763,7 @@ function migrateLegacyIfNeeded() {
   const hasSingle = !!(legacySingle && typeof legacySingle === "object" &&
     !Array.isArray(legacySingle) && legacySingle.id);
   const hasArray = legacyReqs.length > 0;
-  const hasActive = typeof legacyActive === "string";
+  const hasActive = typeof legacyActive === "string" && legacyActive.trim() !== "";
 
   if (!hasSingle && !hasArray && !hasActive) return;
 
@@ -709,27 +778,28 @@ function migrateLegacyIfNeeded() {
       known.add(n.id);
     }
   }
+
+  let quarantinedCount = 0;
   if (hasArray) {
-    for (const lr of legacyReqs) {
-      if (!lr || typeof lr !== "object" || !lr.id) continue;
+    const sanitized = sanitizeLoadedRequests(legacyReqs, "council_requests");
+    for (const lr of sanitized.requests) {
       if (known.has(lr.id)) continue;
-      if (!isValidStatus(lr.status)) {
-        const original = String(lr.status == null ? "未知" : lr.status).slice(0, 80);
-        lr.status = "待核实（原状态：" + original + "）";
-      }
-      if (!Number.isInteger(lr.version) || lr.version < 1) lr.version = 1;
-      if (lr.parentId === undefined) lr.parentId = null;
-      if (lr.relation === undefined) lr.relation = null;
-      if (lr.referenceId === undefined) lr.referenceId = null;
-      if (!Array.isArray(lr.history)) lr.history = [];
       merged = [...merged, lr];
       known.add(lr.id);
     }
+    quarantinedCount = sanitized.quarantined;
   }
 
-  const mergedActive = (typeof store.activeId === "string" && store.activeId)
+  let mergedActive = (typeof store.activeId === "string" && store.activeId)
     ? store.activeId
     : (hasActive ? legacyActive : null);
+
+  const mergedIds = new Set(merged.map(r => r.id));
+  let activeFixed = false;
+  if (mergedActive !== null && !mergedIds.has(mergedActive)) {
+    mergedActive = null;
+    activeFixed = true;
+  }
 
   const mergedStore = {
     schemaVersion: SCHEMA_VERSION,
@@ -741,7 +811,7 @@ function migrateLegacyIfNeeded() {
     store = mergedStore;
     requests = mergedStore.requests;
     activeId = mergedStore.activeId;
-    /* 仅在保存并回读验证成功后删除旧键；检查返回值，失败则保留 */
+
     let removeOk = true;
     try {
       const r1 = removeJSON(KEY.legacyRequest);
@@ -752,6 +822,12 @@ function migrateLegacyIfNeeded() {
       removeOk = false;
     }
     if (hasSingle || hasArray) addLog("迁移旧数据", "已合并旧申请数据");
+    if (quarantinedCount > 0) {
+      toast("迁移时发现 " + quarantinedCount + " 条异常旧记录，已保留为待核实", "warning");
+    }
+    if (activeFixed) {
+      toast("活动申请指向不存在的记录，迁移时已清空活动申请", "warning");
+    }
     if (!removeOk) {
       toast("旧数据已迁移，但旧数据键清理失败；下次启动会自动重试清理", "warning");
     }
@@ -788,39 +864,61 @@ function initData() {
 
   const rawStore = loadJSON(KEY.store, null);
   if (rawStore && typeof rawStore === "object" && Array.isArray(rawStore.requests)) {
+    /* 启动时发现异常记录：隔离保存，不静默丢弃 */
+    const sanitized = sanitizeLoadedRequests(rawStore.requests, "council_store");
+    let activeCandidate = typeof rawStore.activeId === "string" ? rawStore.activeId : null;
+    const ids = new Set(sanitized.requests.map(r => r.id));
+    let activeFixed = false;
+    if (activeCandidate !== null && !ids.has(activeCandidate)) {
+      activeCandidate = null;
+      activeFixed = true;
+    }
     store = {
       schemaVersion: SCHEMA_VERSION,
-      requests: rawStore.requests.filter(r => r && typeof r === "object"),
-      activeId: typeof rawStore.activeId === "string" ? rawStore.activeId : null
+      requests: sanitized.requests,
+      activeId: activeCandidate
     };
     requests = store.requests;
     activeId = store.activeId;
+
+    if (sanitized.quarantined > 0 || activeFixed) {
+      const saveOk = saveStoreAndVerify(store);
+      if (saveOk) {
+        if (sanitized.quarantined > 0) {
+          toast("启动时发现 " + sanitized.quarantined + " 条异常记录，已隔离保存，请在档案中查看", "warning");
+        }
+        if (activeFixed) {
+          toast("活动申请指向不存在的记录，已清空活动申请", "warning");
+        }
+      } else {
+        toast("启动时发现异常记录，但修正结果保存失败，请检查本地存储", "danger");
+      }
+    }
     migrateLegacyIfNeeded();
   } else {
     const legacyReqsRaw = loadJSON(KEY.legacyRequests, []);
-    const legacyReqs = Array.isArray(legacyReqsRaw) ? legacyReqsRaw.filter(r => r && typeof r === "object" && r.id) : [];
+    const legacySanitized = sanitizeLoadedRequests(legacyReqsRaw, "council_requests");
     const legacyActive = loadJSON(KEY.legacyActive, null);
-    const activeCandidate = typeof legacyActive === "string" ? legacyActive : null;
+    let activeCandidate = typeof legacyActive === "string" ? legacyActive : null;
 
     const legacySingle = loadJSON(KEY.legacyRequest, null);
-    let merged = legacyReqs.slice();
+    let merged = legacySanitized.requests.slice();
     const known = new Set(merged.map(r => r.id));
     if (legacySingle && typeof legacySingle === "object" && !Array.isArray(legacySingle) && legacySingle.id) {
       const n = normalizeLegacyRequest(legacySingle);
-      if (!known.has(n.id)) merged = [n, ...merged];
-    }
-    merged = merged.map(r => {
-      if (!isValidStatus(r.status)) {
-        const original = String(r.status == null ? "未知" : r.status).slice(0, 80);
-        r.status = "待核实（原状态：" + original + "）";
+      if (!known.has(n.id)) {
+        merged = [n, ...merged];
+        known.add(n.id);
       }
-      if (!Number.isInteger(r.version) || r.version < 1) r.version = 1;
-      if (r.parentId === undefined) r.parentId = null;
-      if (r.relation === undefined) r.relation = null;
-      if (r.referenceId === undefined) r.referenceId = null;
-      if (!Array.isArray(r.history)) r.history = [];
-      return r;
-    });
+    }
+    const quarantinedCount = legacySanitized.quarantined;
+
+    const ids = new Set(merged.map(r => r.id));
+    let activeFixed = false;
+    if (activeCandidate !== null && !ids.has(activeCandidate)) {
+      activeCandidate = null;
+      activeFixed = true;
+    }
 
     const nextStore = {
       schemaVersion: SCHEMA_VERSION,
@@ -840,6 +938,12 @@ function initData() {
         removeOk = r1 && r2 && r3;
       } catch (e) {
         removeOk = false;
+      }
+      if (quarantinedCount > 0) {
+        toast("迁移时发现 " + quarantinedCount + " 条异常旧记录，已保留为待核实", "warning");
+      }
+      if (activeFixed) {
+        toast("活动申请指向不存在的记录，迁移时已清空活动申请", "warning");
       }
       if (!removeOk) {
         toast("旧数据已迁移，但旧数据键清理失败；下次启动会自动重试清理", "warning");
@@ -1409,23 +1513,25 @@ function cancelEdit() {
  * 提交申请
  * ========================================================== */
 function createRequest() {
-  /* 读取最新 store；不存在则中止，不回退到可能过时的内存数据 */
+  /* 读取最新 store，并验证其结构；不做 sanitize，避免每次提交产生新的隔离记录 */
   const latestStore = loadJSON(KEY.store, null);
   if (!latestStore || typeof latestStore !== "object" || !Array.isArray(latestStore.requests)) {
     toast("无法读取最新申请数据，请刷新页面后重试", "danger");
     return;
   }
-  const latestRequests = latestStore.requests.filter(r => r && typeof r === "object");
+  if (!validStore(latestStore)) {
+    toast("本地数据异常，无法继续，请刷新页面检查", "danger");
+    return;
+  }
+  const latestRequests = latestStore.requests;
 
   const pendingInLatest = latestRequests.find(r => r.status === "待用户审批");
   if (pendingInLatest) {
     toast("检测到其他标签页有申请等待审批（" + pendingInLatest.id + "）", "warning");
-    if (commitStore(latestRequests, pendingInLatest.id)) {
+    if (commitStore(latestRequests, pendingInLatest.id, latestRequests)) {
       renderApproval();
       renderArchive();
       $("sec-approval").scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      toast("切换活动申请失败：本地存储不可用", "danger");
     }
     return;
   }
@@ -1492,8 +1598,7 @@ function createRequest() {
   };
 
   const nextRequests = [req, ...latestRequests];
-  if (!commitStore(nextRequests, req.id)) {
-    toast("提交失败：本地存储不可用或数据校验失败，申请未保存", "danger");
+  if (!commitStore(nextRequests, req.id, latestRequests)) {
     return;
   }
 
@@ -1528,13 +1633,17 @@ function decide(status, message, extraClass, actionName) {
     return;
   }
 
-  /* 读取最新 store；不存在则中止，不回退到内存 */
+  /* 读取最新 store，并验证结构 */
   const latestStore = loadJSON(KEY.store, null);
   if (!latestStore || typeof latestStore !== "object" || !Array.isArray(latestStore.requests)) {
     toast("无法读取最新申请数据，请刷新页面后重试", "danger");
     return;
   }
-  const baseRequests = latestStore.requests.filter(r => r && typeof r === "object");
+  if (!validStore(latestStore)) {
+    toast("本地数据异常，无法继续，请刷新页面检查", "danger");
+    return;
+  }
+  const baseRequests = latestStore.requests;
 
   const target = baseRequests.find(r => r.id === currentRequest.id);
   if (!target) {
@@ -1543,6 +1652,25 @@ function decide(status, message, extraClass, actionName) {
   }
   if (target.status !== "待用户审批") {
     toast("这份申请已经被处理过，不能重复审批", "warning");
+    renderApproval();
+    renderArchive();
+    return;
+  }
+
+  /* 审批版本核对：防止审批旧内容 */
+  if (target.version !== currentRequest.version ||
+      target.time !== currentRequest.time ||
+      (target.history || []).length !== (currentRequest.history || []).length) {
+    toast("该申请在你审批期间已被修改，已为你刷新，请重新审阅", "warning");
+    /* 仅同步内存视图，不写 localStorage（数据本身已是最新） */
+    store = {
+      schemaVersion: SCHEMA_VERSION,
+      requests: baseRequests,
+      activeId: target.id
+    };
+    requests = baseRequests;
+    activeId = target.id;
+    currentRequest = target;
     renderApproval();
     renderArchive();
     return;
@@ -1559,8 +1687,7 @@ function decide(status, message, extraClass, actionName) {
   });
 
   const nextRequests = baseRequests.map(r => r.id === updated.id ? updated : r);
-  if (!commitStore(nextRequests, updated.id)) {
-    toast("审批失败：本地存储不可用，结果未记录", "danger");
+  if (!commitStore(nextRequests, updated.id, baseRequests)) {
     return;
   }
 
