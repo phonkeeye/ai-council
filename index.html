@@ -217,7 +217,7 @@ function decide(status,message){
   return;
  }
 
- const allowedStatuses = [
+ const allowedStatuses=[
   "用户已批准（待接入执行引擎）",
   "退回重新讨论",
   "用户已拒绝"
@@ -242,8 +242,67 @@ function decide(status,message){
   "\n\n当前仅记录审批意向，不会执行任何代码修改。";
 
  addLog(status,currentRequest.id+" · "+currentRequest.project);
+
+ $("approvalCard").querySelectorAll("button").forEach(button=>{
+  button.disabled=true;
+ });
 }
+
+function approve(){
+ decide(
+  "用户已批准（待接入执行引擎）",
+  "已记录你的批准。当前版本不会实际修改代码。"
+ );
+}
+
+function returnDiscussion(){
+ decide(
+  "退回重新讨论",
+  "申请已退回。修改方案完善后需要重新提交审批。"
+ );
+}
+
+function reject(){
+ decide(
+  "用户已拒绝",
+  "已拒绝本次修改申请，不会执行。"
+ );
+}
+
+function renderHistory(){
+ if(!logs.length){
+  $("history").innerHTML='<p class="muted">暂无记录</p>';
+  return;
+ }
+
+ $("history").innerHTML=logs.map(x=>
+  '<div class="history"><strong>'+
+  escapeHTML(x.title)+'</strong>'+
+  '<div class="muted">'+escapeHTML(x.time)+'</div>'+
+  '<div>'+escapeHTML(x.detail)+'</div></div>'
+ ).join("");
+}
+
+function escapeHTML(s){
+ return String(s).replace(/[&<>"']/g,c=>({
+  "&":"&amp;",
+  "<":"&lt;",
+  ">":"&gt;",
+  '"':"&quot;",
+  "'":"&#39;"
+ }[c]));
+}
+
+function clearHistory(){
+ if(confirm("确定清除本地操作记录吗？")){
+  logs=[];
+  saveLogs();
+ }
+}
+
 renderHistory();
 </script>
+</body>
+</html>
 </body>
 </html>
