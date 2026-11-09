@@ -179,20 +179,39 @@ function nextStage(){
 }
 
 function createRequest(){
+
+ if(currentRequest && currentRequest.status==="待用户审批"){
+  alert("当前还有一份申请等待审批，请先处理。");
+  return;
+ }
+
  const project=$("project").value.trim();
  const reason=$("reason").value.trim();
  const changes=$("changes").value.trim();
  const risk=$("risk").value.trim();
+
  if(!project||!reason||!changes||!risk){
-  alert("请填写完整的修改申请");return;
+  alert("请填写完整的修改申请");
+  return;
  }
+
  currentRequest={
   id:"REQ-"+Date.now(),
-  project,reason,changes,risk,
+  project,
+  reason,
+  changes,
+  risk,
   status:"待用户审批",
   time:new Date().toLocaleString()
  };
+
  $("approvalCard").style.display="block";
+
+ // 新申请创建后，重新启用三个审批按钮
+ $("approvalCard").querySelectorAll("button").forEach(button=>{
+  button.disabled=false;
+ });
+
  $("requestInfo").textContent=
   "申请编号："+currentRequest.id+
   "\n项目："+project+
@@ -201,8 +220,11 @@ function createRequest(){
   "\n风险评估："+risk+
   "\n状态："+currentRequest.status+
   "\n\n注意：当前方案尚未经过真实多模型讨论。";
+
  $("approvalMessage").textContent="请审阅申请内容。";
+
  addLog("提交修改申请",currentRequest.id+" · "+project);
+
  $("approvalCard").scrollIntoView({behavior:"smooth"});
 }
 
