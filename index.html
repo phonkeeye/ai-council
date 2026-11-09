@@ -3,47 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI COUNCIL</title>
+<title>AI COUNCIL V1.0</title>
+
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   background: #10131c;
   color: #fff;
   font-family: Arial, sans-serif;
 }
+
 header {
   padding: 22px;
   background: #191f2d;
   border-bottom: 1px solid #30394b;
 }
-header h1 { margin: 0; color: #65b8ff; }
-header p { color: #9ba8bb; }
-main { padding: 18px; max-width: 800px; margin: auto; }
+
+header h1 {
+  margin: 0;
+  color: #65b8ff;
+  letter-spacing: 2px;
+}
+
+header p {
+  color: #9ba8bb;
+  font-size: 13px;
+}
+
+main {
+  padding: 16px;
+  max-width: 850px;
+  margin: auto;
+}
+
 .card {
   background: #1b2231;
-  padding: 16px;
+  padding: 17px;
   border-radius: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 15px;
   border: 1px solid #30394b;
 }
+
+.card h2 {
+  font-size: 18px;
+  margin-top: 0;
+}
+
 .member {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
+  padding: 14px 0;
   border-bottom: 1px solid #30394b;
 }
-.status { color: #f0b94c; }
+
+.member:last-child {
+  border-bottom: none;
+}
+
+.member-name {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.member-role {
+  color: #9ba8bb;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.status {
+  color: #f0b94c;
+  font-size: 12px;
+  float: right;
+}
+
 textarea {
   width: 100%;
-  min-height: 110px;
+  min-height: 120px;
   background: #101722;
   color: white;
   border: 1px solid #46536a;
   border-radius: 8px;
-  padding: 12px;
+  padding: 13px;
   font-size: 16px;
+  resize: vertical;
 }
+
 button {
   width: 100%;
   padding: 14px;
@@ -52,20 +99,80 @@ button {
   border: 0;
   border-radius: 8px;
   color: white;
-  font-size: 16px;
+  font-size: 15px;
+  cursor: pointer;
 }
+
+button:disabled {
+  background: #46536a;
+  color: #aab4c3;
+}
+
+.secondary {
+  background: #30394b;
+}
+
+.phase {
+  padding: 13px;
+  background: #101722;
+  border-radius: 8px;
+  margin-top: 10px;
+  border-left: 3px solid #46536a;
+}
+
+.phase.active {
+  border-left-color: #65b8ff;
+}
+
+.phase.done {
+  border-left-color: #36c98f;
+}
+
+.phase-title {
+  font-weight: bold;
+}
+
+.phase-desc {
+  color: #9ba8bb;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.notice {
+  color: #f0b94c;
+  background: #30291b;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.record {
+  border-bottom: 1px solid #30394b;
+  padding: 13px 0;
+  font-size: 14px;
+}
+
+.record small {
+  display: block;
+  color: #9ba8bb;
+  margin-top: 6px;
+}
+
 footer {
   text-align: center;
   color: #78869b;
   padding: 25px;
+  font-size: 12px;
 }
 </style>
 </head>
+
 <body>
 
 <header>
   <h1>AI COUNCIL</h1>
-  <p>多模型人工智能协作与决策中心</p>
+  <p>多模型人工智能协作与决策中心 · V1.0</p>
 </header>
 
 <main>
@@ -74,47 +181,257 @@ footer {
   <h2>AI 团队成员</h2>
 
   <div class="member">
-    <span>GPT · 总协调</span>
     <span class="status">待接入</span>
+    <div class="member-name">GPT · 总协调</div>
+    <div class="member-role">负责主持会议、统筹方案、最终裁判</div>
   </div>
 
   <div class="member">
-    <span>Claude · 代码审查</span>
     <span class="status">待接入</span>
+    <div class="member-name">Claude · 代码审查</div>
+    <div class="member-role">负责检查代码、发现漏洞、评估风险</div>
   </div>
 
   <div class="member">
-    <span>Gemini · 数据分析</span>
     <span class="status">待接入</span>
+    <div class="member-name">Gemini · 数据分析</div>
+    <div class="member-role">负责数据分析、寻找异常、分析市场信息</div>
   </div>
 
   <div class="member">
-    <span>DeepSeek · 量化专家</span>
     <span class="status">待接入</span>
+    <div class="member-name">DeepSeek · 量化专家</div>
+    <div class="member-role">负责数学逻辑、交易策略、回测审查</div>
   </div>
 </div>
 
 <div class="card">
-  <h2>发起 AI 讨论</h2>
+  <h2>发起 AI 会议</h2>
+
   <textarea id="question"
-    placeholder="输入你想让 AI 团队讨论的问题……">
-  </textarea>
-  <button onclick="alert('AI 接口尚未接入，下一阶段开发。')">
-    发起团队讨论
+  placeholder="输入你希望 AI 团队讨论的问题……&#10;&#10;例如：BTC AI Quant 是否应该增加趋势过滤？"></textarea>
+
+  <button onclick="startMeeting()">
+    创建会议
   </button>
+
+  <div class="notice" style="margin-top:12px">
+    当前版本为流程演示。尚未连接真实 AI 模型，不会生成虚假的模型分析结果。
+  </div>
+</div>
+
+<div class="card" id="meeting" style="display:none">
+
+  <h2>会议控制中心</h2>
+
+  <p id="meetingQuestion" style="color:#65b8ff"></p>
+
+  <div id="phases">
+
+    <div class="phase active" id="phase0">
+      <div class="phase-title">第一阶段：独立分析</div>
+      <div class="phase-desc">四个模型分别分析议题，尚待接入真实模型。</div>
+    </div>
+
+    <div class="phase" id="phase1">
+      <div class="phase-title">第二阶段：交叉质疑</div>
+      <div class="phase-desc">各模型检查其他模型的观点，提出反驳。</div>
+    </div>
+
+    <div class="phase" id="phase2">
+      <div class="phase-title">第三阶段：最终裁判</div>
+      <div class="phase-desc">汇总证据、分歧、风险与建议。</div>
+    </div>
+
+  </div>
+
+  <button id="nextButton" onclick="nextPhase()">
+    进入下一阶段
+  </button>
+
+  <button class="secondary" onclick="resetMeeting()">
+    结束本次演示
+  </button>
+
+  <div id="phaseNotice" class="notice" style="margin-top:12px">
+    等待真实模型接入。当前只演示会议流程。
+  </div>
+
 </div>
 
 <div class="card">
-  <h2>讨论记录</h2>
-  <p style="color:#9ba8bb">
-    暂无讨论记录，等待首次会议。
-  </p>
+  <h2>会议记录</h2>
+  <div id="history">
+    <p style="color:#9ba8bb">暂无会议记录。</p>
+  </div>
+  <button class="secondary" onclick="clearHistory()">
+    清空本地记录
+  </button>
 </div>
 
 <footer>
   AI COUNCIL · Multi-Agent Intelligence
+  <br><br>
+  Built for collaborative AI decision-making
 </footer>
 
 </main>
+
+<script>
+
+let currentPhase = 0;
+let currentQuestion = "";
+
+const phaseNames = [
+  "独立分析",
+  "交叉质疑",
+  "最终裁判"
+];
+
+function startMeeting() {
+
+  const question = document.getElementById("question").value.trim();
+
+  if (!question) {
+    alert("请先输入会议议题。");
+    return;
+  }
+
+  currentQuestion = question;
+  currentPhase = 0;
+
+  document.getElementById("meeting").style.display = "block";
+  document.getElementById("meetingQuestion").innerText =
+    "会议议题：" + question;
+
+  updatePhase();
+
+  document.getElementById("meeting").scrollIntoView({
+    behavior: "smooth"
+  });
+}
+
+function updatePhase() {
+
+  for (let i = 0; i < 3; i++) {
+
+    const box = document.getElementById("phase" + i);
+
+    box.className = "phase";
+
+    if (i < currentPhase) {
+      box.classList.add("done");
+    }
+
+    if (i === currentPhase) {
+      box.classList.add("active");
+    }
+  }
+
+  document.getElementById("phaseNotice").innerText =
+    "当前阶段：" + phaseNames[currentPhase] +
+    "。此阶段尚未调用真实 AI 模型。";
+
+  document.getElementById("nextButton").innerText =
+    currentPhase === 2 ? "完成会议演示" : "进入下一阶段";
+}
+
+function nextPhase() {
+
+  if (currentPhase < 2) {
+
+    currentPhase++;
+
+    updatePhase();
+
+  } else {
+
+    saveMeeting();
+
+    alert("会议流程演示结束，记录已保存在当前浏览器。");
+
+    resetMeeting();
+  }
+}
+
+function saveMeeting() {
+
+  let history = JSON.parse(
+    localStorage.getItem("aiCouncilHistory") || "[]"
+  );
+
+  history.unshift({
+    question: currentQuestion,
+    date: new Date().toLocaleString(),
+    type: "流程演示（未调用真实模型）"
+  });
+
+  history = history.slice(0, 30);
+
+  localStorage.setItem(
+    "aiCouncilHistory",
+    JSON.stringify(history)
+  );
+
+  renderHistory();
+}
+
+function renderHistory() {
+
+  const history = JSON.parse(
+    localStorage.getItem("aiCouncilHistory") || "[]"
+  );
+
+  const box = document.getElementById("history");
+
+  if (history.length === 0) {
+    box.innerHTML =
+      '<p style="color:#9ba8bb">暂无会议记录。</p>';
+    return;
+  }
+
+  box.innerHTML = "";
+
+  history.forEach(item => {
+
+    const div = document.createElement("div");
+
+    div.className = "record";
+
+    const title = document.createElement("strong");
+    title.textContent = item.question;
+
+    const info = document.createElement("small");
+    info.textContent = item.date + " · " + item.type;
+
+    div.appendChild(title);
+    div.appendChild(info);
+
+    box.appendChild(div);
+  });
+}
+
+function resetMeeting() {
+
+  document.getElementById("meeting").style.display = "none";
+
+  currentPhase = 0;
+  currentQuestion = "";
+}
+
+function clearHistory() {
+
+  if (confirm("确定清空本地会议记录吗？")) {
+
+    localStorage.removeItem("aiCouncilHistory");
+
+    renderHistory();
+  }
+}
+
+renderHistory();
+
+</script>
+
 </body>
 </html>
