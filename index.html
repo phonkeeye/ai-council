@@ -65,6 +65,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .pager button{padding:6px 12px;font-size:12px;margin:0}
 .chain-line{font-size:12px;line-height:1.9;padding-left:2px}
 .chain-line.cur{font-weight:700;color:var(--primary)}
+.storage-warning{background:#3a1a1e;border:1px solid #9b3545;border-left:4px solid #ff929e;border-radius:10px;padding:12px 16px;margin:0 0 14px;color:var(--text);font-size:13px;line-height:1.7}
+body.light-theme .storage-warning{background:#fee2e2;border-color:#f87171;border-left-color:#b91c1c}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:var(--toast-bg);color:var(--text);border:1px solid var(--toast-border);border-left-width:4px;border-radius:10px;padding:11px 16px;font-size:13px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .3s;z-index:100;max-width:90vw;white-space:pre-wrap}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .toast.success{border-left-color:var(--success)}
@@ -97,6 +99,15 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="demo-banner">🧪 演示原型 · 四个 AI 成员尚未接入真实 API · 会议内容为流程演示，审批按钮不会修改代码</div>
 
 <main>
+<div id="storageWarning" class="storage-warning" style="display:none">
+  <strong>⚠️ 本地数据异常，已进入保护模式（只读）</strong>
+  <div class="muted" id="storageWarningText">为防止覆盖原始数据，写操作已暂停。</div>
+  <div class="toolbar" style="margin:8px 0 0">
+    <button class="gray" onclick="showStorageDetails()">查看详情</button>
+    <button class="red" onclick="handleClearCorruptedData()">清除损坏数据并重新加载</button>
+  </div>
+</div>
+
 <div class="card">
 <h2>🤖 AI 团队</h2>
 <div class="grid">
@@ -242,6 +253,7 @@ const KEY = {
 };
 const SCHEMA_VERSION = 3;
 const PAGE_SIZE = 5;
+const QUARANTINE_RAW_LIMIT = 8192;
 const VALID_STATUSES = ["待用户审批","用户已批准（待接入执行引擎）","退回重新讨论","用户已拒绝"];
 const STATUS_MAP = {
   "待用户审批": { cls: "pending", label: "待审批" },
@@ -251,23 +263,90 @@ const STATUS_MAP = {
 };
 const RELATION = { REVISION: "revision", FOLLOWUP: "followup", REFERENCE: "reference" };
 
-/* ========== 安全读写 ========== */
-function loadJSON(k, fb) {
+/* ========== 安全读取：区分不存在、读取失败、解析失败 ========== */
+let storageBlocked = false;
+let storageBlockedReason = "";
+
+function readJSONState(key) {
   try {
-    const r = localStorage.getItem(k);
-    if (!r) return fb;
-    const v = JSON.parse(r);
-    return v == null ? fb : v;
-  } catch (e) { return fb; }
+    const raw = localStorage.getItem(key);
+    if (raw === null) {
+      return { ok: true, exists: false, value: null };
+    }
+    try {
+      return { ok: true, exists: true, value: JSON.parse(raw), raw: raw };
+    } catch (e) {
+      return { ok: false, exists: true, raw: raw, error: e };
+    }
+  } catch (e) {
+    return { ok: false, exists: null, error: e };
+  }
 }
-function saveJSON(k, v) {
-  try { localStorage.setItem(k, JSON.stringify(v)); return true; }
-  catch (e) { return false; }
+
+function loadJSON(key, fallback) {
+  const result = readJSONState(key);
+  if (!result.ok || !result.exists || result.value === null) {
+    return fallback;
+  }
+  return result.value;
 }
-function removeJSON(k) {
-  try { localStorage.removeItem(k); return true; }
-  catch (e) { return false; }
+
+function saveJSON(key, value) {
+  if (storageBlocked) return false;
+  try {
+    const raw = JSON.stringify(value);
+    if (typeof raw !== "string") return false;
+    localStorage.setItem(key, raw);
+    return true;
+  } catch (e) {
+    console.error("数据保存失败：", key, e);
+    return false;
+  }
 }
+
+function removeJSON(key) {
+  if (storageBlocked) return false;
+  try {
+    localStorage.removeItem(key);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* ========== 保护模式 UI ========== */
+function showStorageWarning(reason) {
+  const el = $("storageWarning");
+  const txt = $("storageWarningText");
+  if (el && txt) {
+    txt.textContent = "原因：" + reason + "。为防止覆盖原始数据，写操作已暂停。";
+    el.style.display = "block";
+  }
+  storageBlockedReason = reason;
+}
+function hideStorageWarning() {
+  const el = $("storageWarning");
+  if (el) el.style.display = "none";
+}
+function showStorageDetails() {
+  alert("保护模式原因：\n" + (storageBlockedReason || "未知") +
+    "\n\n建议操作：\n1. 先导出当前可见数据（如果能导出）。\n2. 确认损坏数据是否需要保留。\n3. 点击「清除损坏数据并重新加载」会清空所有关键键。");
+}
+function handleClearCorruptedData() {
+  if (!confirm("将清空所有关键本地数据（申请、会议、记录、草稿、主题偏好等）。\n此操作无法撤销，确定继续吗？")) return;
+  if (!confirm("再次确认：确定要清除损坏数据并重新加载页面吗？")) return;
+  const keys = [
+    KEY.store, KEY.logs, KEY.meetings, KEY.meeting,
+    KEY.legacyRequests, KEY.legacyActive, KEY.legacyRequest,
+    KEY.filter, KEY.page, KEY.draft, KEY.theme
+  ];
+  for (const k of keys) {
+    try { localStorage.removeItem(k); } catch (e) {}
+  }
+  location.reload();
+}
+
+/* ========== 基础工具 ========== */
 function nowStr() { return new Date().toLocaleString(); }
 function escapeHTML(s) {
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -300,7 +379,7 @@ function isValidStatus(s) {
 }
 function statusInfo(s) { return STATUS_MAP[s] || { cls: "unknown", label: "待核实" }; }
 
-/* ========== 内容哈希与防篡改 ========== */
+/* ========== 内容哈希与完整性检查 ========== */
 function simpleHash(str) {
   let h = 5381;
   for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
@@ -331,48 +410,25 @@ function isContentTampered(req) {
   return computeContentHash(req) !== approvedHash;
 }
 
-/* ========== 审批历史：只允许追加，并校验快照哈希 ========== */
+/* ========== 审批历史：只追加，旧记录完整比较，新增快照与哈希一致 ========== */
 function validateHistoryAppend(oldHistory, newHistory) {
-  if (!Array.isArray(oldHistory) ||
-      !Array.isArray(newHistory)) return false;
-
-  if (newHistory.length !== oldHistory.length + 1) {
-    return false;
-  }
-
-  // 原有历史必须完全一致，不能修改任何字段
+  if (!Array.isArray(oldHistory) || !Array.isArray(newHistory)) return false;
+  if (newHistory.length !== oldHistory.length + 1) return false;
   for (let i = 0; i < oldHistory.length; i++) {
-    if (stableStringify(oldHistory[i]) !==
-        stableStringify(newHistory[i])) {
-      return false;
-    }
+    if (stableStringify(oldHistory[i]) !== stableStringify(newHistory[i])) return false;
   }
-
-  // 检查新增审批记录
   const entry = newHistory[newHistory.length - 1];
-
   if (!entry || typeof entry !== "object") return false;
-
   if (typeof entry.time !== "string" ||
       typeof entry.action !== "string" ||
       typeof entry.note !== "string" ||
-      typeof entry.contentHash !== "string") {
-    return false;
-  }
-
-  const s = entry.snapshot;
-
-  if (!s || typeof s !== "object") return false;
-
+      typeof entry.contentHash !== "string") return false;
+  const snapshot = entry.snapshot;
+  if (!snapshot || typeof snapshot !== "object") return false;
   for (const key of ["project", "reason", "changes", "risk"]) {
-    if (typeof s[key] !== "string") return false;
+    if (typeof snapshot[key] !== "string") return false;
   }
-
-  // 确认审批快照与内容哈希一致
-  const snapshotHash = computeContentHash(s);
-
-  if (snapshotHash !== entry.contentHash) return false;
-
+  if (computeContentHash(snapshot) !== entry.contentHash) return false;
   return true;
 }
 function hasChildVersions(req) {
@@ -380,51 +436,44 @@ function hasChildVersions(req) {
   return requests.some(r => r && r.parentId === req.id);
 }
 
-/* ========== 备份与恢复 ========== */
+/* ========== 备份与恢复：备份不完整时禁止覆盖 ========== */
 function backupStorageKeys(keys) {
   const backup = {};
-
   for (const key of keys) {
     try {
       const value = localStorage.getItem(key);
-
-      backup[key] = {
-        existed: value !== null,
-        value: value
-      };
-
+      backup[key] = { existed: value !== null, value: value };
     } catch (e) {
-      // 任何一个键读取失败，都不允许继续导入
       console.error("备份读取失败：", key, e);
       return null;
     }
   }
-
   return backup;
 }
 function verifyBackup(backup) {
-  if (!backup) return false;
+  if (!backup || typeof backup !== "object") return false;
   for (const key of Object.keys(backup)) {
     try {
-      const c = localStorage.getItem(key);
-      const t = backup[key];
-      if (t.existed) { if (c !== t.value) return false; }
-      else { if (c !== null) return false; }
+      const current = localStorage.getItem(key);
+      const original = backup[key];
+      if (original.existed) { if (current !== original.value) return false; }
+      else { if (current !== null) return false; }
     } catch (e) { return false; }
   }
   return true;
 }
 function restoreBackup(backup) {
-  if (!backup) return false;
-  let ok = true;
+  if (!backup || typeof backup !== "object") return false;
   for (const key of Object.keys(backup)) {
     try {
-      const t = backup[key];
-      if (t.existed) localStorage.setItem(key, t.value);
+      const item = backup[key];
+      if (item.existed) localStorage.setItem(key, item.value);
       else localStorage.removeItem(key);
-    } catch (e) { ok = false; }
+    } catch (e) {
+      console.error("恢复失败：", key, e);
+      return false;
+    }
   }
-  if (!ok) return false;
   return verifyBackup(backup);
 }
 
@@ -488,29 +537,17 @@ function saveStoreAndVerify(nextStore) {
   }
 }
 
-/* ========== 提交 Store：完整状态乐观并发检查 ========== */
+/* ========== 提交 Store：完整 Store 乐观并发检查 ========== */
 function commitStore(nextRequests, nextActiveId, expectedBaseStore) {
+  if (storageBlocked) {
+    toast("数据存储异常，已禁止写入", "danger");
+    return false;
+  }
 
-  // 检查完整原始数据，防止覆盖其他标签页的修改
-  if (expectedBaseStore && typeof expectedBaseStore === "object") {
-    try {
-      const raw = localStorage.getItem(KEY.store);
-
-      if (raw === null) {
-        toast("数据已发生变化，请刷新后重试", "danger");
-        return false;
-      }
-
-      const latest = JSON.parse(raw);
-
-      if (!validStore(latest) ||
-          stableStringify(latest) !== stableStringify(expectedBaseStore)) {
-        toast("检测到其他标签页修改，请刷新后重试", "danger");
-        return false;
-      }
-
-    } catch (e) {
-      toast("并发检查失败，已阻止保存", "danger");
+  if (expectedBaseStore) {
+    const latest = readJSONState(KEY.store);
+    if (!latest.ok || !latest.exists || !storesEqual(latest.value, expectedBaseStore)) {
+      toast("检测到数据已经发生变化，请刷新页面后重新操作", "danger");
       return false;
     }
   }
@@ -539,43 +576,73 @@ function commitStore(nextRequests, nextActiveId, expectedBaseStore) {
   return true;
 }
 
-/* ========== 异常记录隔离 ========== */
+/* ========== 异常记录隔离：完整保留原始内容 ========== */
 function makeQuarantineRequest(raw, index, source, knownIds) {
   const now = Date.now();
   let id; let attempt = 0;
   do { id = "REQ-" + (now + index * 1000 + attempt); attempt++; }
   while (knownIds.has(id) && attempt < 1000);
   knownIds.add(id);
-  let rawPreview = "";
-  try { rawPreview = JSON.stringify(raw).slice(0, 200); } catch (e) { rawPreview = String(raw).slice(0, 200); }
+
+  let originalData = "";
+  try { originalData = JSON.stringify(raw); } catch (e) { originalData = String(raw); }
+  if (typeof originalData !== "string") originalData = String(raw);
+
+  let rawTruncated = false;
+  if (originalData.length > QUARANTINE_RAW_LIMIT) {
+    originalData = originalData.slice(0, QUARANTINE_RAW_LIMIT) + "…[已截断]";
+    rawTruncated = true;
+  }
+
+  const originalId = raw && typeof raw === "object" && !Array.isArray(raw) &&
+    typeof raw.id === "string" && raw.id.trim() ? raw.id : null;
+
   const req = {
-    id, project: "[数据损坏待核实]",
+    id,
+    project: "[数据损坏待核实]",
     reason: "启动或迁移时发现无法识别的申请记录（来源：" + source + "）",
-    changes: "原始数据预览：" + rawPreview,
-    risk: "该记录缺少必要字段，已保留为待核实，不会参与正常审批。",
-    status: "待核实（原状态：数据损坏）", time: nowStr(),
+    changes: "原始数据预览：" + originalData.slice(0, 200),
+    risk: "该记录缺少必要字段或与其他记录冲突，已保留为待核实，不会参与正常审批。",
+    status: "待核实（原状态：数据损坏）",
+    time: nowStr(),
     parentId: null, relation: null, referenceId: null, version: 1,
-    history: [{ time: nowStr(), action: "隔离", note: "自动隔离的异常记录，来源 " + source + "，索引 " + index }]
+    history: [{ time: nowStr(), action: "隔离", note: "来源 " + source + "，索引 " + index }],
+    originalId: originalId,
+    quarantinedRaw: originalData,
+    rawTruncated: rawTruncated
   };
   req.contentHash = computeContentHash(req);
   return req;
 }
+
 function sanitizeLoadedRequests(list, source) {
-  const out = []; let quarantined = 0;
+  const out = [];
+  let quarantined = 0;
   if (!Array.isArray(list)) return { requests: [], quarantined: 0 };
+
   const knownIds = new Set();
   for (const r of list) {
-    if (r && typeof r === "object" && !Array.isArray(r) && typeof r.id === "string" && r.id.trim()) {
+    if (r && typeof r === "object" && !Array.isArray(r) &&
+        typeof r.id === "string" && r.id.trim()) {
       knownIds.add(r.id);
     }
   }
+
+  const seenIds = new Set();
+
   for (let i = 0; i < list.length; i++) {
     const r = list[i];
-    if (!r || typeof r !== "object" || Array.isArray(r) || typeof r.id !== "string" || !r.id.trim()) {
+    const validObject = r && typeof r === "object" && !Array.isArray(r) &&
+      typeof r.id === "string" && r.id.trim();
+
+    if (!validObject || seenIds.has(r.id)) {
       out.push(makeQuarantineRequest(r, i, source, knownIds));
       quarantined++;
       continue;
     }
+
+    seenIds.add(r.id);
+
     const copy = Object.assign({}, r);
     if (typeof copy.project !== "string") copy.project = "";
     if (typeof copy.reason !== "string") copy.reason = "";
@@ -587,17 +654,20 @@ function sanitizeLoadedRequests(list, source) {
     if (copy.relation === undefined) copy.relation = null;
     if (copy.referenceId === undefined) copy.referenceId = null;
     if (!Array.isArray(copy.history)) copy.history = [];
+
     if (!isValidStatus(copy.status)) {
       const original = String(copy.status == null ? "未知" : copy.status).slice(0, 80);
       copy.status = "待核实（原状态：" + original + "）";
       copy.history.push({ time: nowStr(), action: "状态待核实", note: "原状态：" + original });
       quarantined++;
     }
+
     if (typeof copy.contentHash !== "string" || !copy.contentHash) {
       copy.contentHash = computeContentHash(copy);
     }
     out.push(copy);
   }
+
   return { requests: out, quarantined };
 }
 
@@ -707,7 +777,25 @@ function migrateLegacyIfNeeded() {
     toast("旧数据迁移保存失败，旧数据已保留；本次使用内存合并数据", "warning");
   }
 }
+
+/* ========== 初始化：区分不存在 / 损坏 / 结构异常 ========== */
 function initData() {
+  /* 1. 关键键读取状态检查 */
+  const criticalKeys = [
+    KEY.store, KEY.logs, KEY.meetings, KEY.meeting,
+    KEY.legacyRequests, KEY.legacyActive, KEY.legacyRequest, KEY.draft
+  ];
+  for (const key of criticalKeys) {
+    const result = readJSONState(key);
+    if (!result.ok) {
+      storageBlocked = true;
+      showStorageWarning("数据读取或解析失败：" + key);
+      toast("发现本地数据读取异常，已暂停写入，防止覆盖原始数据", "danger");
+      return false;
+    }
+  }
+
+  /* 2. 非 Store 数据（结构损坏时走 fallback，不阻断） */
   logs = loadJSON(KEY.logs, []); if (!Array.isArray(logs)) logs = [];
   meetingHistory = loadJSON(KEY.meetings, []); if (!Array.isArray(meetingHistory)) meetingHistory = [];
   meeting = loadJSON(KEY.meeting, { stage: 0, topic: "", startedAt: null, id: null });
@@ -718,8 +806,18 @@ function initData() {
   archivePage = Number(loadJSON(KEY.page, 1));
   if (!Number.isInteger(archivePage) || archivePage < 1) archivePage = 1;
 
-  const rawStore = loadJSON(KEY.store, null);
-  if (rawStore && typeof rawStore === "object" && Array.isArray(rawStore.requests)) {
+  /* 3. 主 Store 结构检查：存在但结构损坏时不能进入迁移路径 */
+  const storeState = readJSONState(KEY.store);
+  if (storeState.exists && storeState.value !== null) {
+    const rawStore = storeState.value;
+    if (!rawStore || typeof rawStore !== "object" || Array.isArray(rawStore) ||
+        !Array.isArray(rawStore.requests)) {
+      storageBlocked = true;
+      showStorageWarning("主数据结构损坏：council_store 存在但不是合法 Store 对象");
+      toast("主数据结构损坏，已进入保护模式，不会自动迁移或覆盖", "danger");
+      return false;
+    }
+
     const sanitized = sanitizeLoadedRequests(rawStore.requests, "council_store");
     let activeCandidate = typeof rawStore.activeId === "string" ? rawStore.activeId : null;
     const ids = new Set(sanitized.requests.map(r => r.id));
@@ -727,14 +825,18 @@ function initData() {
     if (activeCandidate !== null && !ids.has(activeCandidate)) { activeCandidate = null; activeFixed = true; }
     store = { schemaVersion: SCHEMA_VERSION, requests: sanitized.requests, activeId: activeCandidate };
     requests = store.requests; activeId = store.activeId;
+
     if (sanitized.quarantined > 0 || activeFixed) {
       if (saveStoreAndVerify(store)) {
-        if (sanitized.quarantined > 0) toast("启动时发现 " + sanitized.quarantined + " 条异常记录，已隔离保存", "warning");
+        if (sanitized.quarantined > 0) toast("启动时发现 " + sanitized.quarantined + " 条异常/重复记录，已隔离保存", "warning");
         if (activeFixed) toast("活动申请指向不存在的记录，已清空", "warning");
-      } else toast("启动时发现异常记录，但修正结果保存失败，请检查本地存储", "danger");
+      } else {
+        toast("启动时发现异常记录，但修正结果保存失败，请检查本地存储", "danger");
+      }
     }
     migrateLegacyIfNeeded();
   } else {
+    /* Store 不存在（或字面 null）：从旧数据构建 */
     const legacyReqsRaw = loadJSON(KEY.legacyRequests, []);
     const legacySanitized = sanitizeLoadedRequests(legacyReqsRaw, "council_requests");
     const legacyActive = loadJSON(KEY.legacyActive, null);
@@ -768,6 +870,7 @@ function initData() {
       toast("数据迁移保存失败，旧数据已保留", "warning");
     }
   }
+
   if (!currentRequest) currentRequest = requests.find(r => r.id === activeId) || null;
   if (!currentRequest) activeId = null;
   if (meeting && typeof meeting === "object" && meeting.stage > 0 && !meeting.id) {
@@ -775,12 +878,14 @@ function initData() {
     saveJSON(KEY.meeting, meeting);
   }
   ensureMeetingHistory();
+  return true;
 }
 
 /* ========== Toast / 主题 ========== */
 let toastTimer = null;
 function toast(msg, type) {
   const el = $("toast");
+  if (!el) return;
   el.textContent = msg;
   el.className = "toast show" + (type ? " " + type : "");
   clearTimeout(toastTimer);
@@ -789,7 +894,8 @@ function toast(msg, type) {
 function applyTheme(t) {
   const light = t === "light";
   document.body.classList.toggle("light-theme", light);
-  $("themeBtn").textContent = light ? "☀️" : "🌙";
+  const btn = $("themeBtn");
+  if (btn) btn.textContent = light ? "☀️" : "🌙";
   saveJSON(KEY.theme, light ? "light" : "dark");
 }
 function toggleTheme() {
@@ -827,6 +933,7 @@ function clearHistory() {
 
 /* ========== 会议 ========== */
 function startMeeting() {
+  if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
   const q = $("question").value.trim();
   if (!q) { toast("请先输入会议问题", "warning"); return; }
   if (meeting.stage > 0 && meeting.stage < 3 && !confirm("当前会议尚未结束，重新发起将覆盖进度。继续吗？")) return;
@@ -951,7 +1058,10 @@ function renderRequestInfo() {
   else text += "\n状态：" + statusLabel + "\n\n当前仅记录审批意向，不会执行任何代码修改。";
 
   if (isContentTampered(r)) {
-    text += "\n\n⚠️ 内容篡改警告：当前内容哈希与最近一次审批记录不一致，申请内容可能已被修改，请核实后再操作。";
+    text += "\n\n⚠️ 内容完整性警告：当前内容哈希与最近一次审批记录不一致，申请内容可能已被修改，请核实后再操作。";
+  }
+  if (r.quarantinedRaw) {
+    text += "\n\n隔离记录：原始数据已保留（" + (r.rawTruncated ? "已截断" : "完整") + "），可在档案展开查看。";
   }
 
   text += "\n\n审批历史：";
@@ -966,12 +1076,12 @@ function renderApproval() {
   if (!currentRequest) { $("sec-approval").style.display = "none"; return; }
   $("sec-approval").style.display = "block";
   renderRequestInfo();
-  const pending = currentRequest.status === "待用户审批";
+  const pending = currentRequest.status === "待用户审批" && !storageBlocked;
   $("btnApprove").disabled = !pending;
   $("btnReturn").disabled = !pending;
   $("btnReject").disabled = !pending;
   $("decisionNote").disabled = !pending;
-  const editable = ["退回重新讨论","用户已批准（待接入执行引擎）","用户已拒绝"].includes(currentRequest.status);
+  const editable = !storageBlocked && ["退回重新讨论","用户已批准（待接入执行引擎）","用户已拒绝"].includes(currentRequest.status);
   $("btnEditFrom").style.display = editable ? "inline-block" : "none";
   if (editable) $("btnEditFrom").textContent = editButtonLabel(currentRequest.status);
 }
@@ -1073,12 +1183,20 @@ function renderArchive() {
       ? '<div>后续版本：' + children.map(c => escapeHTML(c.id) + "（v" + (c.version || 1) + "）").join("、") + '</div>' : "";
     const tampered = isContentTampered(r)
       ? '<div style="color:var(--danger);margin-top:4px">⚠️ 内容已被修改：当前哈希与最近审批记录不一致</div>' : "";
+    const quarantineInfo = r.quarantinedRaw
+      ? '<div style="margin-top:6px;padding:8px;background:var(--panel);border-radius:6px;font-size:11px;white-space:pre-wrap;max-height:200px;overflow:auto">'
+        + '<strong>原始数据（' + (r.rawTruncated ? '已截断' : '完整') + '）：</strong>\n'
+        + escapeHTML(r.quarantinedRaw) + '</div>'
+      : "";
+    const originalIdLine = r.originalId
+      ? '<div>原始编号：' + escapeHTML(r.originalId) + '</div>' : "";
     return '<details class="archive-item">' +
       '<summary><strong>' + escapeHTML(r.id) + '</strong>' +
       '<span>' + escapeHTML(r.project) + '</span>' +
       '<span>v' + (r.version || 1) + '</span>' +
       '<span class="tag ' + si.cls + '">' + si.label + '</span>' +
       (isContentTampered(r) ? '<span class="tag unknown">已篡改</span>' : '') +
+      (r.quarantinedRaw ? '<span class="tag unknown">已隔离</span>' : '') +
       '</summary>' +
       '<div class="panel">' +
         '<div>原因：' + escapeHTML(r.reason) + '</div>' +
@@ -1086,11 +1204,13 @@ function renderArchive() {
         '<div>风险评估：' + escapeHTML(r.risk) + '</div>' +
         '<div>提交时间：' + escapeHTML(r.time) + '</div>' +
         '<div>内容哈希：' + escapeHTML(r.contentHash || "（无）") + '</div>' +
-        parentLine + refLine + childrenLine + tampered +
+        originalIdLine + parentLine + refLine + childrenLine + tampered + quarantineInfo +
         '<div style="margin-top:8px"><strong>审批历史</strong></div>' + hist +
         renderVersionChain(r) +
-        '<div style="margin-top:8px"><button class="gray" style="padding:6px 10px;font-size:12px" ' +
-        'data-edit-id="' + escapeHTML(r.id) + '">' + editButtonLabel(r.status) + '</button></div>' +
+        (!storageBlocked
+          ? '<div style="margin-top:8px"><button class="gray" style="padding:6px 10px;font-size:12px" ' +
+            'data-edit-id="' + escapeHTML(r.id) + '">' + editButtonLabel(r.status) + '</button></div>'
+          : '') +
       '</div></details>';
   }).join("");
   renderPager(total, totalPages);
@@ -1105,6 +1225,7 @@ function renderProjectList() {
 /* ========== 草稿 ========== */
 function scheduleSaveDraft() { clearTimeout(draftTimer); draftTimer = setTimeout(saveDraft, 500); }
 function saveDraft() {
+  if (storageBlocked) return;
   const d = {
     project: $("project").value, reason: $("reason").value,
     changes: $("changes").value, risk: $("risk").value,
@@ -1161,6 +1282,7 @@ function clearForm() {
   updateAllCounters();
 }
 function startEditFrom(req) {
+  if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
   if (!req) return;
   if (req.status === "待用户审批") { toast("该申请仍在审批中，请先处理审批结果", "warning"); return; }
   if (!["退回重新讨论","用户已批准（待接入执行引擎）","用户已拒绝"].includes(req.status)) {
@@ -1183,12 +1305,15 @@ function editFromActive() { if (currentRequest) startEditFrom(currentRequest); }
 function editFromId(id) { const req = requests.find(r => r.id === id); if (req) startEditFrom(req); }
 function cancelEdit() { editingParent = null; hideEditHint(); clearForm(); clearDraft(); }
 
-/* ========== 提交申请（传入完整 store 做并发检查） ========== */
+/* ========== 提交申请（完整 Store 并发检查） ========== */
 function createRequest() {
-  const latestStore = loadJSON(KEY.store, null);
-  if (!latestStore || typeof latestStore !== "object" || !Array.isArray(latestStore.requests)) {
+  if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
+
+  const latestState = readJSONState(KEY.store);
+  if (!latestState.ok || !latestState.exists || latestState.value === null) {
     toast("无法读取最新申请数据，请刷新页面后重试", "danger"); return;
   }
+  const latestStore = latestState.value;
   if (!validStore(latestStore)) { toast("本地数据异常，无法继续，请刷新页面检查", "danger"); return; }
   const latestRequests = latestStore.requests;
 
@@ -1257,14 +1382,16 @@ function createRequest() {
 
 /* ========== 审批（完整对象核对 + 快照哈希 + 只追加） ========== */
 function decide(status, message, extraClass, actionName) {
+  if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
   if (!currentRequest) { toast("没有待处理的申请", "warning"); return; }
   if (currentRequest.status !== "待用户审批") { toast("这份申请已经处理过，不能重复审批", "warning"); return; }
   if (!VALID_STATUSES.includes(status)) { toast("无效的审批操作", "danger"); return; }
 
-  const latestStore = loadJSON(KEY.store, null);
-  if (!latestStore || typeof latestStore !== "object" || !Array.isArray(latestStore.requests)) {
+  const latestState = readJSONState(KEY.store);
+  if (!latestState.ok || !latestState.exists || latestState.value === null) {
     toast("无法读取最新申请数据，请刷新页面后重试", "danger"); return;
   }
+  const latestStore = latestState.value;
   if (!validStore(latestStore)) { toast("本地数据异常，无法继续，请刷新页面检查", "danger"); return; }
   const baseRequests = latestStore.requests;
 
@@ -1275,7 +1402,6 @@ function decide(status, message, extraClass, actionName) {
     renderApproval(); renderArchive(); return;
   }
 
-  /* 完整对象核对：版本、时间、历史、快照、哈希，任一处不同都视为已变化 */
   if (stableStringify(target) !== stableStringify(currentRequest)) {
     toast("该申请在你审批期间已被修改，已为你刷新，请重新审阅", "warning");
     store = { schemaVersion: SCHEMA_VERSION, requests: baseRequests, activeId: target.id };
@@ -1285,7 +1411,7 @@ function decide(status, message, extraClass, actionName) {
   }
 
   if (isContentTampered(target)) {
-    toast("内容篡改警告：当前内容与上次审批时不一致，请核实", "danger");
+    toast("内容完整性警告：当前内容与上次审批时不一致，请核实", "danger");
     return;
   }
 
@@ -1346,9 +1472,11 @@ function reject() {
 function refreshDataInfo() {
   const draft = loadJSON(KEY.draft, null);
   const draftState = draft ? "有未提交草稿（" + (draft.savedAt || "") + "）" : "无草稿";
+  const mode = storageBlocked ? "只读保护模式" : "正常";
   $("dataInfo").textContent =
     "当前数据：申请 " + requests.length + " 份 · 会议历史 " + meetingHistory.length +
-    " 条 · 操作记录 " + logs.length + " 条 · " + draftState + " · 数据版本 v" + SCHEMA_VERSION;
+    " 条 · 操作记录 " + logs.length + " 条 · " + draftState +
+    " · 模式 " + mode + " · 数据版本 v" + SCHEMA_VERSION;
 }
 function exportData() {
   const payload = {
@@ -1540,16 +1668,13 @@ function verifyBundle(bundle) {
 function commitImportBundle(bundle) {
   const keys = [KEY.store, KEY.logs, KEY.meetings, KEY.meeting, KEY.filter, KEY.page, KEY.theme];
   const backup = backupStorageKeys(keys);
-
-  // 备份失败（键读取异常）时禁止继续导入，避免误把原数据当作不存在
   if (!backup) {
     return {
       success: false,
       rolledBack: false,
-      message: "无法完整备份现有数据，已取消导入。"
+      message: "备份失败，已取消导入，原有数据没有主动修改。"
     };
   }
-
   try {
     localStorage.setItem(KEY.store, JSON.stringify(bundle.store));
     localStorage.setItem(KEY.logs, JSON.stringify(bundle.logs));
@@ -1571,6 +1696,7 @@ function commitImportBundle(bundle) {
   return { success: true, rolledBack: false, message: "导入成功" };
 }
 function importData(ev) {
+  if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); ev.target.value = ""; return; }
   const file = ev.target.files && ev.target.files[0];
   ev.target.value = "";
   if (!file) return;
@@ -1619,18 +1745,16 @@ function importData(ev) {
 
 /* ---------- 清除全部数据 ---------- */
 function clearAllData() {
+  if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
   if (!confirm("将清除申请、会议、操作记录和草稿在内的全部本地数据。\n此操作无法撤销，建议先导出备份。继续吗？")) return;
   if (!confirm("再次确认：确定要清除全部数据吗？")) return;
   const keys = [KEY.store, KEY.legacyRequests, KEY.legacyActive, KEY.legacyRequest,
     KEY.logs, KEY.meetings, KEY.meeting, KEY.filter, KEY.page, KEY.draft];
   const backup = backupStorageKeys(keys);
-
-  // 备份失败时取消清除，避免把读失败误当作不存在
   if (!backup) {
-    toast("无法完整备份现有数据，已取消清除操作。", "danger");
+    toast("备份失败，已取消清除操作", "danger");
     return;
   }
-
   let deleteFailed = false;
   try { keys.forEach(k => localStorage.removeItem(k)); }
   catch (e) { deleteFailed = true; }
@@ -1698,9 +1822,10 @@ function bindEvents() {
 
 /* ========== 启动 ========== */
 (function init() {
-  initData();
+  const ok = initData();
   applyTheme(loadJSON(KEY.theme, "dark"));
   bindEvents();
+
   renderHistory();
   renderProjectList();
   setFilter(archiveFilter);
@@ -1710,6 +1835,10 @@ function bindEvents() {
   restoreMeeting();
   restoreDraft();
   refreshDataInfo();
+
+  if (!ok && storageBlocked) {
+    toast("页面已进入只读保护模式，请按顶部提示处理损坏数据", "warning");
+  }
 })();
 </script>
 </body>
