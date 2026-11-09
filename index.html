@@ -207,9 +207,31 @@ function createRequest(){
 }
 
 function decide(status,message){
- if(!currentRequest){alert("没有待处理的申请");return}
+ if(!currentRequest){
+  alert("没有待处理的申请");
+  return;
+ }
+
+ if(currentRequest.status !== "待用户审批"){
+  alert("这份申请已经处理过，不能重复审批！");
+  return;
+ }
+
+ const allowedStatuses = [
+  "用户已批准（待接入执行引擎）",
+  "退回重新讨论",
+  "用户已拒绝"
+ ];
+
+ if(!allowedStatuses.includes(status)){
+  alert("无效的审批操作");
+  return;
+ }
+
  currentRequest.status=status;
+
  $("approvalMessage").textContent=message;
+
  $("requestInfo").textContent=
   "申请编号："+currentRequest.id+
   "\n项目："+currentRequest.project+
@@ -218,37 +240,8 @@ function decide(status,message){
   "\n风险评估："+currentRequest.risk+
   "\n审批结果："+status+
   "\n\n当前仅记录审批意向，不会执行任何代码修改。";
- addLog(status,currentRequest.id+" · "+currentRequest.project);
-}
-function approve(){
- decide("用户已批准（待接入执行引擎）","已记录你的批准。当前版本不会实际修改代码。");
-}
-function returnDiscussion(){
- decide("退回重新讨论","申请已退回。修改方案完善后需要重新提交审批。");
-}
-function reject(){
- decide("用户已拒绝","已拒绝本次修改申请，不会执行。");
-}
 
-function renderHistory(){
- if(!logs.length){
-  $("history").innerHTML='<p class="muted">暂无记录</p>';return;
- }
- $("history").innerHTML=logs.map(x=>
-  '<div class="history"><strong>'+escapeHTML(x.title)+'</strong>'+
-  '<div class="muted">'+escapeHTML(x.time)+'</div>'+
-  '<div>'+escapeHTML(x.detail)+'</div></div>'
- ).join("");
-}
-function escapeHTML(s){
- return String(s).replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
- }[c]));
-}
-function clearHistory(){
- if(confirm("确定清除本地操作记录吗？")){
-  logs=[];saveLogs();
- }
+ addLog(status,currentRequest.id+" · "+currentRequest.project);
 }
 renderHistory();
 </script>
