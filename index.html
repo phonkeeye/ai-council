@@ -3,435 +3,254 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI COUNCIL V1.0</title>
-
+<title>AI COUNCIL V2.0</title>
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: #10131c;
-  color: #fff;
-  font-family: Arial, sans-serif;
-}
-
-header {
-  padding: 22px;
-  background: #191f2d;
-  border-bottom: 1px solid #30394b;
-}
-
-header h1 {
-  margin: 0;
-  color: #65b8ff;
-  letter-spacing: 2px;
-}
-
-header p {
-  color: #9ba8bb;
-  font-size: 13px;
-}
-
-main {
-  padding: 16px;
-  max-width: 850px;
-  margin: auto;
-}
-
-.card {
-  background: #1b2231;
-  padding: 17px;
-  border-radius: 12px;
-  margin-bottom: 15px;
-  border: 1px solid #30394b;
-}
-
-.card h2 {
-  font-size: 18px;
-  margin-top: 0;
-}
-
-.member {
-  padding: 14px 0;
-  border-bottom: 1px solid #30394b;
-}
-
-.member:last-child {
-  border-bottom: none;
-}
-
-.member-name {
-  font-weight: bold;
-  font-size: 15px;
-}
-
-.member-role {
-  color: #9ba8bb;
-  font-size: 13px;
-  margin-top: 5px;
-}
-
-.status {
-  color: #f0b94c;
-  font-size: 12px;
-  float: right;
-}
-
-textarea {
-  width: 100%;
-  min-height: 120px;
-  background: #101722;
-  color: white;
-  border: 1px solid #46536a;
-  border-radius: 8px;
-  padding: 13px;
-  font-size: 16px;
-  resize: vertical;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 12px;
-  background: #287de0;
-  border: 0;
-  border-radius: 8px;
-  color: white;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-button:disabled {
-  background: #46536a;
-  color: #aab4c3;
-}
-
-.secondary {
-  background: #30394b;
-}
-
-.phase {
-  padding: 13px;
-  background: #101722;
-  border-radius: 8px;
-  margin-top: 10px;
-  border-left: 3px solid #46536a;
-}
-
-.phase.active {
-  border-left-color: #65b8ff;
-}
-
-.phase.done {
-  border-left-color: #36c98f;
-}
-
-.phase-title {
-  font-weight: bold;
-}
-
-.phase-desc {
-  color: #9ba8bb;
-  font-size: 13px;
-  margin-top: 6px;
-}
-
-.notice {
-  color: #f0b94c;
-  background: #30291b;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.record {
-  border-bottom: 1px solid #30394b;
-  padding: 13px 0;
-  font-size: 14px;
-}
-
-.record small {
-  display: block;
-  color: #9ba8bb;
-  margin-top: 6px;
-}
-
-footer {
-  text-align: center;
-  color: #78869b;
-  padding: 25px;
-  font-size: 12px;
-}
+*{box-sizing:border-box}
+body{margin:0;background:#0b1020;color:#e8edf8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{padding:24px 18px;background:linear-gradient(135deg,#172b50,#111827);border-bottom:1px solid #293650}
+h1{margin:0;font-size:25px;letter-spacing:1px}
+header p{color:#a9bad5;font-size:13px;margin:8px 0 0}
+main{max-width:850px;margin:auto;padding:16px}
+.card{background:#141d30;border:1px solid #293650;border-radius:14px;padding:16px;margin-bottom:14px}
+h2{font-size:17px;margin:0 0 14px}
+h3{font-size:14px;margin:0 0 7px}
+.muted{color:#94a5c1;font-size:12px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.member{background:#1c2940;padding:12px;border-radius:10px}
+.member strong{display:block;margin-bottom:5px}
+.status{font-size:11px;color:#f6c66b}
+textarea,input{width:100%;background:#0d1526;border:1px solid #354663;border-radius:9px;color:white;padding:12px;font-size:14px;margin:7px 0 12px}
+textarea{min-height:100px;resize:vertical}
+button{border:0;border-radius:9px;padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer;margin:3px}
+.primary{background:#3978ed;color:white}
+.green{background:#16794d;color:white}
+.red{background:#9b3545;color:white}
+.gray{background:#34435c;color:white}
+.orange{background:#9a6820;color:white}
+button:disabled{opacity:.35}
+.steps{display:flex;gap:5px;margin:12px 0}
+.step{flex:1;text-align:center;padding:10px 3px;border-radius:8px;background:#26334b;color:#9bacc7;font-size:11px}
+.step.active{background:#2457a7;color:white}
+.step.done{background:#176344;color:white}
+.panel{background:#0d1526;border-radius:10px;padding:13px;margin:10px 0;line-height:1.7;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.badge{display:inline-block;background:#263b5b;color:#a9ccff;padding:4px 8px;border-radius:20px;font-size:11px}
+.warning{border-left:3px solid #e6a33b;padding:10px;background:#292417;color:#f3d69d;font-size:12px;line-height:1.7}
+.success{color:#6de0a4}
+.danger{color:#ff929e}
+.history{border-top:1px solid #293650;padding:12px 0;font-size:13px}
+footer{text-align:center;color:#72819c;font-size:11px;padding:20px}
+@media(max-width:450px){.grid{grid-template-columns:1fr 1fr}.steps{gap:3px}.step{font-size:10px}}
 </style>
 </head>
-
 <body>
-
 <header>
-  <h1>AI COUNCIL</h1>
-  <p>多模型人工智能协作与决策中心 · V1.0</p>
+<h1>⚡ AI COUNCIL</h1>
+<p>V2.0 · 多模型协作 · 讨论审查 · 人类最终授权</p>
 </header>
 
 <main>
-
 <div class="card">
-  <h2>AI 团队成员</h2>
-
-  <div class="member">
-    <span class="status">待接入</span>
-    <div class="member-name">GPT · 总协调</div>
-    <div class="member-role">负责主持会议、统筹方案、最终裁判</div>
-  </div>
-
-  <div class="member">
-    <span class="status">待接入</span>
-    <div class="member-name">Claude · 代码审查</div>
-    <div class="member-role">负责检查代码、发现漏洞、评估风险</div>
-  </div>
-
-  <div class="member">
-    <span class="status">待接入</span>
-    <div class="member-name">Gemini · 数据分析</div>
-    <div class="member-role">负责数据分析、寻找异常、分析市场信息</div>
-  </div>
-
-  <div class="member">
-    <span class="status">待接入</span>
-    <div class="member-name">DeepSeek · 量化专家</div>
-    <div class="member-role">负责数学逻辑、交易策略、回测审查</div>
-  </div>
+<h2>🤖 AI 团队</h2>
+<div class="grid">
+<div class="member"><strong>🟢 GPT</strong><span class="muted">总协调 · 组织讨论</span><br><span class="status">待接入真实模型</span></div>
+<div class="member"><strong>🟣 Claude</strong><span class="muted">代码审查 · 安全检查</span><br><span class="status">待接入真实模型</span></div>
+<div class="member"><strong>🔵 Gemini</strong><span class="muted">数据分析 · 独立判断</span><br><span class="status">待接入真实模型</span></div>
+<div class="member"><strong>🟠 DeepSeek</strong><span class="muted">量化研究 · 策略分析</span><br><span class="status">待接入真实模型</span></div>
+</div>
 </div>
 
 <div class="card">
-  <h2>发起 AI 会议</h2>
-
-  <textarea id="question"
-  placeholder="输入你希望 AI 团队讨论的问题……&#10;&#10;例如：BTC AI Quant 是否应该增加趋势过滤？"></textarea>
-
-  <button onclick="startMeeting()">
-    创建会议
-  </button>
-
-  <div class="notice" style="margin-top:12px">
-    当前版本为流程演示。尚未连接真实 AI 模型，不会生成虚假的模型分析结果。
-  </div>
+<h2>📋 发起 AI 会议</h2>
+<p class="muted">输入你希望团队研究的问题，未来接入模型后，将由四位成员独立分析、交叉质疑并形成结论。</p>
+<textarea id="question" placeholder="例如：检查 BTC AI Quant 的回测逻辑，找出可能存在的漏洞，并提出修改建议。"></textarea>
+<button class="primary" onclick="startMeeting()">发起会议</button>
+<div id="meeting" style="display:none">
+<div class="steps">
+<div class="step active" id="s1">1. 独立分析</div>
+<div class="step" id="s2">2. 交叉质疑</div>
+<div class="step" id="s3">3. 最终结论</div>
 </div>
-
-<div class="card" id="meeting" style="display:none">
-
-  <h2>会议控制中心</h2>
-
-  <p id="meetingQuestion" style="color:#65b8ff"></p>
-
-  <div id="phases">
-
-    <div class="phase active" id="phase0">
-      <div class="phase-title">第一阶段：独立分析</div>
-      <div class="phase-desc">四个模型分别分析议题，尚待接入真实模型。</div>
-    </div>
-
-    <div class="phase" id="phase1">
-      <div class="phase-title">第二阶段：交叉质疑</div>
-      <div class="phase-desc">各模型检查其他模型的观点，提出反驳。</div>
-    </div>
-
-    <div class="phase" id="phase2">
-      <div class="phase-title">第三阶段：最终裁判</div>
-      <div class="phase-desc">汇总证据、分歧、风险与建议。</div>
-    </div>
-
-  </div>
-
-  <button id="nextButton" onclick="nextPhase()">
-    进入下一阶段
-  </button>
-
-  <button class="secondary" onclick="resetMeeting()">
-    结束本次演示
-  </button>
-
-  <div id="phaseNotice" class="notice" style="margin-top:12px">
-    等待真实模型接入。当前只演示会议流程。
-  </div>
-
+<div class="panel" id="meetingText">等待开始</div>
+<button class="gray" onclick="nextStage()">进入下一阶段 →</button>
+</div>
 </div>
 
 <div class="card">
-  <h2>会议记录</h2>
-  <div id="history">
-    <p style="color:#9ba8bb">暂无会议记录。</p>
-  </div>
-  <button class="secondary" onclick="clearHistory()">
-    清空本地记录
-  </button>
+<h2>🛠️ 代码修改申请</h2>
+<p class="muted">所有代码修改必须先讨论、审查，再由你批准。每次批准只针对明确的修改内容和版本。</p>
+<label class="muted">修改项目</label>
+<input id="project" placeholder="例如：BTC AI Quant">
+<label class="muted">修改原因</label>
+<textarea id="reason" placeholder="为什么需要修改？目前发现了什么问题？"></textarea>
+<label class="muted">计划修改内容</label>
+<textarea id="changes" placeholder="具体准备修改哪些文件、哪些逻辑？"></textarea>
+<label class="muted">风险评估</label>
+<textarea id="risk" placeholder="可能产生什么影响？如何测试和回滚？"></textarea>
+<button class="primary" onclick="createRequest()">提交修改申请</button>
 </div>
 
-<footer>
-  AI COUNCIL · Multi-Agent Intelligence
-  <br><br>
-  Built for collaborative AI decision-making
-</footer>
+<div class="card" id="approvalCard" style="display:none">
+<h2>🔐 用户审批中心</h2>
+<div id="requestInfo" class="panel"></div>
+<div class="warning">
+⚠️ 安全规则：批准只代表允许未来执行当前明确的修改方案，不代表允许修改正式分支。实际执行必须在隔离分支或沙盒中进行，并保留备份和测试结果。
+</div>
+<h3 style="margin-top:15px">你的决定</h3>
+<button class="green" onclick="approve()">✓ 批准执行</button>
+<button class="orange" onclick="returnDiscussion()">↻ 退回重新讨论</button>
+<button class="red" onclick="reject()">✕ 拒绝修改</button>
+<p class="muted" id="approvalMessage">等待你的决定。</p>
+</div>
 
+<div class="card">
+<h2>📜 操作记录</h2>
+<div id="history"><p class="muted">暂无记录</p></div>
+<button class="gray" onclick="clearHistory()">清除本地记录</button>
+</div>
+
+<div class="card">
+<h2>🛡️ COUNCIL 安全规则</h2>
+<div class="panel">
+1. 用户拥有最终决策权。
+2. 未经用户明确批准，不得执行代码修改。
+3. 每次批准只针对一个明确版本的修改方案。
+4. 修改内容发生变化，必须重新审批。
+5. AI 不得自行批准自己的修改。
+6. 正式分支 main 不允许 AI 直接修改。
+7. 所有执行必须先备份，并在隔离环境测试。
+8. 测试失败必须停止执行，保留错误记录。
+9. 未经用户授权，不得执行真实交易或使用交易资金。
+10. 必须保留模型分歧、风险和审查记录。
+</div>
+</div>
+
+<div class="warning">
+当前版本是前端流程原型。会议内容不是四个真实模型生成的，审批按钮也不会实际修改 GitHub 代码。真实模型调用、代码执行和自动测试将在后续接入安全后端。
+</div>
 </main>
 
+<footer>AI COUNCIL V2.0 · Your project, your decision.</footer>
+
 <script>
+const $=id=>document.getElementById(id);
+let stage=0;
+let currentRequest=null;
+let logs=JSON.parse(localStorage.getItem("council_logs")||"[]");
 
-let currentPhase = 0;
-let currentQuestion = "";
-
-const phaseNames = [
-  "独立分析",
-  "交叉质疑",
-  "最终裁判"
-];
-
-function startMeeting() {
-
-  const question = document.getElementById("question").value.trim();
-
-  if (!question) {
-    alert("请先输入会议议题。");
-    return;
-  }
-
-  currentQuestion = question;
-  currentPhase = 0;
-
-  document.getElementById("meeting").style.display = "block";
-  document.getElementById("meetingQuestion").innerText =
-    "会议议题：" + question;
-
-  updatePhase();
-
-  document.getElementById("meeting").scrollIntoView({
-    behavior: "smooth"
-  });
+function saveLogs(){
+ localStorage.setItem("council_logs",JSON.stringify(logs.slice(0,50)));
+ renderHistory();
 }
 
-function updatePhase() {
-
-  for (let i = 0; i < 3; i++) {
-
-    const box = document.getElementById("phase" + i);
-
-    box.className = "phase";
-
-    if (i < currentPhase) {
-      box.classList.add("done");
-    }
-
-    if (i === currentPhase) {
-      box.classList.add("active");
-    }
-  }
-
-  document.getElementById("phaseNotice").innerText =
-    "当前阶段：" + phaseNames[currentPhase] +
-    "。此阶段尚未调用真实 AI 模型。";
-
-  document.getElementById("nextButton").innerText =
-    currentPhase === 2 ? "完成会议演示" : "进入下一阶段";
+function addLog(title,detail){
+ logs.unshift({time:new Date().toLocaleString(),title,detail});
+ saveLogs();
 }
 
-function nextPhase() {
-
-  if (currentPhase < 2) {
-
-    currentPhase++;
-
-    updatePhase();
-
-  } else {
-
-    saveMeeting();
-
-    alert("会议流程演示结束，记录已保存在当前浏览器。");
-
-    resetMeeting();
-  }
+function startMeeting(){
+ const q=$("question").value.trim();
+ if(!q){alert("请先输入会议问题");return}
+ stage=1;
+ $("meeting").style.display="block";
+ updateMeeting();
+ addLog("发起会议",q);
 }
 
-function saveMeeting() {
-
-  let history = JSON.parse(
-    localStorage.getItem("aiCouncilHistory") || "[]"
-  );
-
-  history.unshift({
-    question: currentQuestion,
-    date: new Date().toLocaleString(),
-    type: "流程演示（未调用真实模型）"
-  });
-
-  history = history.slice(0, 30);
-
-  localStorage.setItem(
-    "aiCouncilHistory",
-    JSON.stringify(history)
-  );
-
-  renderHistory();
+function updateMeeting(){
+ ["s1","s2","s3"].forEach((id,i)=>{
+  $(id).className="step "+(i+1<stage?"done":i+1===stage?"active":"");
+ });
+ const q=$("question").value;
+ const texts=[
+  "",
+  "会议议题：\n"+q+"\n\n【GPT】待接入真实模型，负责组织独立分析。\n\n【Claude】待接入真实模型，负责代码和安全审查。\n\n【Gemini】待接入真实模型，负责数据分析。\n\n【DeepSeek】待接入真实模型，负责量化研究。\n\n当前为流程演示，尚未调用真实模型。",
+  "交叉质疑阶段\n\n未来每个模型需要审查其他成员的分析，指出逻辑漏洞、数据问题和潜在风险。\n\n当前为流程演示，尚未调用真实模型。",
+  "最终结论阶段\n\n未来将汇总各模型的共同意见、分歧、证据、风险和建议。\n\n任何修改建议都必须进入审批中心，由用户决定是否执行。\n\n当前为流程演示，尚未调用真实模型。"
+ ];
+ $("meetingText").textContent=texts[stage];
+ if(stage===3){
+  $("meetingText").textContent+="\n\n会议流程演示结束。";
+  $("meetingText").nextElementSibling.disabled=true;
+ }
 }
 
-function renderHistory() {
-
-  const history = JSON.parse(
-    localStorage.getItem("aiCouncilHistory") || "[]"
-  );
-
-  const box = document.getElementById("history");
-
-  if (history.length === 0) {
-    box.innerHTML =
-      '<p style="color:#9ba8bb">暂无会议记录。</p>';
-    return;
-  }
-
-  box.innerHTML = "";
-
-  history.forEach(item => {
-
-    const div = document.createElement("div");
-
-    div.className = "record";
-
-    const title = document.createElement("strong");
-    title.textContent = item.question;
-
-    const info = document.createElement("small");
-    info.textContent = item.date + " · " + item.type;
-
-    div.appendChild(title);
-    div.appendChild(info);
-
-    box.appendChild(div);
-  });
+function nextStage(){
+ if(stage<3){stage++;updateMeeting()}
 }
 
-function resetMeeting() {
-
-  document.getElementById("meeting").style.display = "none";
-
-  currentPhase = 0;
-  currentQuestion = "";
+function createRequest(){
+ const project=$("project").value.trim();
+ const reason=$("reason").value.trim();
+ const changes=$("changes").value.trim();
+ const risk=$("risk").value.trim();
+ if(!project||!reason||!changes||!risk){
+  alert("请填写完整的修改申请");return;
+ }
+ currentRequest={
+  id:"REQ-"+Date.now(),
+  project,reason,changes,risk,
+  status:"待用户审批",
+  time:new Date().toLocaleString()
+ };
+ $("approvalCard").style.display="block";
+ $("requestInfo").textContent=
+  "申请编号："+currentRequest.id+
+  "\n项目："+project+
+  "\n原因："+reason+
+  "\n计划修改："+changes+
+  "\n风险评估："+risk+
+  "\n状态："+currentRequest.status+
+  "\n\n注意：当前方案尚未经过真实多模型讨论。";
+ $("approvalMessage").textContent="请审阅申请内容。";
+ addLog("提交修改申请",currentRequest.id+" · "+project);
+ $("approvalCard").scrollIntoView({behavior:"smooth"});
 }
 
-function clearHistory() {
-
-  if (confirm("确定清空本地会议记录吗？")) {
-
-    localStorage.removeItem("aiCouncilHistory");
-
-    renderHistory();
-  }
+function decide(status,message){
+ if(!currentRequest){alert("没有待处理的申请");return}
+ currentRequest.status=status;
+ $("approvalMessage").textContent=message;
+ $("requestInfo").textContent=
+  "申请编号："+currentRequest.id+
+  "\n项目："+currentRequest.project+
+  "\n原因："+currentRequest.reason+
+  "\n计划修改："+currentRequest.changes+
+  "\n风险评估："+currentRequest.risk+
+  "\n审批结果："+status+
+  "\n\n当前仅记录审批意向，不会执行任何代码修改。";
+ addLog(status,currentRequest.id+" · "+currentRequest.project);
+}
+function approve(){
+ decide("用户已批准（待接入执行引擎）","已记录你的批准。当前版本不会实际修改代码。");
+}
+function returnDiscussion(){
+ decide("退回重新讨论","申请已退回。修改方案完善后需要重新提交审批。");
+}
+function reject(){
+ decide("用户已拒绝","已拒绝本次修改申请，不会执行。");
 }
 
+function renderHistory(){
+ if(!logs.length){
+  $("history").innerHTML='<p class="muted">暂无记录</p>';return;
+ }
+ $("history").innerHTML=logs.map(x=>
+  '<div class="history"><strong>'+escapeHTML(x.title)+'</strong>'+
+  '<div class="muted">'+escapeHTML(x.time)+'</div>'+
+  '<div>'+escapeHTML(x.detail)+'</div></div>'
+ ).join("");
+}
+function escapeHTML(s){
+ return String(s).replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+}
+function clearHistory(){
+ if(confirm("确定清除本地操作记录吗？")){
+  logs=[];saveLogs();
+ }
+}
 renderHistory();
-
 </script>
-
 </body>
 </html>
