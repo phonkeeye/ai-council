@@ -74,12 +74,12 @@ body.light-theme .storage-warning{background:#fee2e2;border-color:#f87171;border
 .toast.warning{border-left-color:var(--warn-border)}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 
-/* 💬 新增：群聊界面样式 */
+/* 💬 聊天室样式 */
 .chat-container { display:flex; flex-direction:column; height:400px; overflow-y:auto; background:var(--bg); border-radius:10px; border:1px solid var(--border); padding:12px; margin-bottom:12px; gap:12px; }
 .chat-msg { display:flex; gap:8px; max-width:85%; }
 .chat-msg.user { align-self:flex-end; flex-direction:row-reverse; }
 .chat-avatar { width:36px; height:36px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:20px; background:var(--card2); border:1px solid var(--border); }
-.chat-bubble { background:var(--card2); padding:10px 14px; border-radius:0 12px 12px 12px; font-size:13px; line-height:1.6; color:var(--text); word-wrap:break-word; }
+.chat-bubble { background:var(--card2); padding:10px 14px; border-radius:0 12px 12px 12px; font-size:13px; line-height:1.6; color:var(--text); word-wrap:break-word; white-space: pre-wrap; }
 .chat-msg.user .chat-bubble { background:var(--primary); color:#fff; border-radius:12px 0 12px 12px; }
 .chat-name { font-size:11px; color:var(--muted); margin-bottom:2px; }
 .chat-msg.user .chat-name { text-align:right; }
@@ -93,7 +93,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="header-top">
 <div>
 <h1>⚡ AI COUNCIL</h1>
-<p>V2.0 · 多模型协作 · 讨论审查 · 人类最终授权</p>
+<p>V2.0 · 真实 API 接入版</p>
 </div>
 <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="切换主题">🌙</button>
 </div>
@@ -107,7 +107,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <a href="#sec-history">📜 记录</a>
 <a href="#sec-data">💾 数据</a>
 </nav>
-<div class="demo-banner">🧪 演示原型 · 四个 AI 成员尚未接入真实 API · 聊天内容为本地模拟，审批按钮不会修改代码</div>
+<div class="demo-banner" id="demoBanner">🔒 真实模式 · 需配置后端代理才能对话</div>
 
 <main>
 <div id="storageWarning" class="storage-warning" style="display:none">
@@ -122,26 +122,29 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="card">
 <h2>🤖 AI 团队</h2>
 <div class="grid">
-<div class="member"><strong>🟢 GPT</strong><span class="muted">总协调 · 组织讨论</span><br><span class="status">待接入真实模型</span></div>
-<div class="member"><strong>🟣 Claude</strong><span class="muted">代码审查 · 安全检查</span><br><span class="status">待接入真实模型</span></div>
-<div class="member"><strong>🔵 Gemini</strong><span class="muted">数据分析 · 独立判断</span><br><span class="status">待接入真实模型</span></div>
-<div class="member"><strong>🟠 DeepSeek</strong><span class="muted">量化研究 · 策略分析</span><br><span class="status">待接入真实模型</span></div>
+<div class="member"><strong>🟢 GPT</strong><span class="muted">总协调 · 待接入</span><br><span class="status">未连接</span></div>
+<div class="member"><strong>🟣 Claude</strong><span class="muted">代码审查 · 待接入</span><br><span class="status">未连接</span></div>
+<div class="member"><strong>🔵 Gemini</strong><span class="muted">数据分析 · 待接入</span><br><span class="status">未连接</span></div>
+<div class="member" style="border: 1px solid var(--primary);"><strong>🟠 DeepSeek</strong><span class="muted">量化研究 · 策略分析</span><br><span class="status success" id="dsStatus">已就绪 (可对话)</span></div>
 </div>
 </div>
 
-<!-- 改造后的群聊会议区 -->
 <div class="card" id="sec-chat">
 <h2>💬 议会大厅</h2>
-<p class="muted">你可以在这里向团队提问，AI 成员之间会互相讨论并回复你。当前为流程演示，内容由本地生成。</p>
-<div class="chat-container" id="chatContainer">
-  <!-- 聊天记录会渲染在这里 -->
-</div>
+<p class="muted">当前已接入 <b>DeepSeek</b> 真实模型。请在下方输入问题与它讨论。</p>
+<div class="chat-container" id="chatContainer"></div>
 <div class="chat-input-area">
-  <input id="chatInput" maxlength="500" placeholder="输入你想讨论的问题，例如：检查 BTC AI Quant 的回测逻辑..." onkeydown="if(event.key==='Enter') sendMessage()">
-  <button class="primary" onclick="sendMessage()">发送</button>
+  <input id="chatInput" maxlength="1000" placeholder="输入你的问题，按回车发送..." onkeydown="if(event.key==='Enter' && !event.isComposing) sendMessage()">
+  <button class="primary" id="sendBtn" onclick="sendMessage()">发送</button>
 </div>
-<div class="toolbar" style="margin-top:8px; justify-content:flex-end;">
-  <button class="gray" onclick="resetChat()" style="padding:6px 10px; font-size:12px;">清空讨论记录</button>
+<div class="toolbar" style="margin-top:8px; flex-direction:column; gap:4px;">
+  <div style="display:flex; gap:6px; width:100%;">
+    <input id="proxyInput" placeholder="填入 Vercel 后端代理 URL (例如: https://your-proxy.vercel.app/api/chat)" style="flex:1; margin:0;">
+    <button class="gray" onclick="saveProxyUrl()">保存代理</button>
+  </div>
+  <div style="text-align:right; width:100%;">
+    <button class="gray" onclick="resetChat()" style="padding:6px 10px; font-size:12px; margin-top:6px;">清空讨论</button>
+  </div>
 </div>
 </div>
 
@@ -174,7 +177,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 ⚠️ 安全规则：批准只代表允许未来执行当前明确的修改方案，不代表允许修改正式分支。实际执行必须在隔离分支或沙盒中进行，并保留备份和测试结果。
 </div>
 <h3 style="margin-top:15px">审批备注（可选）</h3>
-<textarea id="decisionNote" maxlength="500" placeholder="为本次审批填写备注，会保存到审批历史。例如：批准前提是补充分支隔离测试方案。"></textarea>
+<textarea id="decisionNote" maxlength="500" placeholder="为本次审批填写备注，会保存到审批历史。"></textarea>
 <h3 style="margin-top:15px">你的决定</h3>
 <button class="green" id="btnApprove" onclick="approve()">✓ 批准执行</button>
 <button class="orange" id="btnReturn" onclick="returnDiscussion()">↻ 退回重新讨论</button>
@@ -239,10 +242,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 10. 必须保留模型分歧、风险和审查记录。
 </div>
 </div>
-
-<div class="warning">
-当前版本是前端流程原型。聊天内容不是四个真实模型生成的，审批按钮也不会实际修改 GitHub 代码。真实模型调用、代码执行和自动测试将在后续接入安全后端。
-</div>
 </main>
 
 <footer>AI COUNCIL V2.0 · Your project, your decision.</footer>
@@ -254,8 +253,8 @@ const $ = id => document.getElementById(id);
 const KEY = {
   logs: "council_logs", store: "council_store",
   legacyRequests: "council_requests", legacyActive: "council_active", legacyRequest: "council_request",
-  meeting: "council_meeting", meetings: "council_meetings", // 保留兼容旧键
-  chat: "council_chat_history", // 新增聊天记录键
+  meeting: "council_meeting", meetings: "council_meetings",
+  chat: "council_chat_history", proxy: "council_proxy_url",
   filter: "council_filter", page: "council_archive_page",
   draft: "council_draft", theme: "council_theme"
 };
@@ -274,6 +273,7 @@ const RELATION = { REVISION: "revision", FOLLOWUP: "followup", REFERENCE: "refer
 /* ========== 安全读取 ========== */
 let storageBlocked = false;
 let storageBlockedReason = "";
+let proxyUrl = "";
 
 function readJSONState(key) {
   try {
@@ -354,7 +354,7 @@ function applyProtectionModeToUI() {
     if (oc.includes("importFile")) { btn.disabled = true; btn.title = "保护模式：导入已暂停"; return; }
     if (disableOnclickFns.some(fn => oc.includes(fn + "("))) { btn.disabled = true; btn.title = "保护模式：写操作已暂停"; }
   });
-  ["btnSubmitRequest", "chatInput"].forEach(id => {
+  ["btnSubmitRequest", "chatInput", "sendBtn"].forEach(id => {
     const el = $(id);
     if (el) { el.disabled = true; el.title = "保护模式：写操作已暂停"; }
   });
@@ -377,15 +377,15 @@ let activeId = null;
 let currentRequest = null;
 let logs = [];
 let meetingHistory = [];
-let meeting = { stage: 0, topic: "", startedAt: null, id: null }; // 兼容旧迁移
-let chatHistory = []; // 聊天记录状态
+let meeting = { stage: 0, topic: "", startedAt: null, id: null };
+let chatHistory = [];
 let archiveFilter = "all";
 let archivePage = 1;
 let archiveSearchText = "";
 let editingParent = null;
 let draftTimer = null;
 let storageWarned = false;
-let aiReplyQueue = []; // 控制 AI 依次回复的定时器队列
+let isAiThinking = false;
 
 /* ========== 状态合法性 ========== */
 function isValidStatus(s) {
@@ -688,13 +688,14 @@ function initData() {
   meeting = loadJSON(KEY.meeting, { stage: 0, topic: "", startedAt: null, id: null });
   if (!meeting || typeof meeting !== "object") meeting = { stage: 0, topic: "", startedAt: null, id: null };
   
-  // 初始化群聊记录
   chatHistory = loadJSON(KEY.chat, []);
-  if (!Array.isArray(chatHistory)) {
+  if (!Array.isArray(chatHistory) || chatHistory.length === 0) {
     chatHistory = [
-      { role: "system", name: "系统", avatar: "⚙️", text: "议会大厅已建立。你可以向团队提问，四个 AI 成员会讨论并回复你。", time: nowStr() }
+      { role: "system", name: "系统", avatar: "⚙️", text: "议会大厅已建立。请先在下方配置代理 URL 后开始对话。", time: nowStr() }
     ];
   }
+  proxyUrl = loadJSON(KEY.proxy, "");
+  $("proxyInput").value = proxyUrl;
 
   archiveFilter = loadJSON(KEY.filter, "all"); if (!["all","pending","approved","returned","rejected"].includes(archiveFilter)) archiveFilter = "all";
   archivePage = Number(loadJSON(KEY.page, 1)); if (!Number.isInteger(archivePage) || archivePage < 1) archivePage = 1;
@@ -747,7 +748,7 @@ function initData() {
   return true;
 }
 
-/* ========== 核心：聊天室交互逻辑 ========== */
+/* ========== 核心：真实聊天室交互 ========== */
 function renderChat() {
   const container = $("chatContainer");
   if (!container) return;
@@ -759,7 +760,7 @@ function renderChat() {
         <div class="chat-avatar">${msg.avatar || '👤'}</div>
         <div>
           <div class="chat-name">${escapeHTML(msg.name)}</div>
-          <div class="chat-bubble">${escapeHTML(msg.text)}</div>
+          <div class="chat-bubble">${msg.isLoading ? '思考中<span class="dot-anim">...</span>' : escapeHTML(msg.text)}</div>
         </div>
       </div>
     `;
@@ -769,76 +770,72 @@ function renderChat() {
 
 function saveChat() {
   if (storageBlocked) return;
-  // 限制聊天记录条数，避免撑爆 localStorage（保留最近 50 条）
   if (chatHistory.length > 50) chatHistory = chatHistory.slice(chatHistory.length - 50);
   saveJSON(KEY.chat, chatHistory);
 }
 
-function sendMessage() {
+function saveProxyUrl() {
+  const url = $("proxyInput").value.trim();
+  proxyUrl = url;
+  saveJSON(KEY.proxy, url);
+  toast("代理地址已保存", "success");
+}
+
+async function sendMessage() {
   if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
+  if (isAiThinking) { toast("AI 正在思考中，请稍候", "warning"); return; }
+  if (!proxyUrl) { toast("请先在下方填入并保存后端代理 URL", "warning"); return; }
+
   const input = $("chatInput");
   const text = input.value.trim();
   if (!text) return;
   input.value = "";
 
-  // 添加用户消息
   chatHistory.push({ role: "user", name: "用户", avatar: "🧑‍💻", text, time: nowStr() });
+  const loadingMsg = { role: "ai", name: "DeepSeek (🟠)", avatar: "🟠", text: "", isLoading: true, time: nowStr() };
+  chatHistory.push(loadingMsg);
   renderChat();
-  saveChat();
+  isAiThinking = true;
 
-  // 触发 AI 讨论
-  triggerAIDiscussion(text);
+  const messages = chatHistory.filter(m => !m.isLoading && m.role !== 'system').map(m => ({
+    role: m.role === "user" ? "user" : "assistant",
+    content: m.text
+  }));
+  messages.unshift({ 
+    role: "system", 
+    content: "你是 AI COUNCIL 中的 DeepSeek，负责量化研究、策略分析和代码逻辑验证。请以专业、直接、务实的态度回答用户的问题。" 
+  });
+
+  try {
+    const response = await fetch(proxyUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "deepseek-chat", messages: messages })
+    });
+
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    
+    const replyText = data.reply || (data.choices && data.choices[0]?.message?.content) || "未解析到回复内容";
+
+    chatHistory.pop();
+    chatHistory.push({ role: "ai", name: "DeepSeek (🟠)", avatar: "🟠", text: replyText, time: nowStr() });
+    
+  } catch (error) {
+    chatHistory.pop();
+    chatHistory.push({ role: "system", name: "系统", avatar: "⚠️", text: `连接失败：${error.message}。请检查代理地址或后端日志。`, time: nowStr() });
+  } finally {
+    isAiThinking = false;
+    renderChat();
+    saveChat();
+  }
 }
 
 function resetChat() {
   if (storageBlocked) return;
-  if (!confirm("确定要清空议会大厅的讨论记录吗？此操作不可恢复。")) return;
-  chatHistory = [
-    { role: "system", name: "系统", avatar: "⚙️", text: "议会大厅已重置。你可以向团队提出新的问题。", time: nowStr() }
-  ];
-  renderChat();
-  saveChat();
-  toast("讨论记录已清空", "success");
-}
-
-// 模拟 AI 群聊讨论
-function triggerAIDiscussion(userText) {
-  // 清除之前的定时器，防止并发混乱
-  aiReplyQueue.forEach(clearTimeout);
-  aiReplyQueue = [];
-
-  const textLower = userText.toLowerCase();
-  const isCodeRelated = textLower.includes("代码") || textLower.includes("quant") || textLower.includes("回测") || textLower.includes("漏洞");
-  const isDataRelated = textLower.includes("数据") || textLower.includes("行情") || textLower.includes("量化");
-
-  const replies = [];
-  if (isCodeRelated) {
-    replies.push({ role: "ai", name: "GPT (总协调)", avatar: "🟢", text: `收到。关于「${userText}」，我们需要仔细排查。@Claude 你先审查一下核心代码逻辑，看看有没有安全漏洞。`, delay: 1000 });
-    replies.push({ role: "ai", name: "Claude (代码审查)", avatar: "🟣", text: `收到。我正在检查相关的代码分支。初步发现风控止损逻辑和滑点处理可能存在边界溢出风险，我会整理一份具体的修改申请。`, delay: 3000 });
-    replies.push({ role: "ai", name: "DeepSeek (量化策略)", avatar: "🟠", text: `我补充一点，从量化回测数据来看，如果不处理滑点，收益率会虚高。建议把修改重点放在交易执行模块。`, delay: 5000 });
-    replies.push({ role: "ai", name: "GPT (总协调)", avatar: "🟢", text: `好的，综合大家的意见，@用户 建议我们提交一份关于“修复止损逻辑和增加滑点模拟”的申请，你可以在下方【申请】区填写并批准。`, delay: 7000 });
-  } else if (isDataRelated) {
-    replies.push({ role: "ai", name: "GPT (总协调)", avatar: "🟢", text: `收到关于数据的问题。@Gemini 请你分析一下目前的数据源和指标表现。`, delay: 1000 });
-    replies.push({ role: "ai", name: "Gemini (数据分析)", avatar: "🔵", text: `我已经扫描了近期的数据。发现行情存在一定的滞后，部分指标的计算周期可能需要调整。`, delay: 3000 });
-    replies.push({ role: "ai", name: "DeepSeek (量化策略)", avatar: "🟠", text: `同意。从量化角度看，数据延迟1秒以上就会导致策略失效。@Claude 代码层面对数据延迟有容错机制吗？`, delay: 5000 });
-    replies.push({ role: "ai", name: "Claude (代码审查)", avatar: "🟣", text: `目前有基础的重试机制，但如果连续超时，会触发熔断。这部分逻辑是安全的。`, delay: 7000 });
-    replies.push({ role: "ai", name: "GPT (总协调)", avatar: "🟢", text: `看来问题不大，但建议继续观察。@用户 你觉得需要调整指标周期吗？`, delay: 9000 });
-  } else {
-    replies.push({ role: "ai", name: "GPT (总协调)", avatar: "🟢", text: `收到你的消息。对于这个问题，我们需要分工分析一下。`, delay: 1000 });
-    replies.push({ role: "ai", name: "Claude (代码审查)", avatar: "🟣", text: `我会重点关注底层逻辑的安全性和稳定性，确保不引入新风险。`, delay: 3000 });
-    replies.push({ role: "ai", name: "Gemini (数据分析)", avatar: "🔵", text: `我会去拉取相关数据，做一次独立判断，稍后给出分析结论。`, delay: 5000 });
-    replies.push({ role: "ai", name: "DeepSeek (量化策略)", avatar: "🟠", text: `我会从策略和量化的角度评估它的实际价值。`, delay: 7000 });
-  }
-
-  replies.forEach(item => {
-    const timerId = setTimeout(() => {
-      if (storageBlocked) return;
-      chatHistory.push({ role: "ai", name: item.name, avatar: item.avatar, text: item.text, time: nowStr() });
-      renderChat();
-      saveChat();
-    }, item.delay);
-    aiReplyQueue.push(timerId);
-  });
+  if (!confirm("确定要清空讨论记录吗？")) return;
+  chatHistory = [{ role: "system", text: "讨论已重置。", time: nowStr() }];
+  renderChat(); saveChat();
 }
 
 /* ========== Toast / 主题 ========== */
