@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI COUNCIL</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #10131c;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+header {
+  padding: 22px;
+  background: #191f2d;
+  border-bottom: 1px solid #30394b;
+}
+header h1 { margin: 0; color: #65b8ff; }
+header p { color: #9ba8bb; }
+main { padding: 18px; max-width: 800px; margin: auto; }
+.card {
+  background: #1b2231;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  border: 1px solid #30394b;
+}
+.member {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #30394b;
+}
+.status { color: #f0b94c; }
+textarea {
+  width: 100%;
+  min-height: 110px;
+  background: #101722;
+  color: white;
+  border: 1px solid #46536a;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+}
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  background: #287de0;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+}
+footer {
+  text-align: center;
+  color: #78869b;
+  padding: 25px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AI COUNCIL</h1>
+  <p>多模型人工智能协作与决策中心</p>
+</header>
+
+<main>
+
+<div class="card">
+  <h2>AI 团队成员</h2>
+
+  <div class="member">
+    <span>GPT · 总协调</span>
+    <span class="status">待接入</span>
+  </div>
+
+  <div class="member">
+    <span>Claude · 代码审查</span>
+    <span class="status">待接入</span>
+  </div>
+
+  <div class="member">
+    <span>Gemini · 数据分析</span>
+    <span class="status">待接入</span>
+  </div>
+
+  <div class="member">
+    <span>DeepSeek · 量化专家</span>
+    <span class="status">待接入</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>发起 AI 讨论</h2>
+  <textarea id="question"
+    placeholder="输入你想让 AI 团队讨论的问题……">
+  </textarea>
+  <button onclick="alert('AI 接口尚未接入，下一阶段开发。')">
+    发起团队讨论
+  </button>
+</div>
+
+<div class="card">
+  <h2>讨论记录</h2>
+  <p style="color:#9ba8bb">
+    暂无讨论记录，等待首次会议。
+  </p>
+</div>
+
+<footer>
+  AI COUNCIL · Multi-Agent Intelligence
+</footer>
+
+</main>
+</body>
+</html>
