@@ -107,7 +107,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <a href="#sec-history">📜 记录</a>
 <a href="#sec-data">💾 数据</a>
 </nav>
-<div class="demo-banner" id="demoBanner">🔒 真实模式 · 需配置后端代理才能对话</div>
+<div class="demo-banner" id="demoBanner">🟢 真实模式 · 已接入 Cloudflare Worker 与 DeepSeek</div>
 
 <main>
 <div id="storageWarning" class="storage-warning" style="display:none">
@@ -139,7 +139,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 </div>
 <div class="toolbar" style="margin-top:8px; flex-direction:column; gap:4px;">
   <div style="display:flex; gap:6px; width:100%;">
-    <input id="proxyInput" placeholder="填入 Vercel 后端代理 URL (例如: https://your-proxy.vercel.app/api/chat)" style="flex:1; margin:0;">
+    <input id="proxyInput" placeholder="Cloudflare Worker URL" style="flex:1; margin:0;">
     <button class="gray" onclick="saveProxyUrl()">保存代理</button>
   </div>
   <div style="text-align:right; width:100%;">
@@ -691,10 +691,12 @@ function initData() {
   chatHistory = loadJSON(KEY.chat, []);
   if (!Array.isArray(chatHistory) || chatHistory.length === 0) {
     chatHistory = [
-      { role: "system", name: "系统", avatar: "⚙️", text: "议会大厅已建立。请先在下方配置代理 URL 后开始对话。", time: nowStr() }
+      { role: "system", name: "系统", avatar: "⚙️", text: "议会大厅已建立。可以直接开始对话。", time: nowStr() }
     ];
   }
-  proxyUrl = loadJSON(KEY.proxy, "");
+  
+  // 🌟 修改：默认填入刚刚测试成功的 Cloudflare Worker URL
+  proxyUrl = loadJSON(KEY.proxy, "https://ai-council-proxy.1184313741.workers.dev");
   $("proxyInput").value = proxyUrl;
 
   archiveFilter = loadJSON(KEY.filter, "all"); if (!["all","pending","approved","returned","rejected"].includes(archiveFilter)) archiveFilter = "all";
