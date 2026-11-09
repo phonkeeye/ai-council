@@ -1,2 +1,2 @@
-# -ai-council
+# ai-council
 AI Multi-Agent Council
