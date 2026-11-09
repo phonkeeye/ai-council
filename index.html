@@ -104,7 +104,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
   <div class="muted" id="storageWarningText">为防止覆盖原始数据，写操作已暂停。</div>
   <div class="toolbar" style="margin:8px 0 0">
     <button class="gray" onclick="showStorageDetails()">查看详情</button>
-    <button class="primary" onclick="exportData()">抢救导出</button>
     <button class="red" onclick="handleClearCorruptedData()">清除损坏数据并重新加载</button>
   </div>
 </div>
@@ -320,18 +319,14 @@ function showStorageWarning(reason) {
   const el = $("storageWarning");
   const txt = $("storageWarningText");
   if (el && txt) {
-    txt.textContent = "原因：" + reason + "。为防止覆盖原始数据，写操作已暂停。可点击「抢救导出」保存原始数据，或「清除损坏数据并重新加载」重置。";
+    txt.textContent = "原因：" + reason + "。为防止覆盖原始数据，写操作已暂停。可点击「查看详情」，或在数据管理卡片点「导出数据」进行抢救备份；也可「清除损坏数据并重新加载」重置。";
     el.style.display = "block";
   }
   storageBlockedReason = reason;
 }
-function hideStorageWarning() {
-  const el = $("storageWarning");
-  if (el) el.style.display = "none";
-}
 function showStorageDetails() {
   alert("保护模式原因：\n" + (storageBlockedReason || "未知") +
-    "\n\n建议操作：\n1. 先点击「抢救导出」，保存包含原始字符串的 JSON。\n2. 确认损坏数据是否需要保留。\n3. 点击「清除损坏数据并重新加载」会清空所有关键键。");
+    "\n\n建议操作：\n1. 到数据管理卡片点「导出数据」，会生成包含原始字符串的抢救 JSON。\n2. 确认损坏数据是否需要保留。\n3. 点击「清除损坏数据并重新加载」会清空所有关键键。");
 }
 function handleClearCorruptedData() {
   if (!confirm("将清空所有关键本地数据（申请、会议、记录、草稿、主题偏好等）。\n此操作无法撤销，确定继续吗？")) return;
@@ -347,7 +342,7 @@ function handleClearCorruptedData() {
   location.reload();
 }
 
-/* 保护模式下禁用所有写入口，保留查看、抢救导出、清除损坏 */
+/* ========== 保护模式：禁用写入口，保留查看 / 导出 / 清除 ========== */
 function applyProtectionModeToUI() {
   if (!storageBlocked) return;
 
@@ -376,8 +371,6 @@ function applyProtectionModeToUI() {
       el.title = "保护模式：写操作已暂停";
     }
   });
-
-  // 审批按钮和档案编辑按钮已由 renderApproval / renderArchive 处理
 }
 
 /* ========== 基础工具 ========== */
@@ -541,29 +534,31 @@ function storesEqual(a, b) {
   catch (e) { return false; }
 }
 
-/* ========== 安全保存：读取失败时直接拒绝写入，避免误删 ========== */
+/* ========== 修复 1：安全保存，读取失败时直接拒绝写入，避免误删 ========== */
 function saveStore(nextStore) {
   try {
     localStorage.setItem(KEY.store, JSON.stringify(nextStore));
     return true;
   } catch (e) { return false; }
 }
+
 function saveStoreAndVerify(nextStore) {
   let original;
   let originalReadOk = false;
 
+  if (!validStore(nextStore)) return false;
+
+  // 步骤 1：读取原值。读失败就放弃，绝不进入写入
   try {
-    if (!validStore(nextStore)) return false;
+    original = localStorage.getItem(KEY.store);
+    originalReadOk = true;
+  } catch (e) {
+    console.error("读取原始数据失败，已取消保存，避免误删", e);
+    return false;
+  }
 
-    // 先读取原值：读不到就不能安全回滚，直接拒绝写入
-    try {
-      original = localStorage.getItem(KEY.store);
-      originalReadOk = true;
-    } catch (e) {
-      console.error("读取原始数据失败，已取消保存（避免误删）", e);
-      return false;
-    }
-
+  // 步骤 2：写入新值并回读验证
+  try {
     const serialized = JSON.stringify(nextStore);
     if (typeof serialized !== "string") return false;
 
@@ -573,30 +568,31 @@ function saveStoreAndVerify(nextStore) {
     if (savedRaw === null) throw new Error("保存后无法读取");
 
     const saved = JSON.parse(savedRaw);
-    if (storesEqual(saved, JSON.parse(serialized))) return true;
-    throw new Error("保存数据与目标数据不一致");
+    if (storesEqual(saved, nextStore)) return true;
+
+    throw new Error("保存后数据与目标不一致");
   } catch (e) {
-    if (originalReadOk) {
-      try {
-        if (original === null) {
-          localStorage.removeItem(KEY.store);
-        } else {
-          localStorage.setItem(KEY.store, original);
-        }
-        if (localStorage.getItem(KEY.store) !== original) {
-          console.error("严重错误：原始数据恢复失败", e);
-        }
-      } catch (re) {
-        console.error("严重错误：无法恢复原始数据", re);
+    // 步骤 3：只有原值确认读取成功才回滚
+    if (!originalReadOk) {
+      console.error("原始数据未成功读取，跳过恢复以避免误删", e);
+      return false;
+    }
+    try {
+      if (original === null) {
+        localStorage.removeItem(KEY.store);
+      } else {
+        localStorage.setItem(KEY.store, original);
       }
-    } else {
-      console.error("原始数据未成功读取，已跳过恢复以避免误删", e);
+      if (localStorage.getItem(KEY.store) !== original) {
+        console.error("严重错误：恢复后数据与原值不一致");
+      }
+    } catch (re) {
+      console.error("严重错误：无法恢复原始数据", re);
     }
     return false;
   }
 }
 
-/* ========== 提交 Store：完整 Store 乐观并发检查 ========== */
 function commitStore(nextRequests, nextActiveId, expectedBaseStore) {
   if (storageBlocked) {
     toast("数据存储异常，已禁止写入", "danger");
@@ -837,7 +833,7 @@ function migrateLegacyIfNeeded() {
   }
 }
 
-/* ========== 初始化：区分不存在 / null / 非法结构 / 正常 ========== */
+/* ========== 修复 2：初始化，局部加 null 与结构损坏保护 ========== */
 function initData() {
   // 1. 关键键读取状态检查（只检查读取/解析是否失败，不修改）
   const criticalKeys = [
@@ -865,7 +861,7 @@ function initData() {
   archivePage = Number(loadJSON(KEY.page, 1));
   if (!Number.isInteger(archivePage) || archivePage < 1) archivePage = 1;
 
-  // 3. 主 Store：严格区分 不存在 / null / 非法结构 / 正常
+  /* 局部保护：区分 不存在 / null / 结构损坏 / 正常，损坏时不进入迁移 */
   const storeState = readJSONState(KEY.store);
   if (storeState.exists) {
     if (storeState.value === null) {
@@ -874,15 +870,18 @@ function initData() {
       toast("主数据 council_store 存在但值为 null，已进入保护模式，不会自动迁移或覆盖", "danger");
       return false;
     }
-    const rawStore = storeState.value;
-    if (!rawStore || typeof rawStore !== "object" || Array.isArray(rawStore) ||
-        !Array.isArray(rawStore.requests)) {
+    const rawStoreCheck = storeState.value;
+    if (!rawStoreCheck || typeof rawStoreCheck !== "object" ||
+        Array.isArray(rawStoreCheck) || !Array.isArray(rawStoreCheck.requests)) {
       storageBlocked = true;
       showStorageWarning("主数据结构损坏：council_store 存在但不是合法 Store 对象");
       toast("主数据结构损坏，已进入保护模式，不会自动迁移或覆盖", "danger");
       return false;
     }
+  }
 
+  const rawStore = loadJSON(KEY.store, null);
+  if (rawStore && typeof rawStore === "object" && Array.isArray(rawStore.requests)) {
     const sanitized = sanitizeLoadedRequests(rawStore.requests, "council_store");
     let activeCandidate = typeof rawStore.activeId === "string" ? rawStore.activeId : null;
     const ids = new Set(sanitized.requests.map(r => r.id));
@@ -901,7 +900,7 @@ function initData() {
     }
     migrateLegacyIfNeeded();
   } else {
-    // Store 不存在：从旧数据构建
+    // Store 不存在：从旧数据构建（保留原有迁移逻辑）
     const legacyReqsRaw = loadJSON(KEY.legacyRequests, []);
     const legacySanitized = sanitizeLoadedRequests(legacyReqsRaw, "council_requests");
     const legacyActive = loadJSON(KEY.legacyActive, null);
@@ -1224,6 +1223,8 @@ function renderVersionChain(req) {
   }).join("");
   return '<div style="margin-top:8px"><strong>版本链</strong></div>' + lines;
 }
+
+/* ========== 修复 6：档案保护模式提示 ========== */
 function renderArchive() {
   if (storageBlocked) {
     $("archive").innerHTML = '<div class="warning" style="margin:0">⚠️ 数据未加载，请先处理顶部保护模式警告。在保护模式下，档案不可用，但不会修改或删除任何已有本地数据。</div>';
@@ -1378,7 +1379,7 @@ function editFromActive() { if (currentRequest) startEditFrom(currentRequest); }
 function editFromId(id) { const req = requests.find(r => r.id === id); if (req) startEditFrom(req); }
 function cancelEdit() { editingParent = null; hideEditHint(); clearForm(); clearDraft(); }
 
-/* ========== 提交申请（完整 Store 并发检查） ========== */
+/* ========== 提交申请 ========== */
 function createRequest() {
   if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
 
@@ -1551,6 +1552,8 @@ function refreshDataInfo() {
     " 条 · 操作记录 " + logs.length + " 条 · " + draftState +
     " · 模式 " + mode + " · 数据版本 v" + SCHEMA_VERSION;
 }
+
+/* ========== 修复 4：导出加保护模式分支 ========== */
 function exportData() {
   if (storageBlocked) return exportRescueData();
   const payload = {
@@ -1573,7 +1576,7 @@ function exportData() {
   } catch (e) { toast("导出失败：" + e.message, "danger"); }
 }
 
-/* 保护模式下的抢救导出：包含原始字符串、可解析部分和错误 */
+/* ========== 修复 3：抢救导出，包含原始字符串 ========== */
 function exportRescueData() {
   const keys = [
     KEY.store, KEY.logs, KEY.meetings, KEY.meeting,
@@ -1602,7 +1605,7 @@ function exportRescueData() {
     rescueMode: true,
     schemaVersion: SCHEMA_VERSION,
     exportedAt: nowStr(),
-    note: "保护模式下的抢救导出。raw 为浏览器原始字符串（包括损坏数据），parsed 为可解析部分，errors 为读取或解析错误。请勿手动编辑 raw 字段，建议整体保存后交给开发者分析。",
+    note: "保护模式下的抢救导出。raw 为浏览器原始字符串（包括损坏数据），parsed 为可解析部分，errors 为读取或解析错误。请勿手动编辑 raw 字段。",
     raw,
     parsed,
     errors
