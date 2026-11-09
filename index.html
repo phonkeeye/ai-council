@@ -3,50 +3,138 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
 <title>AI COUNCIL V2.0</title>
 <style>
+:root{
+  --bg:#0b1020;--card:#141d30;--card2:#1c2940;--panel:#0d1526;
+  --border:#293650;--input-bg:#0d1526;--input-border:#354663;
+  --text:#e8edf8;--muted:#94a5c1;--soft:#a9bad5;
+  --grad1:#172b50;--grad2:#111827;
+  --primary:#3978ed;--green:#16794d;--red:#9b3545;--gray:#34435c;--orange:#9a6820;
+  --warn-bg:#292417;--warn-text:#f3d69d;--warn-border:#e6a33b;
+  --step-bg:#26334b;--step-active:#2457a7;--step-done:#176344;--step-text:#9bacc7;
+  --success:#6de0a4;--danger:#ff929e;
+  --tag-pending-bg:#3b3018;--tag-pending-text:#f6c66b;
+  --tag-approved-bg:#123a28;--tag-approved-text:#6de0a4;
+  --tag-returned-bg:#3a2c12;--tag-returned-text:#f3b56b;
+  --tag-rejected-bg:#3a1a1e;--tag-rejected-text:#ff929e;
+  --tag-unknown-bg:#2e3440;--tag-unknown-text:#b8c2d0;
+  --demo-bg:#3a2a12;--demo-border:#5c4318;--demo-text:#f3d69d;
+  --toast-bg:#1c2940;--toast-border:#3978ed;
+  --shadow:0 8px 24px rgba(0,0,0,.35);
+}
+body.light-theme{
+  --bg:#eef2f9;--card:#ffffff;--card2:#f0f4fb;--panel:#f5f8fc;
+  --border:#d6dde8;--input-bg:#ffffff;--input-border:#c8d2e0;
+  --text:#1f2937;--muted:#5b6b82;--soft:#4b5b73;
+  --grad1:#dae3f5;--grad2:#eef2f9;
+  --primary:#2563eb;--green:#15803d;--red:#b91c1c;--gray:#64748b;--orange:#b45309;
+  --warn-bg:#fef3c7;--warn-text:#92400e;--warn-border:#f59e0b;
+  --step-bg:#e2e8f0;--step-active:#2563eb;--step-done:#16a34a;--step-text:#64748b;
+  --success:#15803d;--danger:#b91c1c;
+  --tag-pending-bg:#fef3c7;--tag-pending-text:#92400e;
+  --tag-approved-bg:#dcfce7;--tag-approved-text:#15803d;
+  --tag-returned-bg:#ffedd5;--tag-returned-text:#c2410c;
+  --tag-rejected-bg:#fee2e2;--tag-rejected-text:#b91c1c;
+  --tag-unknown-bg:#e5e7eb;--tag-unknown-text:#4b5563;
+  --demo-bg:#fef3c7;--demo-border:#f59e0b;--demo-text:#92400e;
+  --toast-bg:#ffffff;--toast-border:#2563eb;
+  --shadow:0 8px 24px rgba(15,23,42,.15);
+}
 *{box-sizing:border-box}
-body{margin:0;background:#0b1020;color:#e8edf8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-header{padding:24px 18px;background:linear-gradient(135deg,#172b50,#111827);border-bottom:1px solid #293650}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:background .25s,color .25s}
+header{padding:22px 18px 0;background:linear-gradient(135deg,var(--grad1),var(--grad2));border-bottom:1px solid var(--border)}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 h1{margin:0;font-size:25px;letter-spacing:1px}
-header p{color:#a9bad5;font-size:13px;margin:8px 0 0}
+header p{color:var(--soft);font-size:13px;margin:8px 0 0}
+.icon-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:9px;font-size:14px;cursor:pointer;line-height:1}
+.anchor-nav{
+  display:flex;gap:4px;overflow-x:auto;padding:10px 18px;margin:0;
+  border-top:1px solid var(--border);
+  position:sticky;top:0;z-index:30;
+  background:linear-gradient(135deg,var(--grad1),var(--grad2));
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.anchor-nav::-webkit-scrollbar{display:none}
+.anchor-nav a{color:var(--soft);text-decoration:none;font-size:12px;padding:6px 10px;border-radius:8px;white-space:nowrap;background:rgba(255,255,255,.06)}
+.anchor-nav a:hover{color:var(--text);background:rgba(255,255,255,.14)}
+.demo-banner{background:var(--demo-bg);border-bottom:1px solid var(--demo-border);color:var(--demo-text);font-size:12px;text-align:center;padding:9px 14px;line-height:1.6}
 main{max-width:850px;margin:auto;padding:16px}
-.card{background:#141d30;border:1px solid #293650;border-radius:14px;padding:16px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;scroll-margin-top:64px}
 h2{font-size:17px;margin:0 0 14px}
 h3{font-size:14px;margin:0 0 7px}
-.muted{color:#94a5c1;font-size:12px;line-height:1.6}
+.muted{color:var(--muted);font-size:12px;line-height:1.6}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.member{background:#1c2940;padding:12px;border-radius:10px}
+.member{background:var(--card2);padding:12px;border-radius:10px}
 .member strong{display:block;margin-bottom:5px}
-.status{font-size:11px;color:#f6c66b}
-textarea,input{width:100%;background:#0d1526;border:1px solid #354663;border-radius:9px;color:white;padding:12px;font-size:14px;margin:7px 0 12px}
+.status{font-size:11px;color:var(--warn-text)}
+textarea,input{width:100%;background:var(--input-bg);border:1px solid var(--input-border);border-radius:9px;color:var(--text);padding:12px;font-size:14px;margin:7px 0 4px;font-family:inherit}
 textarea{min-height:100px;resize:vertical}
-button{border:0;border-radius:9px;padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer;margin:3px}
-.primary{background:#3978ed;color:white}
-.green{background:#16794d;color:white}
-.red{background:#9b3545;color:white}
-.gray{background:#34435c;color:white}
-.orange{background:#9a6820;color:white}
-button:disabled{opacity:.35}
+.counter{font-size:11px;color:var(--muted);text-align:right;margin:0 0 10px}
+button{border:0;border-radius:9px;padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer;margin:3px;transition:opacity .15s}
+.primary{background:var(--primary);color:#fff}
+.green{background:var(--green);color:#fff}
+.red{background:var(--red);color:#fff}
+.gray{background:var(--gray);color:#fff}
+.orange{background:var(--orange);color:#fff}
+button:disabled{opacity:.35;cursor:not-allowed}
 .steps{display:flex;gap:5px;margin:12px 0}
-.step{flex:1;text-align:center;padding:10px 3px;border-radius:8px;background:#26334b;color:#9bacc7;font-size:11px}
-.step.active{background:#2457a7;color:white}
-.step.done{background:#176344;color:white}
-.panel{background:#0d1526;border-radius:10px;padding:13px;margin:10px 0;line-height:1.7;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
-.badge{display:inline-block;background:#263b5b;color:#a9ccff;padding:4px 8px;border-radius:20px;font-size:11px}
-.warning{border-left:3px solid #e6a33b;padding:10px;background:#292417;color:#f3d69d;font-size:12px;line-height:1.7}
-.success{color:#6de0a4}
-.danger{color:#ff929e}
-.history{border-top:1px solid #293650;padding:12px 0;font-size:13px}
-footer{text-align:center;color:#72819c;font-size:11px;padding:20px}
-@media(max-width:450px){.grid{grid-template-columns:1fr 1fr}.steps{gap:3px}.step{font-size:10px}}
+.step{flex:1;text-align:center;padding:10px 3px;border-radius:8px;background:var(--step-bg);color:var(--step-text);font-size:11px;transition:background .2s,color .2s}
+.step.active{background:var(--step-active);color:#fff}
+.step.done{background:var(--step-done);color:#fff}
+.panel{background:var(--panel);border:1px solid transparent;border-radius:10px;padding:13px;margin:10px 0;line-height:1.7;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text)}
+.warning{border-left:3px solid var(--warn-border);padding:10px;background:var(--warn-bg);color:var(--warn-text);font-size:12px;line-height:1.7;border-radius:0 8px 8px 0}
+.success{color:var(--success)!important}
+.danger{color:var(--danger)!important}
+.history{border-top:1px solid var(--border);padding:12px 0;font-size:13px}
+.archive-item{background:var(--panel);border:1px solid transparent;border-radius:10px;margin:8px 0;overflow:hidden}
+.archive-item summary{cursor:pointer;padding:11px 13px;font-size:13px;list-style:none;background:var(--card2);border-radius:10px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.archive-item summary::-webkit-details-marker{display:none}
+.archive-item[open] summary{border-radius:10px 10px 0 0}
+.archive-item .panel{margin:0;border-radius:0 0 10px 10px;background:transparent}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.tag.pending{background:var(--tag-pending-bg);color:var(--tag-pending-text)}
+.tag.approved{background:var(--tag-approved-bg);color:var(--tag-approved-text)}
+.tag.returned{background:var(--tag-returned-bg);color:var(--tag-returned-text)}
+.tag.rejected{background:var(--tag-rejected-bg);color:var(--tag-rejected-text)}
+.tag.unknown{background:var(--tag-unknown-bg);color:var(--tag-unknown-text)}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.pager{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin-top:12px;font-size:12px;color:var(--muted)}
+.pager button{padding:6px 12px;font-size:12px;margin:0}
+.chain-line{font-size:12px;line-height:1.9;padding-left:2px}
+.chain-line.cur{font-weight:700;color:var(--primary)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:var(--toast-bg);color:var(--text);border:1px solid var(--toast-border);border-left-width:4px;border-radius:10px;padding:11px 16px;font-size:13px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .3s;z-index:100;max-width:90vw;white-space:pre-wrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{border-left-color:var(--success)}
+.toast.danger{border-left-color:var(--danger)}
+.toast.warning{border-left-color:var(--warn-border)}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+@media(max-width:600px){textarea,input{font-size:16px}}
+@media(max-width:450px){.grid{grid-template-columns:1fr}.steps{gap:3px}.step{font-size:10px;padding:8px 2px}}
 </style>
 </head>
 <body>
 <header>
+<div class="header-top">
+<div>
 <h1>⚡ AI COUNCIL</h1>
 <p>V2.0 · 多模型协作 · 讨论审查 · 人类最终授权</p>
+</div>
+<button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="切换主题">🌙</button>
+</div>
 </header>
+<nav class="anchor-nav">
+<a href="#sec-meeting">📋 会议</a>
+<a href="#sec-request">🛠️ 申请</a>
+<a href="#sec-approval">🔐 审批</a>
+<a href="#sec-archive">📚 档案</a>
+<a href="#sec-meetings">📝 会议历史</a>
+<a href="#sec-history">📜 记录</a>
+<a href="#sec-data">💾 数据</a>
+</nav>
+<div class="demo-banner">🧪 演示原型 · 四个 AI 成员尚未接入真实 API · 会议内容为流程演示，审批按钮不会修改代码</div>
 
 <main>
 <div class="card">
@@ -59,11 +147,14 @@ footer{text-align:center;color:#72819c;font-size:11px;padding:20px}
 </div>
 </div>
 
-<div class="card">
+<div class="card" id="sec-meeting">
 <h2>📋 发起 AI 会议</h2>
-<p class="muted">输入你希望团队研究的问题，未来接入模型后，将由四位成员独立分析、交叉质疑并形成结论。</p>
-<textarea id="question" placeholder="例如：检查 BTC AI Quant 的回测逻辑，找出可能存在的漏洞，并提出修改建议。"></textarea>
+<p class="muted">输入你希望团队研究的问题。当前为流程演示，内容由本地生成，并非四个真实模型。</p>
+<textarea id="question" maxlength="2000" placeholder="例如：检查 BTC AI Quant 的回测逻辑，找出可能存在的漏洞，并提出修改建议。"></textarea>
+<div class="toolbar">
 <button class="primary" onclick="startMeeting()">发起会议</button>
+<button class="gray" id="btnResetMeeting" style="display:none" onclick="resetMeeting()">重置会议进度</button>
+</div>
 <div id="meeting" style="display:none">
 <div class="steps">
 <div class="step active" id="s1">1. 独立分析</div>
@@ -71,41 +162,88 @@ footer{text-align:center;color:#72819c;font-size:11px;padding:20px}
 <div class="step" id="s3">3. 最终结论</div>
 </div>
 <div class="panel" id="meetingText">等待开始</div>
-<button class="gray" onclick="nextStage()">进入下一阶段 →</button>
+<div class="muted" style="margin-bottom:6px">⚠️ 以上内容为流程演示文本，非真实 AI 输出。</div>
+<button class="gray" id="btnNextStage" onclick="nextStage()">进入下一阶段 →</button>
 </div>
 </div>
 
-<div class="card">
+<div class="card" id="sec-request">
 <h2>🛠️ 代码修改申请</h2>
-<p class="muted">所有代码修改必须先讨论、审查，再由你批准。每次批准只针对明确的修改内容和版本。</p>
-<label class="muted">修改项目</label>
-<input id="project" placeholder="例如：BTC AI Quant">
-<label class="muted">修改原因</label>
-<textarea id="reason" placeholder="为什么需要修改？目前发现了什么问题？"></textarea>
-<label class="muted">计划修改内容</label>
-<textarea id="changes" placeholder="具体准备修改哪些文件、哪些逻辑？"></textarea>
-<label class="muted">风险评估</label>
-<textarea id="risk" placeholder="可能产生什么影响？如何测试和回滚？"></textarea>
-<button class="primary" onclick="createRequest()">提交修改申请</button>
+<p class="muted">所有代码修改必须先讨论、审查，再由你批准。每次批准只针对明确的修改内容和版本。<br>提示：按 <kbd>Ctrl/Cmd + Enter</kbd> 可快速提交。</p>
+<div id="editHint" class="warning" style="display:none;margin-bottom:10px">
+<span id="editHintText"></span>
+<button class="gray" style="margin-left:8px;padding:5px 9px;font-size:12px" onclick="cancelEdit()">放弃修改</button>
+</div>
+<label class="muted" for="project">修改项目</label>
+<input id="project" maxlength="100" placeholder="例如：BTC AI Quant" list="projectList" autocomplete="off">
+<datalist id="projectList"></datalist>
+<label class="muted" for="reason">修改原因</label>
+<textarea id="reason" maxlength="2000" placeholder="为什么需要修改？目前发现了什么问题？"></textarea>
+<div class="counter" id="reasonCount">0 / 2000</div>
+<label class="muted" for="changes">计划修改内容</label>
+<textarea id="changes" maxlength="2000" placeholder="具体准备修改哪些文件、哪些逻辑？"></textarea>
+<div class="counter" id="changesCount">0 / 2000</div>
+<label class="muted" for="risk">风险评估</label>
+<textarea id="risk" maxlength="2000" placeholder="可能产生什么影响？如何测试和回滚？"></textarea>
+<div class="counter" id="riskCount">0 / 2000</div>
+<button class="primary" id="btnSubmitRequest" onclick="createRequest()">提交修改申请</button>
 </div>
 
-<div class="card" id="approvalCard" style="display:none">
+<div class="card" id="sec-approval" style="display:none">
 <h2>🔐 用户审批中心</h2>
 <div id="requestInfo" class="panel"></div>
 <div class="warning">
 ⚠️ 安全规则：批准只代表允许未来执行当前明确的修改方案，不代表允许修改正式分支。实际执行必须在隔离分支或沙盒中进行，并保留备份和测试结果。
 </div>
+<h3 style="margin-top:15px">审批备注（可选）</h3>
+<textarea id="decisionNote" maxlength="500" placeholder="为本次审批填写备注，会保存到审批历史。例如：批准前提是补充分支隔离测试方案。"></textarea>
 <h3 style="margin-top:15px">你的决定</h3>
-<button class="green" onclick="approve()">✓ 批准执行</button>
-<button class="orange" onclick="returnDiscussion()">↻ 退回重新讨论</button>
-<button class="red" onclick="reject()">✕ 拒绝修改</button>
+<button class="green" id="btnApprove" onclick="approve()">✓ 批准执行</button>
+<button class="orange" id="btnReturn" onclick="returnDiscussion()">↻ 退回重新讨论</button>
+<button class="red" id="btnReject" onclick="reject()">✕ 拒绝修改</button>
+<button class="primary" id="btnEditFrom" style="display:none" onclick="editFromActive()">✎ 基于此申请修改</button>
 <p class="muted" id="approvalMessage">等待你的决定。</p>
 </div>
 
-<div class="card">
+<div class="card" id="sec-archive">
+<h2>📚 申请档案</h2>
+<p class="muted">所有申请版本与审批历史都会保留在这里，按提交时间倒序排列，支持筛选、搜索和分页。展开后可查看完整版本链。</p>
+<div class="toolbar">
+<input id="archiveSearch" placeholder="🔍 搜索编号 / 项目 / 原因 / 内容" style="flex:1;min-width:200px;margin:0">
+</div>
+<div class="toolbar">
+<button class="gray" style="padding:6px 10px;font-size:12px" data-filter="all" onclick="setFilter('all')">全部</button>
+<button class="gray" style="padding:6px 10px;font-size:12px" data-filter="pending" onclick="setFilter('pending')">待审批</button>
+<button class="gray" style="padding:6px 10px;font-size:12px" data-filter="approved" onclick="setFilter('approved')">已批准</button>
+<button class="gray" style="padding:6px 10px;font-size:12px" data-filter="returned" onclick="setFilter('returned')">已退回</button>
+<button class="gray" style="padding:6px 10px;font-size:12px" data-filter="rejected" onclick="setFilter('rejected')">已拒绝</button>
+</div>
+<div id="archive"><p class="muted">暂无申请档案</p></div>
+<div id="archivePager" class="pager"></div>
+</div>
+
+<div class="card" id="sec-meetings">
+<h2>📝 会议历史</h2>
+<p class="muted">完成的会议会保留在这里，可快速回看议题与时间。</p>
+<div id="meetingHistory"><p class="muted">暂无已完成会议</p></div>
+</div>
+
+<div class="card" id="sec-history">
 <h2>📜 操作记录</h2>
 <div id="history"><p class="muted">暂无记录</p></div>
-<button class="gray" onclick="clearHistory()">清除本地记录</button>
+<button class="gray" onclick="clearHistory()">清除本地操作记录</button>
+</div>
+
+<div class="card" id="sec-data">
+<h2>💾 数据管理</h2>
+<p class="muted">所有数据保存在浏览器本地存储中，清除浏览器数据或更换设备会丢失记录。建议定期导出备份。导入时会先校验文件，校验失败不会覆盖现有数据。</p>
+<div class="toolbar">
+<button class="primary" onclick="exportData()">⬇ 导出数据（JSON）</button>
+<button class="gray" onclick="document.getElementById('importFile').click()">⬆ 导入数据</button>
+<input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importData(event)">
+<button class="red" onclick="clearAllData()">🗑 清除全部数据</button>
+</div>
+<p class="muted" id="dataInfo"></p>
 </div>
 
 <div class="card">
@@ -130,201 +268,1859 @@ footer{text-align:center;color:#72819c;font-size:11px;padding:20px}
 </main>
 
 <footer>AI COUNCIL V2.0 · Your project, your decision.</footer>
+<div id="toast" class="toast"></div>
 
 <script>
-const $=id=>document.getElementById(id);
-let stage=0;
-let currentRequest=null;
-let logs=JSON.parse(localStorage.getItem("council_logs")||"[]");
+/* ============================================================
+ * 常量
+ * ========================================================== */
+const $ = id => document.getElementById(id);
+const KEY = {
+  logs: "council_logs",
+  store: "council_store",
+  legacyRequests: "council_requests",
+  legacyActive: "council_active",
+  legacyRequest: "council_request",
+  meeting: "council_meeting",
+  meetings: "council_meetings",
+  filter: "council_filter",
+  page: "council_archive_page",
+  draft: "council_draft",
+  theme: "council_theme"
+};
+const SCHEMA_VERSION = 3;
+const PAGE_SIZE = 5;
 
-function saveLogs(){
- localStorage.setItem("council_logs",JSON.stringify(logs.slice(0,50)));
- renderHistory();
-}
-
-function addLog(title,detail){
- logs.unshift({time:new Date().toLocaleString(),title,detail});
- saveLogs();
-}
-
-function startMeeting(){
- const q=$("question").value.trim();
- if(!q){alert("请先输入会议问题");return}
- stage=1;
- $("meeting").style.display="block";
- updateMeeting();
- addLog("发起会议",q);
-}
-
-function updateMeeting(){
- ["s1","s2","s3"].forEach((id,i)=>{
-  $(id).className="step "+(i+1<stage?"done":i+1===stage?"active":"");
- });
- const q=$("question").value;
- const texts=[
-  "",
-  "会议议题：\n"+q+"\n\n【GPT】待接入真实模型，负责组织独立分析。\n\n【Claude】待接入真实模型，负责代码和安全审查。\n\n【Gemini】待接入真实模型，负责数据分析。\n\n【DeepSeek】待接入真实模型，负责量化研究。\n\n当前为流程演示，尚未调用真实模型。",
-  "交叉质疑阶段\n\n未来每个模型需要审查其他成员的分析，指出逻辑漏洞、数据问题和潜在风险。\n\n当前为流程演示，尚未调用真实模型。",
-  "最终结论阶段\n\n未来将汇总各模型的共同意见、分歧、证据、风险和建议。\n\n任何修改建议都必须进入审批中心，由用户决定是否执行。\n\n当前为流程演示，尚未调用真实模型。"
- ];
- $("meetingText").textContent=texts[stage];
- if(stage===3){
-  $("meetingText").textContent+="\n\n会议流程演示结束。";
-  $("meetingText").nextElementSibling.disabled=true;
- }
-}
-
-function nextStage(){
- if(stage<3){stage++;updateMeeting()}
-}
-
-function createRequest(){
-
- if(currentRequest && currentRequest.status==="待用户审批"){
-  alert("当前还有一份申请等待审批，请先处理。");
-  return;
- }
-
- const project=$("project").value.trim();
- const reason=$("reason").value.trim();
- const changes=$("changes").value.trim();
- const risk=$("risk").value.trim();
-
- if(!project||!reason||!changes||!risk){
-  alert("请填写完整的修改申请");
-  return;
- }
-
- currentRequest={
-  id:"REQ-"+Date.now(),
-  project,
-  reason,
-  changes,
-  risk,
-  status:"待用户审批",
-  time:new Date().toLocaleString()
- };
-
- $("approvalCard").style.display="block";
-
- // 新申请创建后，重新启用三个审批按钮
- $("approvalCard").querySelectorAll("button").forEach(button=>{
-  button.disabled=false;
- });
-
- $("requestInfo").textContent=
-  "申请编号："+currentRequest.id+
-  "\n项目："+project+
-  "\n原因："+reason+
-  "\n计划修改："+changes+
-  "\n风险评估："+risk+
-  "\n状态："+currentRequest.status+
-  "\n\n注意：当前方案尚未经过真实多模型讨论。";
-
- $("approvalMessage").textContent="请审阅申请内容。";
-
- addLog("提交修改申请",currentRequest.id+" · "+project);
-
- $("approvalCard").scrollIntoView({behavior:"smooth"});
-}
-
-function decide(status,message){
- if(!currentRequest){
-  alert("没有待处理的申请");
-  return;
- }
-
- if(currentRequest.status !== "待用户审批"){
-  alert("这份申请已经处理过，不能重复审批！");
-  return;
- }
-
- const allowedStatuses=[
+const VALID_STATUSES = [
+  "待用户审批",
   "用户已批准（待接入执行引擎）",
   "退回重新讨论",
   "用户已拒绝"
- ];
+];
 
- if(!allowedStatuses.includes(status)){
-  alert("无效的审批操作");
-  return;
- }
+const STATUS_MAP = {
+  "待用户审批": { cls: "pending", label: "待审批" },
+  "用户已批准（待接入执行引擎）": { cls: "approved", label: "已批准" },
+  "退回重新讨论": { cls: "returned", label: "已退回" },
+  "用户已拒绝": { cls: "rejected", label: "已拒绝" }
+};
 
- currentRequest.status=status;
+const RELATION = {
+  REVISION: "revision",
+  FOLLOWUP: "followup",
+  REFERENCE: "reference"
+};
 
- $("approvalMessage").textContent=message;
-
- $("requestInfo").textContent=
-  "申请编号："+currentRequest.id+
-  "\n项目："+currentRequest.project+
-  "\n原因："+currentRequest.reason+
-  "\n计划修改："+currentRequest.changes+
-  "\n风险评估："+currentRequest.risk+
-  "\n审批结果："+status+
-  "\n\n当前仅记录审批意向，不会执行任何代码修改。";
-
- addLog(status,currentRequest.id+" · "+currentRequest.project);
-
- $("approvalCard").querySelectorAll("button").forEach(button=>{
-  button.disabled=true;
- });
+/* ============================================================
+ * 安全读写
+ * ========================================================== */
+function loadJSON(k, fb) {
+  try {
+    const r = localStorage.getItem(k);
+    if (!r) return fb;
+    const v = JSON.parse(r);
+    return v == null ? fb : v;
+  } catch (e) {
+    return fb;
+  }
+}
+function saveJSON(k, v) {
+  try {
+    localStorage.setItem(k, JSON.stringify(v));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+function removeJSON(k) {
+  try {
+    localStorage.removeItem(k);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+function nowStr() {
+  return new Date().toLocaleString();
+}
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
+}
+function requestTimestamp(r) {
+  const m = /^REQ-(\d+)$/.exec((r && r.id) || "");
+  return m ? Number(m[1]) : 0;
 }
 
-function approve(){
- decide(
-  "用户已批准（待接入执行引擎）",
-  "已记录你的批准。当前版本不会实际修改代码。"
- );
+/* ============================================================
+ * 状态
+ * ========================================================== */
+let store = { schemaVersion: SCHEMA_VERSION, requests: [], activeId: null };
+let requests = [];
+let activeId = null;
+let currentRequest = null;
+
+let logs = [];
+let meetingHistory = [];
+let meeting = { stage: 0, topic: "", startedAt: null, id: null };
+let archiveFilter = "all";
+let archivePage = 1;
+let archiveSearchText = "";
+let editingParent = null;
+let draftTimer = null;
+let storageWarned = false;
+
+/* ============================================================
+ * 状态合法性
+ * ========================================================== */
+function isValidStatus(s) {
+  if (typeof s !== "string") return false;
+  if (VALID_STATUSES.includes(s)) return true;
+  return /^待核实（原状态：.{0,80}）$/.test(s);
+}
+function statusInfo(s) {
+  return STATUS_MAP[s] || { cls: "unknown", label: "待核实" };
 }
 
-function returnDiscussion(){
- decide(
-  "退回重新讨论",
-  "申请已退回。修改方案完善后需要重新提交审批。"
- );
+/* ============================================================
+ * 存储事务：备份 / 恢复 / 回读验证
+ * ========================================================== */
+function backupStorageKeys(keys) {
+  const backup = {};
+  keys.forEach(key => {
+    try {
+      const value = localStorage.getItem(key);
+      backup[key] = { existed: value !== null, value };
+    } catch (e) {
+      backup[key] = { existed: false, value: null };
+    }
+  });
+  return backup;
 }
 
-function reject(){
- decide(
-  "用户已拒绝",
-  "已拒绝本次修改申请，不会执行。"
- );
+function verifyBackup(backup) {
+  for (const key of Object.keys(backup)) {
+    try {
+      const current = localStorage.getItem(key);
+      const target = backup[key];
+      if (target.existed) {
+        if (current !== target.value) return false;
+      } else {
+        if (current !== null) return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+  return true;
 }
 
-function renderHistory(){
- if(!logs.length){
-  $("history").innerHTML='<p class="muted">暂无记录</p>';
-  return;
- }
-
- $("history").innerHTML=logs.map(x=>
-  '<div class="history"><strong>'+
-  escapeHTML(x.title)+'</strong>'+
-  '<div class="muted">'+escapeHTML(x.time)+'</div>'+
-  '<div>'+escapeHTML(x.detail)+'</div></div>'
- ).join("");
+function restoreBackup(backup) {
+  let writeOk = true;
+  for (const key of Object.keys(backup)) {
+    try {
+      const target = backup[key];
+      if (target.existed) {
+        localStorage.setItem(key, target.value);
+      } else {
+        localStorage.removeItem(key);
+      }
+    } catch (e) {
+      writeOk = false;
+    }
+  }
+  if (!writeOk) return false;
+  return verifyBackup(backup);
 }
 
-function escapeHTML(s){
- return String(s).replace(/[&<>"']/g,c=>({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;",
-  "'":"&#39;"
- }[c]));
+/* store 比较：关键字段 + ID 唯一性 */
+function storesEqual(a, b) {
+  if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+  if (a.schemaVersion !== b.schemaVersion) return false;
+  if (a.activeId !== b.activeId) return false;
+  if (!Array.isArray(a.requests) || !Array.isArray(b.requests)) return false;
+  if (a.requests.length !== b.requests.length) return false;
+
+  const bIds = new Set();
+  for (const r of b.requests) {
+    if (!r || typeof r !== "object") return false;
+    if (typeof r.id !== "string") return false;
+    if (bIds.has(r.id)) return false;
+    bIds.add(r.id);
+  }
+
+  for (let i = 0; i < a.requests.length; i++) {
+    const ra = a.requests[i], rb = b.requests[i];
+    if (!ra || !rb) return false;
+    if (ra.id !== rb.id) return false;
+    if (ra.status !== rb.status) return false;
+    if (ra.version !== rb.version) return false;
+    if (ra.parentId !== rb.parentId) return false;
+    if (ra.referenceId !== rb.referenceId) return false;
+    if (ra.relation !== rb.relation) return false;
+    if (ra.time !== rb.time) return false;
+    if (ra.project !== rb.project) return false;
+  }
+  return true;
 }
 
-function clearHistory(){
- if(confirm("确定清除本地操作记录吗？")){
-  logs=[];
+function saveStore(nextStore) {
+  try {
+    localStorage.setItem(KEY.store, JSON.stringify(nextStore));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function saveStoreAndVerify(nextStore) {
+  try {
+    if (!saveStore(nextStore)) return false;
+    const saved = loadJSON(KEY.store, null);
+    if (!saved || typeof saved !== "object") return false;
+    return storesEqual(saved, nextStore);
+  } catch (e) {
+    return false;
+  }
+}
+
+function commitStore(nextRequests, nextActiveId) {
+  /* 保存前检查 ID 唯一性 */
+  const ids = new Set();
+  for (const r of nextRequests) {
+    if (!r || typeof r !== "object" || typeof r.id !== "string") return false;
+    if (ids.has(r.id)) return false;
+    ids.add(r.id);
+  }
+
+  const nextStore = {
+    schemaVersion: SCHEMA_VERSION,
+    requests: nextRequests,
+    activeId: nextActiveId
+  };
+  if (!saveStoreAndVerify(nextStore)) return false;
+  store = nextStore;
+  requests = nextStore.requests;
+  activeId = nextStore.activeId;
+  currentRequest = requests.find(r => r.id === activeId) || null;
+  return true;
+}
+
+/* ============================================================
+ * 申请编号（长随机数 + 100 次重试；保存前基于最新数据再查冲突）
+ * ========================================================== */
+function generateRequestId(existingIds) {
+  const used = new Set(existingIds || []);
+  for (let i = 0; i < 100; i++) {
+    const ts = Date.now();
+    const rand = Math.floor(Math.random() * 1e9);
+    const id = "REQ-" + ts + String(rand).padStart(9, "0");
+    if (!used.has(id)) return id;
+  }
+  throw new Error("无法生成唯一申请编号，请稍后重试");
+}
+
+/* ============================================================
+ * 旧数据迁移
+ * ========================================================== */
+function normalizeLegacyRequest(raw) {
+  const id = (typeof raw.id === "string" && /^REQ-\d+$/.test(raw.id))
+    ? raw.id
+    : (function () {
+        try { return generateRequestId([]); }
+        catch (e) { return "REQ-" + Date.now(); }
+      })();
+
+  let status;
+  if (isValidStatus(raw.status)) {
+    status = raw.status;
+  } else {
+    const original = String(raw.status == null ? "未知" : raw.status).slice(0, 80);
+    status = "待核实（原状态：" + original + "）";
+  }
+
+  const history = Array.isArray(raw.history)
+    ? raw.history.filter(h => h && typeof h === "object").map(h => ({
+        time: typeof h.time === "string" ? h.time : nowStr(),
+        action: typeof h.action === "string" ? h.action : "迁移",
+        note: typeof h.note === "string" ? h.note : ""
+      }))
+    : [];
+
+  history.unshift({
+    time: typeof raw.time === "string" ? raw.time : nowStr(),
+    action: "迁移",
+    note: "从旧版本 council_request 迁移" +
+      (isValidStatus(raw.status) ? "" : "（原状态待核实）")
+  });
+
+  return {
+    id,
+    project: String(raw.project || ""),
+    reason: String(raw.reason || ""),
+    changes: String(raw.changes || ""),
+    risk: String(raw.risk || ""),
+    status,
+    time: typeof raw.time === "string" ? raw.time : nowStr(),
+    parentId: null,
+    relation: null,
+    referenceId: null,
+    version: 1,
+    history
+  };
+}
+
+function ensureMeetingHistory() {
+  if (!meeting || meeting.stage < 3) return true;
+  if (!meeting.id) {
+    meeting.id = "MT-" + Date.now();
+    saveJSON(KEY.meeting, meeting);
+  }
+  if (meetingHistory.find(m => m.id === meeting.id)) return true;
+
+  const record = {
+    id: meeting.id,
+    topic: meeting.topic,
+    startedAt: meeting.startedAt,
+    finishedAt: nowStr()
+  };
+  const nextHistory = [record, ...meetingHistory].slice(0, 20);
+  if (!saveJSON(KEY.meetings, nextHistory)) return false;
+  meetingHistory = nextHistory;
+  addLog("补记会议历史", meeting.topic || "（无议题）");
+  return true;
+}
+
+/* 合并旧数据到新 store，仅在保存并回读验证成功后才删除旧键 */
+function migrateLegacyIfNeeded() {
+  const legacySingle = loadJSON(KEY.legacyRequest, null);
+  const legacyReqsRaw = loadJSON(KEY.legacyRequests, []);
+  const legacyActive = loadJSON(KEY.legacyActive, null);
+
+  const legacyReqs = Array.isArray(legacyReqsRaw) ? legacyReqsRaw : [];
+  const hasSingle = !!(legacySingle && typeof legacySingle === "object" &&
+    !Array.isArray(legacySingle) && legacySingle.id);
+  const hasArray = legacyReqs.length > 0;
+  const hasActive = typeof legacyActive === "string";
+
+  if (!hasSingle && !hasArray && !hasActive) return;
+
+  const baseRequests = (store && Array.isArray(store.requests)) ? store.requests.slice() : [];
+  let merged = baseRequests.slice();
+  const known = new Set(merged.map(r => r && r.id).filter(Boolean));
+
+  if (hasSingle) {
+    const n = normalizeLegacyRequest(legacySingle);
+    if (!known.has(n.id)) {
+      merged = [n, ...merged];
+      known.add(n.id);
+    }
+  }
+  if (hasArray) {
+    for (const lr of legacyReqs) {
+      if (!lr || typeof lr !== "object" || !lr.id) continue;
+      if (known.has(lr.id)) continue;
+      if (!isValidStatus(lr.status)) {
+        const original = String(lr.status == null ? "未知" : lr.status).slice(0, 80);
+        lr.status = "待核实（原状态：" + original + "）";
+      }
+      if (!Number.isInteger(lr.version) || lr.version < 1) lr.version = 1;
+      if (lr.parentId === undefined) lr.parentId = null;
+      if (lr.relation === undefined) lr.relation = null;
+      if (lr.referenceId === undefined) lr.referenceId = null;
+      if (!Array.isArray(lr.history)) lr.history = [];
+      merged = [...merged, lr];
+      known.add(lr.id);
+    }
+  }
+
+  const mergedActive = (typeof store.activeId === "string" && store.activeId)
+    ? store.activeId
+    : (hasActive ? legacyActive : null);
+
+  const mergedStore = {
+    schemaVersion: SCHEMA_VERSION,
+    requests: merged,
+    activeId: mergedActive
+  };
+
+  if (saveStoreAndVerify(mergedStore)) {
+    store = mergedStore;
+    requests = mergedStore.requests;
+    activeId = mergedStore.activeId;
+    /* 仅在保存并回读验证成功后删除旧键；检查返回值，失败则保留 */
+    let removeOk = true;
+    try {
+      const r1 = removeJSON(KEY.legacyRequest);
+      const r2 = removeJSON(KEY.legacyRequests);
+      const r3 = removeJSON(KEY.legacyActive);
+      removeOk = r1 && r2 && r3;
+    } catch (e) {
+      removeOk = false;
+    }
+    if (hasSingle || hasArray) addLog("迁移旧数据", "已合并旧申请数据");
+    if (!removeOk) {
+      toast("旧数据已迁移，但旧数据键清理失败；下次启动会自动重试清理", "warning");
+    }
+  } else {
+    /* 保存失败：保留所有旧键，本次使用合并后的内存数据 */
+    store = mergedStore;
+    requests = mergedStore.requests;
+    activeId = mergedStore.activeId;
+    toast("旧数据迁移保存失败，旧数据已保留；本次使用内存合并数据，刷新后可能重复迁移", "warning");
+  }
+}
+
+function initData() {
+  logs = loadJSON(KEY.logs, []);
+  if (!Array.isArray(logs)) logs = [];
+
+  meetingHistory = loadJSON(KEY.meetings, []);
+  if (!Array.isArray(meetingHistory)) meetingHistory = [];
+
+  meeting = loadJSON(KEY.meeting, { stage: 0, topic: "", startedAt: null, id: null });
+  if (!meeting || typeof meeting !== "object") {
+    meeting = { stage: 0, topic: "", startedAt: null, id: null };
+  }
+  if (typeof meeting.stage !== "number" || ![0, 1, 2, 3].includes(meeting.stage)) {
+    meeting.stage = 0;
+  }
+
+  archiveFilter = loadJSON(KEY.filter, "all");
+  if (!["all", "pending", "approved", "returned", "rejected"].includes(archiveFilter)) {
+    archiveFilter = "all";
+  }
+  archivePage = Number(loadJSON(KEY.page, 1));
+  if (!Number.isInteger(archivePage) || archivePage < 1) archivePage = 1;
+
+  const rawStore = loadJSON(KEY.store, null);
+  if (rawStore && typeof rawStore === "object" && Array.isArray(rawStore.requests)) {
+    store = {
+      schemaVersion: SCHEMA_VERSION,
+      requests: rawStore.requests.filter(r => r && typeof r === "object"),
+      activeId: typeof rawStore.activeId === "string" ? rawStore.activeId : null
+    };
+    requests = store.requests;
+    activeId = store.activeId;
+    migrateLegacyIfNeeded();
+  } else {
+    const legacyReqsRaw = loadJSON(KEY.legacyRequests, []);
+    const legacyReqs = Array.isArray(legacyReqsRaw) ? legacyReqsRaw.filter(r => r && typeof r === "object" && r.id) : [];
+    const legacyActive = loadJSON(KEY.legacyActive, null);
+    const activeCandidate = typeof legacyActive === "string" ? legacyActive : null;
+
+    const legacySingle = loadJSON(KEY.legacyRequest, null);
+    let merged = legacyReqs.slice();
+    const known = new Set(merged.map(r => r.id));
+    if (legacySingle && typeof legacySingle === "object" && !Array.isArray(legacySingle) && legacySingle.id) {
+      const n = normalizeLegacyRequest(legacySingle);
+      if (!known.has(n.id)) merged = [n, ...merged];
+    }
+    merged = merged.map(r => {
+      if (!isValidStatus(r.status)) {
+        const original = String(r.status == null ? "未知" : r.status).slice(0, 80);
+        r.status = "待核实（原状态：" + original + "）";
+      }
+      if (!Number.isInteger(r.version) || r.version < 1) r.version = 1;
+      if (r.parentId === undefined) r.parentId = null;
+      if (r.relation === undefined) r.relation = null;
+      if (r.referenceId === undefined) r.referenceId = null;
+      if (!Array.isArray(r.history)) r.history = [];
+      return r;
+    });
+
+    const nextStore = {
+      schemaVersion: SCHEMA_VERSION,
+      requests: merged,
+      activeId: activeCandidate
+    };
+
+    if (saveStoreAndVerify(nextStore)) {
+      store = nextStore;
+      requests = store.requests;
+      activeId = store.activeId;
+      let removeOk = true;
+      try {
+        const r1 = removeJSON(KEY.legacyRequests);
+        const r2 = removeJSON(KEY.legacyActive);
+        const r3 = removeJSON(KEY.legacyRequest);
+        removeOk = r1 && r2 && r3;
+      } catch (e) {
+        removeOk = false;
+      }
+      if (!removeOk) {
+        toast("旧数据已迁移，但旧数据键清理失败；下次启动会自动重试清理", "warning");
+      }
+    } else {
+      store = nextStore;
+      requests = store.requests;
+      activeId = store.activeId;
+      toast("数据迁移保存失败，旧数据已保留；当前操作可能无法持久化", "warning");
+    }
+  }
+
+  if (!currentRequest) {
+    currentRequest = requests.find(r => r.id === activeId) || null;
+  }
+  if (!currentRequest) activeId = null;
+
+  if (meeting && typeof meeting === "object" && meeting.stage > 0 && !meeting.id) {
+    meeting.id = "MT-" + Date.now();
+    saveJSON(KEY.meeting, meeting);
+  }
+
+  ensureMeetingHistory();
+}
+
+/* ============================================================
+ * Toast
+ * ========================================================== */
+let toastTimer = null;
+function toast(msg, type) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.className = "toast show" + (type ? " " + type : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = "toast"; }, 3200);
+}
+
+/* ============================================================
+ * 主题
+ * ========================================================== */
+function applyTheme(t) {
+  const light = t === "light";
+  document.body.classList.toggle("light-theme", light);
+  $("themeBtn").textContent = light ? "☀️" : "🌙";
+  saveJSON(KEY.theme, light ? "light" : "dark");
+}
+function toggleTheme() {
+  const next = document.body.classList.contains("light-theme") ? "dark" : "light";
+  applyTheme(next);
+  toast("已切换到" + (next === "light" ? "浅色" : "深色") + "主题");
+}
+
+/* ============================================================
+ * 操作记录
+ * ========================================================== */
+function saveLogs() {
+  logs = logs.slice(0, 50);
+  const ok = saveJSON(KEY.logs, logs);
+  renderHistory();
+  if (!ok && !storageWarned) {
+    storageWarned = true;
+    toast("本地存储写入失败，操作记录可能未保存", "warning");
+  }
+  return ok;
+}
+function addLog(title, detail) {
+  logs.unshift({
+    time: nowStr(),
+    title: String(title),
+    detail: String(detail).slice(0, 2000)
+  });
   saveLogs();
- }
+}
+function renderHistory() {
+  if (!logs.length) {
+    $("history").innerHTML = '<p class="muted">暂无记录</p>';
+    return;
+  }
+  $("history").innerHTML = logs.map(x =>
+    '<div class="history"><strong>' + escapeHTML(x.title) + '</strong>' +
+    '<div class="muted">' + escapeHTML(x.time) + '</div>' +
+    '<div>' + escapeHTML(x.detail) + '</div></div>'
+  ).join("");
+}
+function clearHistory() {
+  if (!confirm("确定清除本地操作记录吗？")) return;
+  const prev = logs;
+  logs = [];
+  if (!saveJSON(KEY.logs, logs)) {
+    logs = prev;
+    toast("清除失败：本地存储不可用", "danger");
+    return;
+  }
+  renderHistory();
+  toast("操作记录已清除");
 }
 
-renderHistory();
+/* ============================================================
+ * 会议
+ * ========================================================== */
+function startMeeting() {
+  const q = $("question").value.trim();
+  if (!q) { toast("请先输入会议问题", "warning"); return; }
+  if (meeting.stage > 0 && meeting.stage < 3 && !confirm("当前会议尚未结束，重新发起将覆盖进度。继续吗？")) {
+    return;
+  }
+  const prev = meeting;
+  meeting = { stage: 1, topic: q, startedAt: nowStr(), id: "MT-" + Date.now() };
+  if (!saveJSON(KEY.meeting, meeting)) {
+    meeting = prev;
+    toast("保存失败：本地存储不可用，会议未发起", "danger");
+    return;
+  }
+  $("meeting").style.display = "block";
+  updateMeeting();
+  addLog("发起会议", q);
+  toast("会议已开始", "success");
+}
+function resetMeeting() {
+  if (!confirm("确定重置当前会议进度吗？议题也会清空。")) return;
+  const prev = meeting;
+  meeting = { stage: 0, topic: "", startedAt: null, id: null };
+  if (!saveJSON(KEY.meeting, meeting)) {
+    meeting = prev;
+    toast("重置失败：本地存储不可用", "danger");
+    return;
+  }
+  $("meeting").style.display = "none";
+  $("question").value = "";
+  $("btnResetMeeting").style.display = "none";
+  addLog("重置会议", "已清空会议进度");
+  toast("会议已重置");
+}
+function updateMeeting() {
+  ["s1", "s2", "s3"].forEach((id, i) => {
+    $(id).className = "step " + (i + 1 < meeting.stage ? "done" : i + 1 === meeting.stage ? "active" : "");
+  });
+  const topic = meeting.topic || "";
+  const texts = [
+    "",
+    "会议议题：\n" + topic +
+      "\n\n【GPT】待接入真实模型，负责组织独立分析。" +
+      "\n\n【Claude】待接入真实模型，负责代码和安全审查。" +
+      "\n\n【Gemini】待接入真实模型，负责数据分析。" +
+      "\n\n【DeepSeek】待接入真实模型，负责量化研究。" +
+      "\n\n当前为流程演示，尚未调用真实模型。",
+    "交叉质疑阶段\n\n未来每个模型需要审查其他成员的分析，指出逻辑漏洞、数据问题和潜在风险。" +
+      "\n\n当前为流程演示，尚未调用真实模型。",
+    "最终结论阶段\n\n未来将汇总各模型的共同意见、分歧、证据、风险和建议。" +
+      "\n\n任何修改建议都必须进入审批中心，由用户决定是否执行。" +
+      "\n\n当前为流程演示，尚未调用真实模型。" +
+      "\n\n会议流程演示结束。"
+  ];
+  $("meetingText").textContent = texts[meeting.stage] || "";
+  const btn = $("btnNextStage");
+  if (meeting.stage >= 3) {
+    btn.disabled = true;
+    btn.textContent = "会议已结束";
+  } else {
+    btn.disabled = false;
+    btn.textContent = "进入下一阶段 →";
+  }
+  $("btnResetMeeting").style.display = meeting.stage > 0 ? "inline-block" : "none";
+}
+function completeMeeting() {
+  if (!meeting.id) {
+    meeting.id = "MT-" + Date.now();
+    saveJSON(KEY.meeting, meeting);
+  }
+  if (meetingHistory.find(m => m.id === meeting.id)) return true;
+  const record = {
+    id: meeting.id,
+    topic: meeting.topic,
+    startedAt: meeting.startedAt,
+    finishedAt: nowStr()
+  };
+  const nextHistory = [record, ...meetingHistory].slice(0, 20);
+  if (!saveJSON(KEY.meetings, nextHistory)) return false;
+  meetingHistory = nextHistory;
+  addLog("会议完成", meeting.topic || "（无议题）");
+  renderMeetingHistory();
+  return true;
+}
+function nextStage() {
+  if (meeting.stage >= 3) return;
+  const prev = meeting.stage;
+  meeting.stage++;
+  if (!saveJSON(KEY.meeting, meeting)) {
+    meeting.stage = prev;
+    toast("保存失败：会议进度未更新", "danger");
+    return;
+  }
+  updateMeeting();
+  if (meeting.stage >= 3) {
+    const ok = completeMeeting();
+    toast(
+      ok ? "会议已完成，已保存到会议历史" : "会议已完成，但历史保存失败，下次打开会重试",
+      ok ? "success" : "warning"
+    );
+  }
+}
+function renderMeetingHistory() {
+  if (!meetingHistory.length) {
+    $("meetingHistory").innerHTML = '<p class="muted">暂无已完成会议</p>';
+    return;
+  }
+  $("meetingHistory").innerHTML = meetingHistory.map(m =>
+    '<div class="history"><strong>' + escapeHTML(m.topic || "（无议题）") + '</strong>' +
+    '<div class="muted">' + escapeHTML(m.startedAt || "") + ' → ' +
+    escapeHTML(m.finishedAt || "") + ' · ' + escapeHTML(m.id || "") + '</div></div>'
+  ).join("");
+}
+
+/* ============================================================
+ * 版本提示
+ * ========================================================== */
+function relationLabel(rel) {
+  if (rel === RELATION.REVISION) return "退回修订";
+  if (rel === RELATION.FOLLOWUP) return "已批准后的后续修改";
+  if (rel === RELATION.REFERENCE) return "拒绝后重新发起（不继承版本）";
+  return "";
+}
+function buildVersionText(r) {
+  if (r.parentId) {
+    const parent = requests.find(x => x.id === r.parentId);
+    const pv = parent ? "v" + parent.version : "v" + Math.max(1, (r.version || 1) - 1);
+    return "\n版本：v" + r.version + "（基于 " + r.parentId + " 的 " + pv + "，" +
+      (relationLabel(r.relation) || "修改后重新提交") + "）";
+  }
+  if (r.referenceId) {
+    return "\n版本：v" + r.version + "（新申请，参考已拒绝申请 " + r.referenceId + "，不继承版本）";
+  }
+  return "\n版本：v" + r.version + "（初始申请）";
+}
+function buildEditHintText(req) {
+  const si = statusInfo(req.status);
+  let t = "正在基于 " + req.id + "（v" + req.version + "，" + si.label + "）编辑。";
+  if (req.status === "退回重新讨论") {
+    t += "\n提交后将生成 v" + ((req.version || 1) + 1) + " 新申请，作为退回修订关联原申请。";
+  } else if (req.status === "用户已批准（待接入执行引擎）") {
+    t += "\n提交后将生成 v" + ((req.version || 1) + 1) + " 新申请，作为已批准后的后续修改关联原申请。";
+  } else if (req.status === "用户已拒绝") {
+    t += "\n提交后将生成 v1 新申请，仅记录对已拒绝申请的参考，不继承版本号。";
+  }
+  return t;
+}
+function editButtonLabel(status) {
+  if (status === "退回重新讨论") return "✎ 基于此申请修改（退回修订）";
+  if (status === "用户已批准（待接入执行引擎）") return "✎ 创建后续修改";
+  if (status === "用户已拒绝") return "✎ 重新发起新申请";
+  return "✎ 基于此申请修改";
+}
+
+/* ============================================================
+ * 审批中心
+ * ========================================================== */
+function setApprovalMessage(text, extraClass) {
+  const el = $("approvalMessage");
+  el.textContent = text;
+  el.className = "muted" + (extraClass ? " " + extraClass : "");
+}
+function renderRequestInfo() {
+  if (!currentRequest) return;
+  const r = currentRequest;
+  const si = statusInfo(r.status);
+  let statusLabel = si.label;
+  if (si.cls === "unknown" && typeof r.status === "string" && r.status.startsWith("待核实（")) {
+    statusLabel = r.status;
+  }
+  let text =
+    "申请编号：" + r.id +
+    "\n项目：" + r.project +
+    "\n原因：" + r.reason +
+    "\n计划修改：" + r.changes +
+    "\n风险评估：" + r.risk +
+    "\n提交时间：" + r.time +
+    buildVersionText(r);
+  if (r.status === "待用户审批") {
+    text += "\n状态：" + statusLabel + "\n\n注意：当前方案尚未经过真实多模型讨论。";
+  } else {
+    text += "\n状态：" + statusLabel + "\n\n当前仅记录审批意向，不会执行任何代码修改。";
+  }
+  text += "\n\n审批历史：";
+  const hist = (r.history || []).map(h =>
+    "\n· " + h.time + " · " + h.action + (h.note ? " · " + h.note : "")
+  ).join("");
+  text += hist || "\n· 无";
+  $("requestInfo").textContent = text;
+}
+function renderApproval() {
+  if (!currentRequest) {
+    $("sec-approval").style.display = "none";
+    return;
+  }
+  $("sec-approval").style.display = "block";
+  renderRequestInfo();
+  const pending = currentRequest.status === "待用户审批";
+  $("btnApprove").disabled = !pending;
+  $("btnReturn").disabled = !pending;
+  $("btnReject").disabled = !pending;
+  $("decisionNote").disabled = !pending;
+  const editable = ["退回重新讨论", "用户已批准（待接入执行引擎）", "用户已拒绝"]
+    .includes(currentRequest.status);
+  $("btnEditFrom").style.display = editable ? "inline-block" : "none";
+  if (editable) $("btnEditFrom").textContent = editButtonLabel(currentRequest.status);
+}
+
+/* ============================================================
+ * 档案
+ * ========================================================== */
+function matchFilter(r) {
+  if (archiveFilter === "all") return true;
+  if (archiveFilter === "pending") return r.status === "待用户审批";
+  if (archiveFilter === "approved") return r.status === "用户已批准（待接入执行引擎）";
+  if (archiveFilter === "returned") return r.status === "退回重新讨论";
+  if (archiveFilter === "rejected") return r.status === "用户已拒绝";
+  return true;
+}
+function matchSearch(r) {
+  if (!archiveSearchText) return true;
+  const q = archiveSearchText.toLowerCase();
+  const hay = [r.id, r.project, r.reason, r.changes, r.risk].join(" ").toLowerCase();
+  return hay.includes(q);
+}
+function setFilter(f) {
+  archiveFilter = f;
+  archivePage = 1;
+  saveJSON(KEY.filter, f);
+  saveJSON(KEY.page, 1);
+  document.querySelectorAll("[data-filter]").forEach(btn => {
+    btn.style.outline = btn.dataset.filter === f ? "2px solid var(--primary)" : "none";
+  });
+  renderArchive();
+}
+function gotoArchivePage(p) {
+  archivePage = p;
+  saveJSON(KEY.page, p);
+  renderArchive();
+}
+function renderPager(total, totalPages) {
+  const el = $("archivePager");
+  if (total === 0) { el.innerHTML = ""; return; }
+  const prevDis = archivePage <= 1 ? "disabled" : "";
+  const nextDis = archivePage >= totalPages ? "disabled" : "";
+  el.innerHTML =
+    "<span>共 " + total + " 条 · 第 " + archivePage + "/" + totalPages + " 页</span>" +
+    '<button class="gray" ' + prevDis + ' onclick="gotoArchivePage(' + (archivePage - 1) + ')">上一页</button>' +
+    '<button class="gray" ' + nextDis + ' onclick="gotoArchivePage(' + (archivePage + 1) + ')">下一页</button>';
+}
+function buildVersionChain(req) {
+  if (!req) return [];
+  let root = req;
+  const seen = new Set();
+  while (root && root.parentId && !seen.has(root.id)) {
+    seen.add(root.id);
+    const p = requests.find(r => r.id === root.parentId);
+    if (!p) break;
+    root = p;
+  }
+  const chain = [];
+  const queue = [root];
+  const visited = new Set();
+  while (queue.length) {
+    const cur = queue.shift();
+    if (!cur || visited.has(cur.id)) continue;
+    visited.add(cur.id);
+    chain.push(cur);
+    requests.filter(r => r.parentId === cur.id).forEach(c => queue.push(c));
+  }
+  chain.sort((a, b) => {
+    const va = a.version || 1, vb = b.version || 1;
+    if (va !== vb) return va - vb;
+    return requestTimestamp(a) - requestTimestamp(b);
+  });
+  return chain;
+}
+function renderVersionChain(req) {
+  const chain = buildVersionChain(req);
+  if (chain.length <= 1) return "";
+  const lines = chain.map(v => {
+    const si = statusInfo(v.status);
+    const isCur = v.id === req.id;
+    const rel = v.relation ? " · " + relationLabel(v.relation) : "";
+    return '<div class="chain-line' + (isCur ? " cur" : "") + '">' +
+      (isCur ? "▸ " : "· ") + escapeHTML(v.id) + " · v" + (v.version || 1) +
+      ' · <span class="tag ' + si.cls + '">' + si.label + '</span> · ' +
+      escapeHTML(v.time) + rel + '</div>';
+  }).join("");
+  return '<div style="margin-top:8px"><strong>版本链</strong></div>' + lines;
+}
+function renderArchive() {
+  const sorted = requests.slice().sort((a, b) => requestTimestamp(b) - requestTimestamp(a));
+  const list = sorted.filter(r => matchFilter(r) && matchSearch(r));
+  const total = list.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (archivePage > totalPages) archivePage = totalPages;
+  if (archivePage < 1) archivePage = 1;
+  saveJSON(KEY.page, archivePage);
+  const start = (archivePage - 1) * PAGE_SIZE;
+  const pageItems = list.slice(start, start + PAGE_SIZE);
+  if (!pageItems.length) {
+    $("archive").innerHTML = '<p class="muted">' +
+      (requests.length ? "当前筛选或搜索下暂无申请。" : "暂无申请档案。提交一次修改申请后会显示在这里。") +
+      '</p>';
+    renderPager(total, totalPages);
+    return;
+  }
+  $("archive").innerHTML = pageItems.map(r => {
+    const si = statusInfo(r.status);
+    const children = requests.filter(x => x.parentId === r.id);
+    const hist = (r.history || []).map(h =>
+      '<div class="muted">' + escapeHTML(h.time) + " · " + escapeHTML(h.action) +
+      (h.note ? " · " + escapeHTML(h.note) : "") + "</div>"
+    ).join("") || '<div class="muted">无</div>';
+    const parentLine = r.parentId ? '<div>源自：' + escapeHTML(r.parentId) + '</div>' : "";
+    const refLine = r.referenceId ? '<div>参考（不继承版本）：' + escapeHTML(r.referenceId) + '</div>' : "";
+    const childrenLine = children.length
+      ? '<div>后续版本：' + children.map(c => escapeHTML(c.id) + "（v" + (c.version || 1) + "）").join("、") + '</div>'
+      : "";
+    return '<details class="archive-item">' +
+      '<summary><strong>' + escapeHTML(r.id) + '</strong>' +
+      '<span>' + escapeHTML(r.project) + '</span>' +
+      '<span>v' + (r.version || 1) + '</span>' +
+      '<span class="tag ' + si.cls + '">' + si.label + '</span>' +
+      '</summary>' +
+      '<div class="panel">' +
+        '<div>原因：' + escapeHTML(r.reason) + '</div>' +
+        '<div>计划修改：' + escapeHTML(r.changes) + '</div>' +
+        '<div>风险评估：' + escapeHTML(r.risk) + '</div>' +
+        '<div>提交时间：' + escapeHTML(r.time) + '</div>' +
+        parentLine + refLine + childrenLine +
+        '<div style="margin-top:8px"><strong>审批历史</strong></div>' + hist +
+        renderVersionChain(r) +
+        '<div style="margin-top:8px"><button class="gray" style="padding:6px 10px;font-size:12px" ' +
+        'data-edit-id="' + escapeHTML(r.id) + '">' + editButtonLabel(r.status) + '</button></div>' +
+      '</div></details>';
+  }).join("");
+  renderPager(total, totalPages);
+}
+
+/* ============================================================
+ * 项目名
+ * ========================================================== */
+function renderProjectList() {
+  const names = [...new Set(requests.map(r => r.project).filter(Boolean))].slice(0, 20);
+  $("projectList").innerHTML = names.map(n =>
+    '<option value="' + escapeHTML(n) + '"></option>'
+  ).join("");
+}
+
+/* ============================================================
+ * 草稿
+ * ========================================================== */
+function scheduleSaveDraft() {
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(saveDraft, 500);
+}
+function saveDraft() {
+  const d = {
+    project: $("project").value,
+    reason: $("reason").value,
+    changes: $("changes").value,
+    risk: $("risk").value,
+    editingParentId: editingParent ? editingParent.id : null,
+    savedAt: nowStr()
+  };
+  if (!d.project && !d.reason && !d.changes && !d.risk) {
+    removeJSON(KEY.draft);
+  } else {
+    saveJSON(KEY.draft, d);
+  }
+}
+function restoreDraft() {
+  const d = loadJSON(KEY.draft, null);
+  if (!d || typeof d !== "object") return;
+  $("project").value = typeof d.project === "string" ? d.project : "";
+  $("reason").value = typeof d.reason === "string" ? d.reason : "";
+  $("changes").value = typeof d.changes === "string" ? d.changes : "";
+  $("risk").value = typeof d.risk === "string" ? d.risk : "";
+  if (d.editingParentId) {
+    const p = requests.find(r => r.id === d.editingParentId);
+    if (p && ["退回重新讨论", "用户已批准（待接入执行引擎）", "用户已拒绝"].includes(p.status)) {
+      editingParent = p;
+      showEditHint(p);
+    }
+  }
+  updateAllCounters();
+}
+function clearDraft() {
+  removeJSON(KEY.draft);
+}
+
+/* ============================================================
+ * 计数
+ * ========================================================== */
+function updateCounter(id) {
+  const el = $(id);
+  const cnt = $(id + "Count");
+  if (el && cnt) cnt.textContent = el.value.length + " / " + el.maxLength;
+}
+function updateAllCounters() {
+  ["reason", "changes", "risk"].forEach(updateCounter);
+}
+
+/* ============================================================
+ * 编辑模式
+ * ========================================================== */
+function showEditHint(req) {
+  $("editHint").style.display = "block";
+  $("editHintText").textContent = buildEditHintText(req);
+  $("btnSubmitRequest").textContent = "重新提交申请（" +
+    (req.status === "用户已拒绝" ? "生成 v1 新申请" : "生成 v" + ((req.version || 1) + 1)) + "）";
+}
+function hideEditHint() {
+  $("editHint").style.display = "none";
+  $("editHintText").textContent = "";
+  $("btnSubmitRequest").textContent = "提交修改申请";
+}
+function fillForm(req) {
+  $("project").value = req.project || "";
+  $("reason").value = req.reason || "";
+  $("changes").value = req.changes || "";
+  $("risk").value = req.risk || "";
+  updateAllCounters();
+}
+function clearForm() {
+  $("project").value = "";
+  $("reason").value = "";
+  $("changes").value = "";
+  $("risk").value = "";
+  updateAllCounters();
+}
+function startEditFrom(req) {
+  if (!req) return;
+  if (req.status === "待用户审批") {
+    toast("该申请仍在审批中，请先处理审批结果", "warning");
+    return;
+  }
+  if (!["退回重新讨论", "用户已批准（待接入执行引擎）", "用户已拒绝"].includes(req.status)) {
+    toast("当前状态不支持基于此申请修改", "warning");
+    return;
+  }
+  const hasContent = $("project").value.trim() || $("reason").value.trim() ||
+    $("changes").value.trim() || $("risk").value.trim();
+  if (hasContent && !confirm("将基于 " + req.id + " 预填表单，当前表单内容会被覆盖。继续吗？")) return;
+  editingParent = req;
+  fillForm(req);
+  showEditHint(req);
+  scheduleSaveDraft();
+  $("sec-request").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function editFromActive() {
+  if (currentRequest) startEditFrom(currentRequest);
+}
+function editFromId(id) {
+  const req = requests.find(r => r.id === id);
+  if (req) startEditFrom(req);
+}
+function cancelEdit() {
+  editingParent = null;
+  hideEditHint();
+  clearForm();
+  clearDraft();
+}
+
+/* ============================================================
+ * 提交申请
+ * ========================================================== */
+function createRequest() {
+  /* 读取最新 store；不存在则中止，不回退到可能过时的内存数据 */
+  const latestStore = loadJSON(KEY.store, null);
+  if (!latestStore || typeof latestStore !== "object" || !Array.isArray(latestStore.requests)) {
+    toast("无法读取最新申请数据，请刷新页面后重试", "danger");
+    return;
+  }
+  const latestRequests = latestStore.requests.filter(r => r && typeof r === "object");
+
+  const pendingInLatest = latestRequests.find(r => r.status === "待用户审批");
+  if (pendingInLatest) {
+    toast("检测到其他标签页有申请等待审批（" + pendingInLatest.id + "）", "warning");
+    if (commitStore(latestRequests, pendingInLatest.id)) {
+      renderApproval();
+      renderArchive();
+      $("sec-approval").scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      toast("切换活动申请失败：本地存储不可用", "danger");
+    }
+    return;
+  }
+
+  const project = $("project").value.trim();
+  const reason = $("reason").value.trim();
+  const changes = $("changes").value.trim();
+  const risk = $("risk").value.trim();
+  if (!project || !reason || !changes || !risk) {
+    toast("请填写完整的修改申请", "warning");
+    return;
+  }
+
+  let parent = null;
+  let relation = null;
+  let referenceId = null;
+  let version = 1;
+
+  if (editingParent) {
+    if (editingParent.status === "退回重新讨论") {
+      parent = editingParent;
+      relation = RELATION.REVISION;
+      version = (editingParent.version || 1) + 1;
+    } else if (editingParent.status === "用户已批准（待接入执行引擎）") {
+      parent = editingParent;
+      relation = RELATION.FOLLOWUP;
+      version = (editingParent.version || 1) + 1;
+    } else if (editingParent.status === "用户已拒绝") {
+      parent = null;
+      relation = RELATION.REFERENCE;
+      referenceId = editingParent.id;
+      version = 1;
+    } else {
+      toast("该申请仍在审批中，不能基于它创建新申请", "warning");
+      return;
+    }
+  }
+
+  let newId;
+  try {
+    newId = generateRequestId(latestRequests.map(r => r.id));
+  } catch (e) {
+    toast(e.message, "danger");
+    return;
+  }
+
+  const note = parent
+    ? "基于 " + parent.id + "（v" + (parent.version || 1) + "）" +
+      (relation === RELATION.REVISION ? "退回修订" : "后续修改") + "，重新提交"
+    : (referenceId
+        ? "参考已拒绝申请 " + referenceId + " 重新发起（不继承版本）"
+        : "初始申请");
+
+  const req = {
+    id: newId,
+    project, reason, changes, risk,
+    status: "待用户审批",
+    time: nowStr(),
+    parentId: parent ? parent.id : null,
+    relation,
+    referenceId,
+    version,
+    history: [{ time: nowStr(), action: "提交", note }]
+  };
+
+  const nextRequests = [req, ...latestRequests];
+  if (!commitStore(nextRequests, req.id)) {
+    toast("提交失败：本地存储不可用或数据校验失败，申请未保存", "danger");
+    return;
+  }
+
+  editingParent = null;
+  hideEditHint();
+  clearForm();
+  clearDraft();
+  archivePage = 1;
+  saveJSON(KEY.page, 1);
+  renderApproval();
+  renderArchive();
+  renderProjectList();
+  refreshDataInfo();
+
+  setApprovalMessage("请审阅申请内容。");
+  addLog("提交修改申请", req.id + " · " + project + " · v" + version);
+  toast("申请已提交，等待审批", "success");
+  $("sec-approval").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ============================================================
+ * 审批
+ * ========================================================== */
+function decide(status, message, extraClass, actionName) {
+  if (!currentRequest) { toast("没有待处理的申请", "warning"); return; }
+  if (currentRequest.status !== "待用户审批") {
+    toast("这份申请已经处理过，不能重复审批", "warning");
+    return;
+  }
+  if (!VALID_STATUSES.includes(status)) {
+    toast("无效的审批操作", "danger");
+    return;
+  }
+
+  /* 读取最新 store；不存在则中止，不回退到内存 */
+  const latestStore = loadJSON(KEY.store, null);
+  if (!latestStore || typeof latestStore !== "object" || !Array.isArray(latestStore.requests)) {
+    toast("无法读取最新申请数据，请刷新页面后重试", "danger");
+    return;
+  }
+  const baseRequests = latestStore.requests.filter(r => r && typeof r === "object");
+
+  const target = baseRequests.find(r => r.id === currentRequest.id);
+  if (!target) {
+    toast("该申请已不存在，无法审批", "danger");
+    return;
+  }
+  if (target.status !== "待用户审批") {
+    toast("这份申请已经被处理过，不能重复审批", "warning");
+    renderApproval();
+    renderArchive();
+    return;
+  }
+
+  const note = $("decisionNote").value.trim();
+  const updated = Object.assign({}, target, {
+    status,
+    history: (target.history || []).concat([{
+      time: nowStr(),
+      action: actionName,
+      note: note || message
+    }])
+  });
+
+  const nextRequests = baseRequests.map(r => r.id === updated.id ? updated : r);
+  if (!commitStore(nextRequests, updated.id)) {
+    toast("审批失败：本地存储不可用，结果未记录", "danger");
+    return;
+  }
+
+  renderApproval();
+  renderArchive();
+  refreshDataInfo();
+  setApprovalMessage(message, extraClass);
+  addLog(actionName, currentRequest.id + " · " + currentRequest.project +
+    (note ? " · 备注：" + note : ""));
+  $("decisionNote").value = "";
+  toast("已记录" + actionName, "success");
+
+  if (status === "退回重新讨论") {
+    startEditFrom(currentRequest);
+  } else {
+    $("sec-request").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+function approve() {
+  decide(
+    "用户已批准（待接入执行引擎）",
+    "已记录你的批准。当前版本不会实际修改代码。\n如需后续修改，可点击「创建后续修改」建立版本关联。",
+    "success",
+    "批准"
+  );
+}
+function returnDiscussion() {
+  decide(
+    "退回重新讨论",
+    "申请已退回。已基于原申请预填表单，修改后重新提交将生成退回修订版本并关联原申请。",
+    "",
+    "退回"
+  );
+}
+function reject() {
+  decide(
+    "用户已拒绝",
+    "已拒绝本次修改申请，不会执行。\n如需新的方案，可点击「重新发起新申请」，将生成 v1 新申请并记录参考关系。",
+    "danger",
+    "拒绝"
+  );
+}
+
+/* ============================================================
+ * 数据管理
+ * ========================================================== */
+function refreshDataInfo() {
+  const draft = loadJSON(KEY.draft, null);
+  const draftState = draft ? "有未提交草稿（" + (draft.savedAt || "") + "）" : "无草稿";
+  $("dataInfo").textContent =
+    "当前数据：申请 " + requests.length + " 份 · 会议历史 " + meetingHistory.length +
+    " 条 · 操作记录 " + logs.length + " 条 · " + draftState +
+    " · 数据版本 v" + SCHEMA_VERSION;
+}
+
+function exportData() {
+  const payload = {
+    schemaVersion: SCHEMA_VERSION,
+    exportedAt: nowStr(),
+    logs,
+    requests,
+    activeId,
+    meeting,
+    meetings: meetingHistory,
+    draft: loadJSON(KEY.draft, null),
+    filter: archiveFilter,
+    page: archivePage,
+    theme: document.body.classList.contains("light-theme") ? "light" : "dark"
+  };
+  try {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ai-council-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast("数据已导出", "success");
+    addLog("导出数据", "申请 " + requests.length + " 份");
+  } catch (e) {
+    toast("导出失败：" + e.message, "danger");
+  }
+}
+
+/* ---------- 导入：三阶段验证 ---------- */
+function validateImportStructure(data) {
+  const errors = [];
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return { valid: false, errors: ["导入文件必须是一个有效的 JSON 对象"] };
+  }
+  if (!Array.isArray(data.requests)) {
+    return { valid: false, errors: ["缺少有效的 requests 数组"] };
+  }
+  for (let i = 0; i < data.requests.length; i++) {
+    const item = data.requests[i];
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      errors.push("第 " + (i + 1) + " 条申请记录格式错误");
+      continue;
+    }
+    if (typeof item.id !== "string" || !item.id.trim()) {
+      errors.push("第 " + (i + 1) + " 条申请缺少有效编号");
+    }
+    if (item.status !== undefined && typeof item.status !== "string") {
+      errors.push("第 " + (i + 1) + " 条申请 status 类型错误");
+    }
+    if (item.version !== undefined && (!Number.isInteger(item.version) || item.version < 1)) {
+      errors.push("第 " + (i + 1) + " 条申请 version 无效");
+    }
+    if (item.parentId !== undefined && item.parentId !== null && typeof item.parentId !== "string") {
+      errors.push("第 " + (i + 1) + " 条申请 parentId 类型错误");
+    }
+    if (item.referenceId !== undefined && item.referenceId !== null && typeof item.referenceId !== "string") {
+      errors.push("第 " + (i + 1) + " 条申请 referenceId 类型错误");
+    }
+    if (item.relation !== undefined && item.relation !== null &&
+        ![RELATION.REVISION, RELATION.FOLLOWUP, RELATION.REFERENCE].includes(item.relation)) {
+      errors.push("第 " + (i + 1) + " 条申请 relation 类型错误");
+    }
+  }
+  return { valid: errors.length === 0, errors };
+}
+
+function normalizeImportedV2(data) {
+  const reqs = data.requests.map(r => {
+    const copy = Object.assign({}, r);
+    if (copy.version === undefined) copy.version = 1;
+    if (copy.referenceId === undefined) copy.referenceId = null;
+    if (copy.relation === undefined) {
+      if (copy.parentId) {
+        const parent = data.requests.find(p => p && p.id === copy.parentId);
+        if (parent && parent.status === "退回重新讨论") copy.relation = RELATION.REVISION;
+        else if (parent && parent.status === "用户已批准（待接入执行引擎）") copy.relation = RELATION.FOLLOWUP;
+        else copy.relation = RELATION.REVISION;
+      } else {
+        copy.relation = null;
+      }
+    }
+    if (copy.history === undefined) copy.history = [];
+    return copy;
+  });
+  return Object.assign({}, data, { requests: reqs, schemaVersion: SCHEMA_VERSION });
+}
+
+function validateImportFull(data) {
+  const errors = [];
+  if (data.schemaVersion !== 3) {
+    errors.push("schemaVersion 必须是 3");
+  }
+  const ids = new Set();
+  const byId = new Map();
+
+  for (let i = 0; i < data.requests.length; i++) {
+    const r = data.requests[i];
+    const at = "requests[" + i + "]";
+    if (!r || typeof r !== "object" || Array.isArray(r)) {
+      errors.push(at + " 不是对象");
+      continue;
+    }
+    if (typeof r.id !== "string" || !/^REQ-\d+$/.test(r.id)) {
+      errors.push(at + ".id 格式应为 REQ-数字");
+    } else if (ids.has(r.id)) {
+      errors.push(at + ".id 重复：" + r.id);
+    } else {
+      ids.add(r.id);
+      byId.set(r.id, r);
+    }
+    ["project", "reason", "changes", "risk", "time"].forEach(f => {
+      if (typeof r[f] !== "string") errors.push(at + "." + f + " 必须是字符串");
+    });
+    if (!isValidStatus(r.status)) {
+      errors.push(at + ".status 无效：" + String(r.status));
+    }
+    if (!Number.isInteger(r.version) || r.version < 1) {
+      errors.push(at + ".version 必须是正整数");
+    }
+    if (r.parentId !== null && r.parentId !== undefined && typeof r.parentId !== "string") {
+      errors.push(at + ".parentId 必须是字符串或 null");
+    }
+    if (r.referenceId !== null && r.referenceId !== undefined && typeof r.referenceId !== "string") {
+      errors.push(at + ".referenceId 必须是字符串或 null");
+    }
+    if (r.relation !== null && r.relation !== undefined &&
+        ![RELATION.REVISION, RELATION.FOLLOWUP, RELATION.REFERENCE].includes(r.relation)) {
+      errors.push(at + ".relation 无效");
+    }
+    if (r.history !== undefined) {
+      if (!Array.isArray(r.history)) {
+        errors.push(at + ".history 必须是数组");
+      } else {
+        r.history.forEach((h, j) => {
+          if (!h || typeof h !== "object") {
+            errors.push(at + ".history[" + j + "] 不是对象");
+          } else if (typeof h.time !== "string" || typeof h.action !== "string") {
+            errors.push(at + ".history[" + j + "] 需要 time/action 字符串");
+          }
+        });
+      }
+    }
+  }
+
+  data.requests.forEach((r, i) => {
+    const at = "requests[" + i + "]";
+    if (!r || typeof r !== "object") return;
+    if (r.parentId) {
+      if (r.parentId === r.id) errors.push(at + " 不能引用自己作为父申请");
+      const p = byId.get(r.parentId);
+      if (!p) {
+        errors.push(at + ".parentId 指向不存在的申请：" + r.parentId);
+      } else {
+        if (![RELATION.REVISION, RELATION.FOLLOWUP].includes(r.relation)) {
+          errors.push(at + ".relation 应为 revision 或 followup");
+        }
+        if (r.referenceId) errors.push(at + " 不能同时有 parentId 和 referenceId");
+        if (r.relation === RELATION.REVISION && p.status !== "退回重新讨论") {
+          errors.push(at + " 退回修订的父申请状态应为已退回");
+        }
+        if (r.relation === RELATION.FOLLOWUP && p.status !== "用户已批准（待接入执行引擎）") {
+          errors.push(at + " 后续修改的父申请状态应为已批准");
+        }
+        if (r.version !== (p.version || 1) + 1) {
+          errors.push(at + " 版本号应为父版本+1");
+        }
+      }
+    } else if (r.referenceId) {
+      if (r.referenceId === r.id) errors.push(at + " 不能引用自己作为参考申请");
+      const ref = byId.get(r.referenceId);
+      if (!ref) {
+        errors.push(at + ".referenceId 指向不存在的申请：" + r.referenceId);
+      } else {
+        if (r.relation !== RELATION.REFERENCE) {
+          errors.push(at + ".relation 应为 reference");
+        }
+        if (ref.status !== "用户已拒绝") {
+          errors.push(at + " 参考申请状态应为已拒绝");
+        }
+        if (r.version !== 1) errors.push(at + " 参考新申请版本应为 1");
+      }
+    } else {
+      if (r.relation) errors.push(at + " 无父/参考时 relation 应为空");
+      if (r.version !== 1) errors.push(at + " 初始申请版本应为 1");
+    }
+  });
+
+  for (const r of data.requests) {
+    if (!r || typeof r !== "object") continue;
+    const seen = new Set();
+    let cur = r;
+    while (cur && cur.parentId) {
+      if (seen.has(cur.id)) {
+        errors.push("版本关系存在循环：" + [...seen].join(" -> ") + " -> " + cur.id);
+        break;
+      }
+      seen.add(cur.id);
+      cur = byId.get(cur.parentId);
+      if (!cur) break;
+    }
+  }
+
+  if (data.logs !== undefined) {
+    if (!Array.isArray(data.logs)) {
+      errors.push("logs 必须是数组");
+    } else {
+      data.logs.forEach((l, i) => {
+        if (!l || typeof l !== "object" || typeof l.title !== "string" || typeof l.detail !== "string") {
+          errors.push("logs[" + i + "] 格式无效");
+        }
+      });
+    }
+  }
+  if (data.meeting !== undefined) {
+    if (!data.meeting || typeof data.meeting !== "object" || Array.isArray(data.meeting)) {
+      errors.push("meeting 必须是对象");
+    } else {
+      if (data.meeting.stage !== undefined && ![0, 1, 2, 3].includes(data.meeting.stage)) {
+        errors.push("meeting.stage 必须是 0-3");
+      }
+      if (data.meeting.topic !== undefined && typeof data.meeting.topic !== "string") {
+        errors.push("meeting.topic 必须是字符串");
+      }
+    }
+  }
+  if (data.meetings !== undefined) {
+    if (!Array.isArray(data.meetings)) {
+      errors.push("meetings 必须是数组");
+    } else {
+      data.meetings.forEach((m, i) => {
+        if (!m || typeof m !== "object") {
+          errors.push("meetings[" + i + "] 不是对象");
+        } else if (typeof m.id !== "string" || typeof m.topic !== "string") {
+          errors.push("meetings[" + i + "] 需要 id/topic 字符串");
+        }
+      });
+    }
+  }
+  if (data.theme !== undefined && !["dark", "light"].includes(data.theme)) {
+    errors.push("theme 必须是 dark 或 light");
+  }
+  if (data.filter !== undefined && !["all", "pending", "approved", "returned", "rejected"].includes(data.filter)) {
+    errors.push("filter 无效");
+  }
+  if (data.page !== undefined && (!Number.isInteger(data.page) || data.page < 1)) {
+    errors.push("page 必须是正整数");
+  }
+  if (data.activeId !== undefined && data.activeId !== null && typeof data.activeId !== "string") {
+    errors.push("activeId 必须是字符串或 null");
+  }
+  if (typeof data.activeId === "string" && Array.isArray(data.requests)) {
+    if (!data.requests.some(r => r && r.id === data.activeId)) {
+      errors.push("activeId 指向不存在的申请：" + data.activeId);
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+function validateImportSafe(rawData) {
+  try {
+    const structure = validateImportStructure(rawData);
+    if (!structure.valid) return { ok: false, errors: structure.errors };
+
+    let data = rawData;
+    const schemaVersion = data.schemaVersion;
+    if (schemaVersion === 2) {
+      data = normalizeImportedV2(data);
+    } else if (schemaVersion !== 3) {
+      return { ok: false, errors: ["schemaVersion 必须是 2 或 3"] };
+    }
+
+    const full = validateImportFull(data);
+    if (!full.valid) return { ok: false, errors: full.errors };
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, errors: ["验证过程异常：" + (e && e.message ? e.message : String(e))] };
+  }
+}
+
+/* ---------- 导入：全键写入 + 全键回读验证 + 可验证回滚 ---------- */
+function verifyBundle(bundle) {
+  try {
+    const savedStore = loadJSON(KEY.store, null);
+    if (!savedStore || !storesEqual(savedStore, bundle.store)) return false;
+
+    const savedLogs = loadJSON(KEY.logs, undefined);
+    if (savedLogs === undefined || JSON.stringify(savedLogs) !== JSON.stringify(bundle.logs)) return false;
+
+    const savedMeetings = loadJSON(KEY.meetings, undefined);
+    if (savedMeetings === undefined || JSON.stringify(savedMeetings) !== JSON.stringify(bundle.meetings)) return false;
+
+    const savedMeeting = loadJSON(KEY.meeting, undefined);
+    if (savedMeeting === undefined || JSON.stringify(savedMeeting) !== JSON.stringify(bundle.meeting)) return false;
+
+    const savedFilter = loadJSON(KEY.filter, undefined);
+    if (savedFilter === undefined || JSON.stringify(savedFilter) !== JSON.stringify(bundle.filter)) return false;
+
+    const savedPage = loadJSON(KEY.page, undefined);
+    if (savedPage === undefined || JSON.stringify(savedPage) !== JSON.stringify(bundle.page)) return false;
+
+    const savedTheme = loadJSON(KEY.theme, undefined);
+    if (savedTheme === undefined || JSON.stringify(savedTheme) !== JSON.stringify(bundle.theme)) return false;
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function commitImportBundle(bundle) {
+  const keys = [KEY.store, KEY.logs, KEY.meetings, KEY.meeting, KEY.filter, KEY.page, KEY.theme];
+  const backup = backupStorageKeys(keys);
+
+  try {
+    localStorage.setItem(KEY.store, JSON.stringify(bundle.store));
+    localStorage.setItem(KEY.logs, JSON.stringify(bundle.logs));
+    localStorage.setItem(KEY.meetings, JSON.stringify(bundle.meetings));
+    localStorage.setItem(KEY.meeting, JSON.stringify(bundle.meeting));
+    localStorage.setItem(KEY.filter, JSON.stringify(bundle.filter));
+    localStorage.setItem(KEY.page, JSON.stringify(bundle.page));
+    localStorage.setItem(KEY.theme, JSON.stringify(bundle.theme));
+  } catch (e) {
+    const restored = restoreBackup(backup);
+    return {
+      success: false,
+      rolledBack: restored,
+      message: restored
+        ? "导入失败，原有数据已恢复。"
+        : "严重错误：导入失败，部分数据恢复失败，请勿继续操作。"
+    };
+  }
+
+  if (!verifyBundle(bundle)) {
+    const restored = restoreBackup(backup);
+    return {
+      success: false,
+      rolledBack: restored,
+      message: restored
+        ? "导入失败，原有数据已恢复。"
+        : "严重错误：导入失败，部分数据恢复失败，请勿继续操作。"
+    };
+  }
+
+  return { success: true, rolledBack: false, message: "导入成功" };
+}
+
+function importData(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  ev.target.value = "";
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    let rawData;
+    try {
+      rawData = JSON.parse(reader.result);
+    } catch (e) {
+      toast("导入失败：不是有效的 JSON 文件", "danger");
+      return;
+    }
+
+    const result = validateImportSafe(rawData);
+    if (!result.ok) {
+      const preview = result.errors.slice(0, 6).join("\n");
+      const more = result.errors.length > 6 ? "\n…共 " + result.errors.length + " 个错误" : "";
+      toast("导入失败，现有数据未改变：\n" + preview + more, "danger");
+      return;
+    }
+
+    const validData = result.data;
+    if (!confirm("导入将覆盖当前本地数据（申请、会议、记录、草稿、主题等）。\n文件校验已通过，继续吗？")) {
+      return;
+    }
+
+    const nextStore = {
+      schemaVersion: SCHEMA_VERSION,
+      requests: validData.requests,
+      activeId: typeof validData.activeId === "string" ? validData.activeId : null
+    };
+    const bundle = {
+      store: nextStore,
+      logs: Array.isArray(validData.logs) ? validData.logs : [],
+      meetings: Array.isArray(validData.meetings) ? validData.meetings : [],
+      meeting: (validData.meeting && typeof validData.meeting === "object")
+        ? validData.meeting
+        : { stage: 0, topic: "", startedAt: null, id: null },
+      filter: typeof validData.filter === "string" ? validData.filter : "all",
+      page: Number.isInteger(validData.page) ? validData.page : 1,
+      theme: validData.theme === "light" ? "light" : "dark"
+    };
+
+    const commitResult = commitImportBundle(bundle);
+    if (!commitResult.success) {
+      toast(commitResult.message, "danger");
+      return;
+    }
+
+    store = nextStore;
+    requests = store.requests;
+    activeId = store.activeId;
+    currentRequest = requests.find(r => r.id === activeId) || null;
+    logs = bundle.logs;
+    meetingHistory = bundle.meetings;
+    meeting = bundle.meeting;
+    archiveFilter = bundle.filter;
+    archivePage = bundle.page;
+
+    applyTheme(bundle.theme);
+    removeJSON(KEY.draft);
+    editingParent = null;
+    hideEditHint();
+    clearForm();
+    archiveSearchText = "";
+    $("archiveSearch").value = "";
+
+    renderHistory();
+    renderProjectList();
+    setFilter(archiveFilter);
+    renderArchive();
+    renderMeetingHistory();
+    renderApproval();
+    restoreMeeting();
+    refreshDataInfo();
+
+    addLog("导入数据", "申请 " + requests.length + " 份");
+    toast("数据已导入", "success");
+  };
+  reader.onerror = () => {
+    toast("读取文件失败", "danger");
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- 清除全部数据：备份 - 删除 - 验证 - 恢复 ---------- */
+function clearAllData() {
+  if (!confirm("将清除申请、会议、操作记录和草稿在内的全部本地数据。\n此操作无法撤销，建议先导出备份。继续吗？")) return;
+  if (!confirm("再次确认：确定要清除全部数据吗？")) return;
+
+  const keys = [
+    KEY.store,
+    KEY.legacyRequests,
+    KEY.legacyActive,
+    KEY.legacyRequest,
+    KEY.logs,
+    KEY.meetings,
+    KEY.meeting,
+    KEY.filter,
+    KEY.page,
+    KEY.draft
+  ];
+
+  const backup = backupStorageKeys(keys);
+
+  let deleteFailed = false;
+  try {
+    keys.forEach(k => localStorage.removeItem(k));
+  } catch (e) {
+    deleteFailed = true;
+  }
+
+  let allCleared = true;
+  try {
+    for (const k of keys) {
+      if (localStorage.getItem(k) !== null) {
+        allCleared = false;
+        break;
+      }
+    }
+  } catch (e) {
+    allCleared = false;
+  }
+
+  if (deleteFailed || !allCleared) {
+    const restored = restoreBackup(backup);
+    if (restored) {
+      toast("清除失败，原有数据已恢复。", "danger");
+    } else {
+      toast("严重错误：清除失败，部分数据恢复失败，请勿继续操作。", "danger");
+    }
+    return;
+  }
+
+  store = { schemaVersion: SCHEMA_VERSION, requests: [], activeId: null };
+  requests = [];
+  activeId = null;
+  currentRequest = null;
+  logs = [];
+  meetingHistory = [];
+  meeting = { stage: 0, topic: "", startedAt: null, id: null };
+  archiveFilter = "all";
+  archivePage = 1;
+  archiveSearchText = "";
+  editingParent = null;
+
+  $("question").value = "";
+  $("archiveSearch").value = "";
+  $("meeting").style.display = "none";
+  $("btnResetMeeting").style.display = "none";
+  clearForm();
+  hideEditHint();
+
+  renderHistory();
+  renderProjectList();
+  setFilter("all");
+  renderArchive();
+  renderMeetingHistory();
+  renderApproval();
+  refreshDataInfo();
+  toast("全部数据已清除", "warning");
+}
+
+/* ============================================================
+ * 恢复
+ * ========================================================== */
+function restoreMeeting() {
+  if (meeting.stage > 0) {
+    $("meeting").style.display = "block";
+    $("question").value = meeting.topic || "";
+    updateMeeting();
+    if (meeting.stage < 3) {
+      $("meetingText").textContent += "\n\n（已恢复上次未完成的会议进度）";
+    }
+  }
+  $("btnResetMeeting").style.display = meeting.stage > 0 ? "inline-block" : "none";
+}
+function restoreApproval() {
+  renderApproval();
+  if (!currentRequest) return;
+  if (currentRequest.status === "待用户审批") {
+    setApprovalMessage("检测到上次未处理的申请，请继续审阅。");
+  } else if (currentRequest.status === "退回重新讨论") {
+    setApprovalMessage("上次申请已被退回。可点击「基于此申请修改（退回修订）」继续编辑，或重新填写表单。");
+  } else if (currentRequest.status === "用户已批准（待接入执行引擎）") {
+    setApprovalMessage("这份申请已批准。如需继续修改，可点击「创建后续修改」建立版本关联。", "success");
+  } else if (currentRequest.status === "用户已拒绝") {
+    setApprovalMessage("这份申请已被拒绝。如需新的方案，可点击「重新发起新申请」，将生成 v1 新申请并记录参考关系。", "danger");
+  } else {
+    setApprovalMessage("当前申请状态：" + statusInfo(currentRequest.status).label);
+  }
+}
+
+/* ============================================================
+ * 事件
+ * ========================================================== */
+function bindEvents() {
+  ["project", "reason", "changes", "risk"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      scheduleSaveDraft();
+      updateCounter(id);
+    });
+  });
+  $("archiveSearch").addEventListener("input", e => {
+    archiveSearchText = e.target.value.trim();
+    archivePage = 1;
+    saveJSON(KEY.page, 1);
+    renderArchive();
+  });
+  $("archive").addEventListener("click", e => {
+    const btn = e.target.closest("[data-edit-id]");
+    if (btn) editFromId(btn.dataset.editId);
+  });
+  $("sec-request").addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      createRequest();
+    }
+  });
+  document.querySelectorAll("[data-filter]").forEach(btn => {
+    btn.style.outline = btn.dataset.filter === archiveFilter ? "2px solid var(--primary)" : "none";
+  });
+}
+
+/* ============================================================
+ * 启动
+ * ========================================================== */
+(function init() {
+  initData();
+  applyTheme(loadJSON(KEY.theme, "dark"));
+  bindEvents();
+  renderHistory();
+  renderProjectList();
+  setFilter(archiveFilter);
+  renderArchive();
+  renderMeetingHistory();
+  restoreApproval();
+  restoreMeeting();
+  restoreDraft();
+  refreshDataInfo();
+})();
 </script>
-</body>
-</html>
 </body>
 </html>
