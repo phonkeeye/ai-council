@@ -104,6 +104,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
   <div class="muted" id="storageWarningText">为防止覆盖原始数据，写操作已暂停。</div>
   <div class="toolbar" style="margin:8px 0 0">
     <button class="gray" onclick="showStorageDetails()">查看详情</button>
+    <button class="primary" onclick="exportData()">抢救导出</button>
     <button class="red" onclick="handleClearCorruptedData()">清除损坏数据并重新加载</button>
   </div>
 </div>
@@ -319,7 +320,7 @@ function showStorageWarning(reason) {
   const el = $("storageWarning");
   const txt = $("storageWarningText");
   if (el && txt) {
-    txt.textContent = "原因：" + reason + "。为防止覆盖原始数据，写操作已暂停。";
+    txt.textContent = "原因：" + reason + "。为防止覆盖原始数据，写操作已暂停。可点击「抢救导出」保存原始数据，或「清除损坏数据并重新加载」重置。";
     el.style.display = "block";
   }
   storageBlockedReason = reason;
@@ -330,7 +331,7 @@ function hideStorageWarning() {
 }
 function showStorageDetails() {
   alert("保护模式原因：\n" + (storageBlockedReason || "未知") +
-    "\n\n建议操作：\n1. 先导出当前可见数据（如果能导出）。\n2. 确认损坏数据是否需要保留。\n3. 点击「清除损坏数据并重新加载」会清空所有关键键。");
+    "\n\n建议操作：\n1. 先点击「抢救导出」，保存包含原始字符串的 JSON。\n2. 确认损坏数据是否需要保留。\n3. 点击「清除损坏数据并重新加载」会清空所有关键键。");
 }
 function handleClearCorruptedData() {
   if (!confirm("将清空所有关键本地数据（申请、会议、记录、草稿、主题偏好等）。\n此操作无法撤销，确定继续吗？")) return;
@@ -344,6 +345,39 @@ function handleClearCorruptedData() {
     try { localStorage.removeItem(k); } catch (e) {}
   }
   location.reload();
+}
+
+/* 保护模式下禁用所有写入口，保留查看、抢救导出、清除损坏 */
+function applyProtectionModeToUI() {
+  if (!storageBlocked) return;
+
+  const disableOnclickFns = [
+    "startMeeting", "resetMeeting", "nextStage", "createRequest",
+    "clearHistory", "clearAllData"
+  ];
+
+  document.querySelectorAll("button[onclick]").forEach(btn => {
+    const oc = btn.getAttribute("onclick") || "";
+    if (oc.includes("importFile")) {
+      btn.disabled = true;
+      btn.title = "保护模式：导入已暂停";
+      return;
+    }
+    if (disableOnclickFns.some(fn => oc.includes(fn + "("))) {
+      btn.disabled = true;
+      btn.title = "保护模式：写操作已暂停";
+    }
+  });
+
+  ["btnSubmitRequest", "btnResetMeeting", "btnNextStage"].forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.disabled = true;
+      el.title = "保护模式：写操作已暂停";
+    }
+  });
+
+  // 审批按钮和档案编辑按钮已由 renderApproval / renderArchive 处理
 }
 
 /* ========== 基础工具 ========== */
@@ -507,7 +541,7 @@ function storesEqual(a, b) {
   catch (e) { return false; }
 }
 
-/* ========== 安全保存 ========== */
+/* ========== 安全保存：读取失败时直接拒绝写入，避免误删 ========== */
 function saveStore(nextStore) {
   try {
     localStorage.setItem(KEY.store, JSON.stringify(nextStore));
@@ -516,23 +550,48 @@ function saveStore(nextStore) {
 }
 function saveStoreAndVerify(nextStore) {
   let original;
+  let originalReadOk = false;
+
   try {
     if (!validStore(nextStore)) return false;
-    original = localStorage.getItem(KEY.store);
+
+    // 先读取原值：读不到就不能安全回滚，直接拒绝写入
+    try {
+      original = localStorage.getItem(KEY.store);
+      originalReadOk = true;
+    } catch (e) {
+      console.error("读取原始数据失败，已取消保存（避免误删）", e);
+      return false;
+    }
+
     const serialized = JSON.stringify(nextStore);
     if (typeof serialized !== "string") return false;
+
     localStorage.setItem(KEY.store, serialized);
+
     const savedRaw = localStorage.getItem(KEY.store);
     if (savedRaw === null) throw new Error("保存后无法读取");
+
     const saved = JSON.parse(savedRaw);
     if (storesEqual(saved, JSON.parse(serialized))) return true;
     throw new Error("保存数据与目标数据不一致");
   } catch (e) {
-    try {
-      if (original === null || original === undefined) localStorage.removeItem(KEY.store);
-      else localStorage.setItem(KEY.store, original);
-      if (localStorage.getItem(KEY.store) !== original) console.error("严重错误：原始数据恢复失败", e);
-    } catch (re) { console.error("严重错误：无法恢复原始数据", re); }
+    if (originalReadOk) {
+      try {
+        if (original === null) {
+          localStorage.removeItem(KEY.store);
+        } else {
+          localStorage.setItem(KEY.store, original);
+        }
+        if (localStorage.getItem(KEY.store) !== original) {
+          console.error("严重错误：原始数据恢复失败", e);
+        }
+      } catch (re) {
+        console.error("严重错误：无法恢复原始数据", re);
+      }
+    } else {
+      console.error("原始数据未成功读取，已跳过恢复以避免误删", e);
+    }
     return false;
   }
 }
@@ -778,9 +837,9 @@ function migrateLegacyIfNeeded() {
   }
 }
 
-/* ========== 初始化：区分不存在 / 损坏 / 结构异常 ========== */
+/* ========== 初始化：区分不存在 / null / 非法结构 / 正常 ========== */
 function initData() {
-  /* 1. 关键键读取状态检查 */
+  // 1. 关键键读取状态检查（只检查读取/解析是否失败，不修改）
   const criticalKeys = [
     KEY.store, KEY.logs, KEY.meetings, KEY.meeting,
     KEY.legacyRequests, KEY.legacyActive, KEY.legacyRequest, KEY.draft
@@ -795,7 +854,7 @@ function initData() {
     }
   }
 
-  /* 2. 非 Store 数据（结构损坏时走 fallback，不阻断） */
+  // 2. 非 Store 数据（结构损坏时走 fallback，不阻断）
   logs = loadJSON(KEY.logs, []); if (!Array.isArray(logs)) logs = [];
   meetingHistory = loadJSON(KEY.meetings, []); if (!Array.isArray(meetingHistory)) meetingHistory = [];
   meeting = loadJSON(KEY.meeting, { stage: 0, topic: "", startedAt: null, id: null });
@@ -806,9 +865,15 @@ function initData() {
   archivePage = Number(loadJSON(KEY.page, 1));
   if (!Number.isInteger(archivePage) || archivePage < 1) archivePage = 1;
 
-  /* 3. 主 Store 结构检查：存在但结构损坏时不能进入迁移路径 */
+  // 3. 主 Store：严格区分 不存在 / null / 非法结构 / 正常
   const storeState = readJSONState(KEY.store);
-  if (storeState.exists && storeState.value !== null) {
+  if (storeState.exists) {
+    if (storeState.value === null) {
+      storageBlocked = true;
+      showStorageWarning("主数据结构损坏：council_store 存在但值为 null");
+      toast("主数据 council_store 存在但值为 null，已进入保护模式，不会自动迁移或覆盖", "danger");
+      return false;
+    }
     const rawStore = storeState.value;
     if (!rawStore || typeof rawStore !== "object" || Array.isArray(rawStore) ||
         !Array.isArray(rawStore.requests)) {
@@ -836,7 +901,7 @@ function initData() {
     }
     migrateLegacyIfNeeded();
   } else {
-    /* Store 不存在（或字面 null）：从旧数据构建 */
+    // Store 不存在：从旧数据构建
     const legacyReqsRaw = loadJSON(KEY.legacyRequests, []);
     const legacySanitized = sanitizeLoadedRequests(legacyReqsRaw, "council_requests");
     const legacyActive = loadJSON(KEY.legacyActive, null);
@@ -925,6 +990,7 @@ function renderHistory() {
   ).join("");
 }
 function clearHistory() {
+  if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
   if (!confirm("确定清除本地操作记录吗？")) return;
   const prev = logs; logs = [];
   if (!saveJSON(KEY.logs, logs)) { logs = prev; toast("清除失败：本地存储不可用", "danger"); return; }
@@ -946,6 +1012,7 @@ function startMeeting() {
   toast("会议已开始", "success");
 }
 function resetMeeting() {
+  if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
   if (!confirm("确定重置当前会议进度吗？议题也会清空。")) return;
   const prev = meeting;
   meeting = { stage: 0, topic: "", startedAt: null, id: null };
@@ -985,6 +1052,7 @@ function completeMeeting() {
   return true;
 }
 function nextStage() {
+  if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
   if (meeting.stage >= 3) return;
   const prev = meeting.stage; meeting.stage++;
   if (!saveJSON(KEY.meeting, meeting)) { meeting.stage = prev; toast("保存失败：会议进度未更新", "danger"); return; }
@@ -1157,6 +1225,11 @@ function renderVersionChain(req) {
   return '<div style="margin-top:8px"><strong>版本链</strong></div>' + lines;
 }
 function renderArchive() {
+  if (storageBlocked) {
+    $("archive").innerHTML = '<div class="warning" style="margin:0">⚠️ 数据未加载，请先处理顶部保护模式警告。在保护模式下，档案不可用，但不会修改或删除任何已有本地数据。</div>';
+    $("archivePager").innerHTML = "";
+    return;
+  }
   const sorted = requests.slice().sort((a, b) => requestTimestamp(b) - requestTimestamp(a));
   const list = sorted.filter(r => matchFilter(r) && matchSearch(r));
   const total = list.length;
@@ -1479,6 +1552,7 @@ function refreshDataInfo() {
     " · 模式 " + mode + " · 数据版本 v" + SCHEMA_VERSION;
 }
 function exportData() {
+  if (storageBlocked) return exportRescueData();
   const payload = {
     schemaVersion: SCHEMA_VERSION, exportedAt: nowStr(),
     logs, requests, activeId, meeting, meetings: meetingHistory,
@@ -1497,6 +1571,55 @@ function exportData() {
     toast("数据已导出", "success");
     addLog("导出数据", "申请 " + requests.length + " 份");
   } catch (e) { toast("导出失败：" + e.message, "danger"); }
+}
+
+/* 保护模式下的抢救导出：包含原始字符串、可解析部分和错误 */
+function exportRescueData() {
+  const keys = [
+    KEY.store, KEY.logs, KEY.meetings, KEY.meeting,
+    KEY.legacyRequests, KEY.legacyActive, KEY.legacyRequest,
+    KEY.filter, KEY.page, KEY.draft, KEY.theme
+  ];
+  const raw = {};
+  const parsed = {};
+  const errors = {};
+
+  for (const k of keys) {
+    try {
+      const v = localStorage.getItem(k);
+      raw[k] = v;
+      if (v !== null) {
+        try { parsed[k] = JSON.parse(v); }
+        catch (e) { errors[k] = "解析失败：" + (e && e.message ? e.message : String(e)); }
+      }
+    } catch (e) {
+      raw[k] = null;
+      errors[k] = "读取失败：" + (e && e.message ? e.message : String(e));
+    }
+  }
+
+  const payload = {
+    rescueMode: true,
+    schemaVersion: SCHEMA_VERSION,
+    exportedAt: nowStr(),
+    note: "保护模式下的抢救导出。raw 为浏览器原始字符串（包括损坏数据），parsed 为可解析部分，errors 为读取或解析错误。请勿手动编辑 raw 字段，建议整体保存后交给开发者分析。",
+    raw,
+    parsed,
+    errors
+  };
+
+  try {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ai-council-rescue-" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast("抢救导出已生成，包含原始字符串和错误信息", "success");
+  } catch (e) {
+    toast("抢救导出失败：" + e.message, "danger");
+  }
 }
 
 /* ---------- 导入 ---------- */
@@ -1835,6 +1958,7 @@ function bindEvents() {
   restoreMeeting();
   restoreDraft();
   refreshDataInfo();
+  applyProtectionModeToUI();
 
   if (!ok && storageBlocked) {
     toast("页面已进入只读保护模式，请按顶部提示处理损坏数据", "warning");
