@@ -277,16 +277,78 @@ footer {
 
 </main>
 
-<script>
+<<script>
 const $ = id => document.getElementById(id);
 
 let stage = 0;
-let logs = JSON.parse(localStorage.getItem("council_logs") || "[]");
-let currentRequest = JSON.parse(localStorage.getItem("council_request") || "null");
 
+function loadData(key, fallback) {
+    try {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : fallback;
+    } catch (e) {
+        return fallback;
+    }
+}
+
+let logs = loadData("council_logs", []);
+let currentRequest = loadData("council_request", null);
+let requestHistory = loadData("council_request_history", []);
+
+// 兼容旧版本状态
+function migrateStatus(status) {
+    const map = {
+        "退回重新讨论": "已退回",
+        "用户已拒绝": "已拒绝",
+        "用户已批准（待接入执行引擎）":
+            "已批准（待接入执行引擎）"
+    };
+
+    return map[status] || status;
+}
+
+if (currentRequest) {
+    currentRequest.status = migrateStatus(currentRequest.status);
+
+    if (!requestHistory.some(x => x.id === currentRequest.id)) {
+        requestHistory.push({ ...currentRequest });
+    }
+}
+
+// 保存申请历史
+function saveRequestHistory() {
+    if (!currentRequest) return;
+
+    const index = requestHistory.findIndex(
+        x => x.id === currentRequest.id
+    );
+
+    if (index >= 0) {
+        requestHistory[index] = { ...currentRequest };
+    } else {
+        requestHistory.unshift({ ...currentRequest });
+    }
+}
+
+// 保存全部数据
 function saveData() {
-    localStorage.setItem("council_logs", JSON.stringify(logs.slice(0, 50)));
-    localStorage.setItem("council_request", JSON.stringify(currentRequest));
+    saveRequestHistory();
+
+    localStorage.setItem(
+        "council_logs",
+        JSON.stringify(logs.slice(0, 100))
+    );
+
+    localStorage.setItem(
+        "council_request",
+        JSON.stringify(currentRequest)
+    );
+
+    localStorage.setItem(
+        "council_request_history",
+        JSON.stringify(requestHistory)
+    );
+
     renderHistory();
 }
 
@@ -296,15 +358,21 @@ function addLog(title, detail) {
         title,
         detail
     });
+
     saveData();
 }
 
+// 会议功能
 function startMeeting() {
     const q = $("question").value.trim();
-    if (!q) return alert("请先输入会议问题");
+
+    if (!q) {
+        return alert("请先输入会议问题");
+    }
 
     stage = 1;
     $("meeting").style.display = "block";
+
     updateMeeting();
     addLog("发起会议", q);
 }
@@ -334,10 +402,14 @@ function updateMeeting() {
     $("meetingText").textContent = texts[stage];
 
     const nextButton = $("meetingText").nextElementSibling;
-    nextButton.disabled = stage === 3;
+
+    if (nextButton) {
+        nextButton.disabled = stage === 3;
+    }
 
     if (stage === 3) {
-        $("meetingText").textContent += "\n\n会议流程演示结束。";
+        $("meetingText").textContent +=
+            "\n\n会议流程演示结束。";
     }
 }
 
@@ -348,7 +420,15 @@ function nextStage() {
     }
 }
 
-// 创建新申请，或重新提交被退回的申请
+// 判断申请是否已经结束
+function isFinalStatus(status) {
+    return [
+        "已批准（待接入执行引擎）",
+        "已拒绝"
+    ].includes(status);
+}
+
+// 创建申请或重新提交
 function createRequest() {
     const project = $("project").value.trim();
     const reason = $("reason").value.trim();
@@ -359,48 +439,102 @@ function createRequest() {
         return alert("请完整填写修改申请。");
     }
 
-    if (currentRequest &&
-        ["已批准（待接入执行引擎）", "已拒绝"].includes(currentRequest.status)) {
-        return alert("该申请已经结束，请勿重复提交。");
+    // 待审批申请不能被覆盖
+    if (
+        currentRequest &&
+        currentRequest.status === "待用户审批"
+    ) {
+        return alert(
+            "当前申请仍在等待审批，不能覆盖。请先处理当前申请。"
+        );
     }
 
-    const oldId = currentRequest ? currentRequest.id : null;
+    // 只有退回状态才属于重新提交
+    const isResubmission =
+        currentRequest &&
+        currentRequest.status === "已退回";
 
-    currentRequest = {
-        id: "REQ-" + Date.now(),
+    const oldId = isResubmission
+        ? currentRequest.id
+        : null;
+
+    // 保存旧申请
+    if (currentRequest) {
+        saveRequestHistory();
+    }
+
+    const newRequest = {
+        id: "REQ-" + Date.now() + "-" +
+            Math.random().toString(36).slice(2, 7),
+
         project,
         reason,
         changes,
         risk,
+
         status: "待用户审批",
+
         time: new Date().toLocaleString(),
+
         previousId: oldId
     };
 
+    currentRequest = newRequest;
+
     addLog(
-        oldId ? "重新提交修改申请" : "提交修改申请",
-        currentRequest.id + " · " + project
+        isResubmission
+            ? "重新提交修改申请"
+            : "提交修改申请",
+
+        newRequest.id + " · " + project
     );
 
+    $("approvalMessage").textContent =
+        "新申请已提交，等待用户审批。";
+
     renderApproval();
-    $("approvalCard").scrollIntoView({ behavior: "smooth" });
+
+    $("approvalCard").scrollIntoView({
+        behavior: "smooth"
+    });
 }
 
-// 审批操作
+// 审批操作：只能处理待审批申请
 function decide(status, message) {
     if (!currentRequest) {
         return alert("没有待处理的申请。");
     }
 
     if (currentRequest.status !== "待用户审批") {
-        return alert("该申请已经处理，不能重复审批。");
+        renderApproval();
+
+        return alert(
+            "该申请已经处理，不能重复审批。"
+        );
+    }
+
+    const allowed = [
+        "已批准（待接入执行引擎）",
+        "已退回",
+        "已拒绝"
+    ];
+
+    if (!allowed.includes(status)) {
+        return alert("无效的审批操作。");
     }
 
     currentRequest.status = status;
+    currentRequest.decisionTime =
+        new Date().toLocaleString();
 
-    addLog(status, currentRequest.id + " · " + currentRequest.project);
+    addLog(
+        status,
+        currentRequest.id + " · " +
+        currentRequest.project
+    );
 
     $("approvalMessage").textContent = message;
+
     renderApproval();
 }
 
@@ -412,18 +546,28 @@ function approve() {
 }
 
 function returnDiscussion() {
+    if (
+        !currentRequest ||
+        currentRequest.status !== "待用户审批"
+    ) {
+        return decide("无效操作", "");
+    }
+
+    const oldRequest = { ...currentRequest };
+
     decide(
         "已退回",
         "申请已退回。请修改方案后重新提交。"
     );
 
-    // 把原申请内容放回输入框，方便修改
-    $("project").value = currentRequest.project;
-    $("reason").value = currentRequest.reason;
-    $("changes").value = currentRequest.changes;
-    $("risk").value = currentRequest.risk;
+    $("project").value = oldRequest.project;
+    $("reason").value = oldRequest.reason;
+    $("changes").value = oldRequest.changes;
+    $("risk").value = oldRequest.risk;
 
-    $("approvalCard").scrollIntoView({ behavior: "smooth" });
+    $("approvalCard").scrollIntoView({
+        behavior: "smooth"
+    });
 }
 
 function reject() {
@@ -433,7 +577,7 @@ function reject() {
     );
 }
 
-// 根据申请状态控制审批按钮
+// 控制审批按钮
 function renderApproval() {
     if (!currentRequest) {
         $("approvalCard").style.display = "none";
@@ -451,28 +595,42 @@ function renderApproval() {
         "\n申请时间：" + currentRequest.time +
         "\n当前状态：" + currentRequest.status;
 
-    const buttons = $("approvalCard").querySelectorAll("button");
+    const buttons =
+        $("approvalCard").querySelectorAll("button");
 
-    const pending = currentRequest.status === "待用户审批";
+    const pending =
+        currentRequest.status === "待用户审批";
 
-    buttons[0].disabled = !pending;
-    buttons[1].disabled = !pending;
-    buttons[2].disabled = !pending;
+    buttons.forEach(button => {
+        button.disabled = !pending;
+        button.setAttribute(
+            "aria-disabled",
+            String(!pending)
+        );
+    });
 
     if (currentRequest.status === "已退回") {
         $("approvalMessage").textContent =
-            "申请已退回。请修改上方内容，再点击提交修改申请。";
+            "申请已退回。请修改上方内容，再重新提交。";
+
     } else if (currentRequest.status === "已拒绝") {
         $("approvalMessage").textContent =
-            "申请已终止，不能再次审批。";
-    } else if (currentRequest.status === "已批准（待接入执行引擎）") {
+            "申请已终止，审批按钮已锁定。";
+
+    } else if (
+        currentRequest.status ===
+        "已批准（待接入执行引擎）"
+    ) {
         $("approvalMessage").textContent =
-            "已记录批准，等待未来接入安全执行引擎。";
+            "已记录批准，审批按钮已锁定。当前不会执行代码修改。";
+
     } else {
-        $("approvalMessage").textContent = "请审阅申请内容。";
+        $("approvalMessage").textContent =
+            "请审阅申请内容。";
     }
 }
 
+// 防止历史记录出现 HTML 注入
 function escapeHTML(s) {
     return String(s).replace(/[&<>"']/g, c => ({
         "&": "&amp;",
@@ -483,6 +641,7 @@ function escapeHTML(s) {
     }[c]));
 }
 
+// 操作记录
 function renderHistory() {
     if (!logs.length) {
         $("history").innerHTML =
@@ -509,8 +668,10 @@ function clearHistory() {
 }
 
 // 页面初始化
+saveData();
 renderHistory();
 renderApproval();
+
 </script>
 
 </body>
