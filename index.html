@@ -438,64 +438,146 @@ function restoreBackup(backup) {
   return verifyBackup(backup);
 }
 
-/* store 比较：关键字段 + ID 唯一性 */
-function storesEqual(a, b) {
-  if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
-  if (a.schemaVersion !== b.schemaVersion) return false;
-  if (a.activeId !== b.activeId) return false;
-  if (!Array.isArray(a.requests) || !Array.isArray(b.requests)) return false;
-  if (a.requests.length !== b.requests.length) return false;
+/* ============================================================
+ * 第五轮：严格数据校验与事务保存
+ * ========================================================== */
 
-  const bIds = new Set();
-  for (const r of b.requests) {
-    if (!r || typeof r !== "object") return false;
-    if (typeof r.id !== "string") return false;
-    if (bIds.has(r.id)) return false;
-    bIds.add(r.id);
+// 生成稳定 JSON，完整比较所有字段
+function stableJSON(value) {
+  if (value === undefined) return "null";
+
+  if (Array.isArray(value)) {
+    return "[" + value.map(stableJSON).join(",") + "]";
   }
 
-  for (let i = 0; i < a.requests.length; i++) {
-    const ra = a.requests[i], rb = b.requests[i];
-    if (!ra || !rb) return false;
-    if (ra.id !== rb.id) return false;
-    if (ra.status !== rb.status) return false;
-    if (ra.version !== rb.version) return false;
-    if (ra.parentId !== rb.parentId) return false;
-    if (ra.referenceId !== rb.referenceId) return false;
-    if (ra.relation !== rb.relation) return false;
-    if (ra.time !== rb.time) return false;
-    if (ra.project !== rb.project) return false;
+  if (value && typeof value === "object") {
+    const keys = Object.keys(value).sort();
+    return "{" + keys.map(key =>
+      JSON.stringify(key) + ":" + stableJSON(value[key])
+    ).join(",") + "}";
   }
+
+  return JSON.stringify(value);
+}
+
+// 检查申请 ID 是否唯一
+function hasUniqueRequestIds(list) {
+  if (!Array.isArray(list)) return false;
+
+  const ids = new Set();
+
+  for (const item of list) {
+    if (!item || typeof item !== "object") return false;
+    if (typeof item.id !== "string" || !item.id.trim()) return false;
+    if (ids.has(item.id)) return false;
+    ids.add(item.id);
+  }
+
   return true;
 }
 
-function saveStore(nextStore) {
+// 完整比较两个 Store
+function storesEqual(a, b) {
+  if (!a || !b) return false;
+
+  if (typeof a !== "object" || typeof b !== "object") {
+    return false;
+  }
+
+  if (!Array.isArray(a.requests) ||
+      !Array.isArray(b.requests)) {
+    return false;
+  }
+
+  if (!hasUniqueRequestIds(a.requests) ||
+      !hasUniqueRequestIds(b.requests)) {
+    return false;
+  }
+
+  if (a.activeId !== null &&
+      !a.requests.some(r => r.id === a.activeId)) {
+    return false;
+  }
+
+  if (b.activeId !== null &&
+      !b.requests.some(r => r.id === b.activeId)) {
+    return false;
+  }
+
   try {
-    localStorage.setItem(KEY.store, JSON.stringify(nextStore));
-    return true;
+    return stableJSON(a) === stableJSON(b);
   } catch (e) {
     return false;
   }
 }
 
+// 保存并回读验证，失败自动恢复原数据
 function saveStoreAndVerify(nextStore) {
+  let original;
+
   try {
-    if (!saveStore(nextStore)) return false;
-    const saved = loadJSON(KEY.store, null);
-    if (!saved || typeof saved !== "object") return false;
-    return storesEqual(saved, nextStore);
+    original = localStorage.getItem(KEY.store);
   } catch (e) {
     return false;
   }
+
+  try {
+    if (!hasUniqueRequestIds(nextStore.requests)) {
+      return false;
+    }
+
+    if (nextStore.activeId !== null &&
+        !nextStore.requests.some(
+          r => r.id === nextStore.activeId
+        )) {
+      return false;
+    }
+
+    localStorage.setItem(
+      KEY.store,
+      JSON.stringify(nextStore)
+    );
+
+    const saved = JSON.parse(
+      localStorage.getItem(KEY.store)
+    );
+
+    if (storesEqual(saved, nextStore)) {
+      return true;
+    }
+  } catch (e) {
+    // 保存或验证失败，进入恢复流程
+  }
+
+  // 恢复原始数据
+  try {
+    if (original === null) {
+      localStorage.removeItem(KEY.store);
+    } else {
+      localStorage.setItem(KEY.store, original);
+    }
+
+    const restored = localStorage.getItem(KEY.store);
+
+    if (restored !== original) {
+      console.error("严重错误：原始数据恢复失败");
+    }
+  } catch (e) {
+    console.error("严重错误：无法恢复原始数据", e);
+  }
+
+  return false;
 }
 
+// 提交 Store
 function commitStore(nextRequests, nextActiveId) {
-  /* 保存前检查 ID 唯一性 */
-  const ids = new Set();
-  for (const r of nextRequests) {
-    if (!r || typeof r !== "object" || typeof r.id !== "string") return false;
-    if (ids.has(r.id)) return false;
-    ids.add(r.id);
+  if (!hasUniqueRequestIds(nextRequests)) {
+    return false;
+  }
+
+  if (nextActiveId !== null &&
+      !nextRequests.some(r => r.id === nextActiveId)) {
+    return false;
   }
 
   const nextStore = {
@@ -503,11 +585,17 @@ function commitStore(nextRequests, nextActiveId) {
     requests: nextRequests,
     activeId: nextActiveId
   };
-  if (!saveStoreAndVerify(nextStore)) return false;
+
+  if (!saveStoreAndVerify(nextStore)) {
+    return false;
+  }
+
   store = nextStore;
   requests = nextStore.requests;
   activeId = nextStore.activeId;
-  currentRequest = requests.find(r => r.id === activeId) || null;
+  currentRequest =
+    requests.find(r => r.id === activeId) || null;
+
   return true;
 }
 
