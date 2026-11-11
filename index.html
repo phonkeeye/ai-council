@@ -138,7 +138,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
   <textarea id="chatInput" placeholder="输入你的问题，按回车发送，Shift+回车换行..." onkeydown="handleChatKeydown(event)"></textarea>
   <button class="primary" id="sendBtn" onclick="sendMessage()">发送</button>
 </div>
-<div class="counter" id="chatInputCount" style="text-align:left; margin-bottom:10px;">0 / 15000</div>
+<div class="counter" id="chatInputCount" style="text-align:left; margin-bottom:10px;">0 / 70000</div>
 <div class="toolbar" style="margin-top:8px; flex-direction:column; gap:4px;">
   <div style="display:flex; gap:6px; width:100%;">
     <input id="proxyInput" placeholder="Cloudflare Worker URL" style="flex:1; margin:0;">
@@ -271,7 +271,8 @@ const STATUS_MAP = {
   "用户已拒绝": { cls: "rejected", label: "已拒绝" }
 };
 const RELATION = { REVISION: "revision", FOLLOWUP: "followup", REFERENCE: "reference" };
-const MAX_CHAT_LENGTH = 15000;
+const MAX_CHAT_LENGTH = 70000;
+const SPLIT_CHUNK_SIZE = 13500;
 
 /* ========== 安全读取 ========== */
 let storageBlocked = false;
@@ -698,7 +699,6 @@ function initData() {
     ];
   }
   
-  // 🌟 修改：默认填入刚刚测试成功的 Cloudflare Worker URL
   proxyUrl = loadJSON(KEY.proxy, "https://ai-council-proxy.1184313741.workers.dev");
   $("proxyInput").value = proxyUrl;
 
@@ -813,6 +813,16 @@ function updateChatCounter() {
   }
 }
 
+// 核心安全切分逻辑（防止截断特殊字符）
+function safeSlice(str, start, end) {
+  let result = str.slice(start, end);
+  let lastCharCode = result.charCodeAt(result.length - 1);
+  if (lastCharCode >= 0xD800 && lastCharCode <= 0xDBFF) {
+    result = result.slice(0, -1);
+  }
+  return result;
+}
+
 async function sendMessage() {
   if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
   if (isAiThinking) { toast("AI 正在思考中，请稍候", "warning"); return; }
@@ -827,23 +837,64 @@ async function sendMessage() {
     return;
   }
 
-  input.value = "";
-  updateChatCounter();
-
-  chatHistory.push({ role: "user", name: "用户", avatar: "🧑‍💻", text, time: nowStr() });
+  // 1. 先将用户输入追加到 UI 历史中（乐观更新，但不落库）
+  const tempUserMsg = { role: "user", name: "用户", avatar: "🧑‍💻", text, time: nowStr() };
+  chatHistory.push(tempUserMsg);
+  
   const loadingMsg = { role: "ai", name: "DeepSeek (🟠)", avatar: "🟠", text: "", isLoading: true, time: nowStr() };
   chatHistory.push(loadingMsg);
   renderChat();
   isAiThinking = true;
 
-  const messages = chatHistory.filter(m => !m.isLoading && m.role !== 'system').map(m => ({
-    role: m.role === "user" ? "user" : "assistant",
-    content: m.text
-  }));
-  messages.unshift({ 
+  // 2. 构建临时的 messages 数组发给 API（绝不污染原 chatHistory）
+  let messages = [];
+  const isLongText = text.length > 15000;
+  
+  // 基础系统提示
+  messages.push({ 
     role: "system", 
     content: "你是 AI COUNCIL 中的 DeepSeek，负责量化研究、策略分析和代码逻辑验证。请以专业、直接、务实的态度回答用户的问题。" 
   });
+
+  // 提取最近的对话历史
+  let historyToSend = chatHistory.filter(m => !m.isLoading && m.role !== 'system').map(m => ({
+    role: m.role === "user" ? "user" : "assistant",
+    content: m.text
+  }));
+  // 移除刚刚加入的最后一条 user 消息，防止重复
+  historyToSend.pop();
+
+  if (isLongText) {
+    // 长文本：只保留最近 2 轮对话，并告知用户
+    if (historyToSend.length > 4) {
+      historyToSend = historyToSend.slice(-4);
+      // 在 UI 上给出系统提示，但不存入 localStorage
+      chatHistory.splice(chatHistory.length - 2, 0, { role: "system", text: "（为处理长代码，本次请求省略了部分较早的历史记录）", time: nowStr() });
+      renderChat();
+    }
+    
+    // 插入长文本分段声明
+    messages.push({ 
+      role: "system", 
+      content: "注意：用户接下来会发送被拆分的长文本片段。它们属于同一份完整输入，请务必等待接收完所有分段后，结合全部上下文统一进行分析。" 
+    });
+
+    // 执行安全切片
+    let start = 0;
+    const totalChunks = Math.ceil(text.length / SPLIT_CHUNK_SIZE);
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = safeSlice(text, start, start + SPLIT_CHUNK_SIZE);
+      messages.push({ 
+        role: "user", 
+        content: `[Part ${i + 1}/${totalChunks}]\n${chunk}` 
+      });
+      start += chunk.length; // 使用实际切片长度，防止代理对导致的越界
+    }
+  } else {
+    // 短文本：全量发送
+    messages = messages.concat(historyToSend);
+    messages.push({ role: "user", content: text });
+  }
 
   try {
     const response = await fetch(proxyUrl, {
@@ -852,21 +903,42 @@ async function sendMessage() {
       body: JSON.stringify({ model: "deepseek-chat", messages: messages })
     });
 
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      // 区分 400 错误
+      if (response.status === 400) {
+        throw new Error(`API 校验失败或上下文超限 (400): ${errData.error || errData.detail || '请检查代码长度或清理历史记录'}`);
+      } else if (response.status === 429) {
+        throw new Error(`请求过于频繁 (429): 请稍后再试`);
+      } else {
+        throw new Error(`服务端错误 (${response.status}): ${errData.error || '未知错误'}`);
+      }
+    }
     
+    const data = await response.json();
     const replyText = data.reply || (data.choices && data.choices[0]?.message?.content) || "未解析到回复内容";
 
-    chatHistory.pop();
-    chatHistory.push({ role: "ai", name: "DeepSeek (🟠)", avatar: "🟠", text: replyText, time: nowStr() });
+    // 成功！现在才真正清空输入框、落库保存
+    input.value = "";
+    updateChatCounter();
     
+    chatHistory.pop(); // 移除 loading
+    chatHistory.push({ role: "ai", name: "DeepSeek (🟠)", avatar: "🟠", text: replyText, time: nowStr() });
+    saveChat();
+
   } catch (error) {
-    chatHistory.pop();
-    chatHistory.push({ role: "system", name: "系统", avatar: "⚠️", text: `连接失败：${error.message}。请检查代理地址或后端日志。`, time: nowStr() });
+    // 失败！回滚刚才的乐观更新，并给出明确报错
+    chatHistory.pop(); // 移除 loading
+    // 不移除刚刚加入的 tempUserMsg，让用户看到自己发过什么
+    // 在下方插入系统报错
+    chatHistory.push({ role: "system", name: "系统错误", avatar: "⚠️", text: `发送失败：${error.message}`, time: nowStr() });
+    
+    // 提示用户恢复输入（不要静默丢弃）
+    toast(`发送失败，内容已保留在输入框，请检查网络或长度限制`, "danger");
+    
   } finally {
     isAiThinking = false;
     renderChat();
-    saveChat();
   }
 }
 
@@ -1355,8 +1427,8 @@ function bindEvents() {
   applyTheme(loadJSON(KEY.theme, "dark"));
   bindEvents();
   renderHistory(); renderProjectList(); setFilter(archiveFilter); renderArchive();
-  renderChat(); // 渲染聊天室
-  updateChatCounter(); // 初始化聊天字数
+  renderChat();
+  updateChatCounter();
   renderMeetingHistory(); restoreApproval(); restoreDraft(); refreshDataInfo();
   applyProtectionModeToUI();
   if (!ok && storageBlocked) { toast("页面已进入只读保护模式，请按顶部提示处理损坏数据", "warning"); }
