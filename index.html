@@ -846,57 +846,89 @@ async function sendMessage() {
   renderChat();
   isAiThinking = true;
 
-  // 2. 构建临时的 messages 数组发给 API（绝不污染原 chatHistory）
-  let messages = [];
-  const isLongText = text.length > 15000;
-  
-  // 基础系统提示
-  messages.push({ 
-    role: "system", 
-    content: "你是 AI COUNCIL 中的 DeepSeek，负责量化研究、策略分析和代码逻辑验证。请以专业、直接、务实的态度回答用户的问题。" 
-  });
+  try {
+    // 2. 提取并转换基础历史记录（排除当前发送的、排除 system）
+    let historyToSend = chatHistory
+      .filter(m => m !== tempUserMsg && m !== loadingMsg && !m.isLoading && m.role !== 'system')
+      .map(m => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.text
+      }));
 
-  // 提取最近的对话历史
-  let historyToSend = chatHistory.filter(m => !m.isLoading && m.role !== 'system').map(m => ({
-    role: m.role === "user" ? "user" : "assistant",
-    content: m.text
-  }));
-  // 移除刚刚加入的最后一条 user 消息，防止重复
-  historyToSend.pop();
+    // 3. 构建当前输入的请求体（区分长短文本）
+    let currentInputMsgs = [];
+    const isLongText = text.length > 15000;
 
-  if (isLongText) {
-    // 长文本：只保留最近 2 轮对话，并告知用户
-    if (historyToSend.length > 4) {
-      historyToSend = historyToSend.slice(-4);
-      // 在 UI 上给出系统提示，但不存入 localStorage
-      chatHistory.splice(chatHistory.length - 2, 0, { role: "system", text: "（为处理长代码，本次请求省略了部分较早的历史记录）", time: nowStr() });
-      renderChat();
+    if (isLongText) {
+      currentInputMsgs.push({ 
+        role: "system", 
+        content: "注意：用户接下来会发送被拆分的长文本片段。它们属于同一份完整输入，请务必等待接收完所有分段后，结合全部上下文统一进行分析。" 
+      });
+
+      let start = 0;
+      const totalChunks = Math.ceil(text.length / SPLIT_CHUNK_SIZE);
+      for (let i = 0; i < totalChunks; i++) {
+        const chunk = safeSlice(text, start, start + SPLIT_CHUNK_SIZE);
+        currentInputMsgs.push({ 
+          role: "user", 
+          content: `[Part ${i + 1}/${totalChunks}]\n${chunk}` 
+        });
+        start += chunk.length;
+      }
+    } else {
+      currentInputMsgs.push({ role: "user", content: text });
     }
+
+    // 4. 消息条数倒推计算 (确保总条数 ≤ 50)
+    const MAX_WORKER_MSGS = 50;
+    const availableHistorySlots = MAX_WORKER_MSGS - 1 - currentInputMsgs.length;
     
-    // 插入长文本分段声明
-    messages.push({ 
-      role: "system", 
-      content: "注意：用户接下来会发送被拆分的长文本片段。它们属于同一份完整输入，请务必等待接收完所有分段后，结合全部上下文统一进行分析。" 
+    if (availableHistorySlots <= 0) {
+      historyToSend = []; 
+    } else if (historyToSend.length > availableHistorySlots) {
+      historyToSend = historyToSend.slice(-availableHistorySlots);
+    }
+
+    // 5. 防 AI 幻觉（超长历史单条替换为占位符）
+    historyToSend = historyToSend.map(m => {
+      if (m.content.length > 15000) {
+        return {
+          role: m.role,
+          content: `[系统提示：用户在此处发送了约 ${m.content.length} 字符的超长内容。由于限制，当前请求已省略其原文。你绝对不能假装记得或猜测此处代码的具体内容。如果用户询问相关细节，请明确告知用户“由于历史记录限制，我无法看到之前的完整代码，请重新提供需要分析的部分”。]`
+        };
+      }
+      return m;
     });
 
-    // 执行安全切片
-    let start = 0;
-    const totalChunks = Math.ceil(text.length / SPLIT_CHUNK_SIZE);
-    for (let i = 0; i < totalChunks; i++) {
-      const chunk = safeSlice(text, start, start + SPLIT_CHUNK_SIZE);
-      messages.push({ 
-        role: "user", 
-        content: `[Part ${i + 1}/${totalChunks}]\n${chunk}` 
-      });
-      start += chunk.length; // 使用实际切片长度，防止代理对导致的越界
-    }
-  } else {
-    // 短文本：全量发送
-    messages = messages.concat(historyToSend);
-    messages.push({ role: "user", content: text });
-  }
+    // 6. 组装最终的 messages 数组
+    let messages = [
+      { role: "system", content: "你是 AI COUNCIL 中的 DeepSeek，负责量化研究、策略分析和代码逻辑验证。请以专业、直接、务实的态度回答用户的问题。" },
+      ...historyToSend,
+      ...currentInputMsgs
+    ];
 
-  try {
+    // 7. 总字符数裁剪 (软目标 78000)
+    const SAFE_TOTAL_CHARS = 78000; 
+    let currentTotalChars = messages.reduce((acc, m) => acc + m.content.length, 0);
+    
+    // 丢弃最老的历史消息（保留 index 0 的基础 System 和最后的 currentInputMsgs）
+    while (currentTotalChars > SAFE_TOTAL_CHARS && messages.length > 1 + currentInputMsgs.length) {
+      const removed = messages.splice(1, 1)[0]; 
+      currentTotalChars -= removed.content.length;
+    }
+
+    // 8. 【最终硬性拦截】统一使用 78000
+    if (messages.length > 50) {
+      throw new Error("消息数量超过 Worker 限制 (50条)，已阻止发送");
+    }
+    if (messages.some(m => typeof m.content !== "string" || m.content.length > 16000)) {
+      throw new Error("存在无效或超长消息(单条超过16000字符)，已阻止发送");
+    }
+    if (messages.reduce((sum, m) => sum + m.content.length, 0) > 78000) {
+      throw new Error("对话总字符数超过安全限制 (78000)，已阻止发送");
+    }
+
+    // 9. 发起请求
     const response = await fetch(proxyUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -905,9 +937,8 @@ async function sendMessage() {
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      // 区分 400 错误
       if (response.status === 400) {
-        throw new Error(`API 校验失败或上下文超限 (400): ${errData.error || errData.detail || '请检查代码长度或清理历史记录'}`);
+        throw new Error(`API 校验失败 (400): ${errData.error || errData.detail || '请检查输入内容是否合法'}`);
       } else if (response.status === 429) {
         throw new Error(`请求过于频繁 (429): 请稍后再试`);
       } else {
@@ -918,23 +949,31 @@ async function sendMessage() {
     const data = await response.json();
     const replyText = data.reply || (data.choices && data.choices[0]?.message?.content) || "未解析到回复内容";
 
-    // 成功！现在才真正清空输入框、落库保存
+    // 成功更新 UI
     input.value = "";
     updateChatCounter();
     
-    chatHistory.pop(); // 移除 loading
-    chatHistory.push({ role: "ai", name: "DeepSeek (🟠)", avatar: "🟠", text: replyText, time: nowStr() });
+    const index = chatHistory.indexOf(loadingMsg);
+    if (index !== -1) {
+      chatHistory[index] = { role: "ai", name: "DeepSeek (🟠)", avatar: "🟠", text: replyText, time: nowStr() };
+    }
     saveChat();
 
   } catch (error) {
-    // 失败！回滚刚才的乐观更新，并给出明确报错
-    chatHistory.pop(); // 移除 loading
-    // 不移除刚刚加入的 tempUserMsg，让用户看到自己发过什么
-    // 在下方插入系统报错
+    // 失败精准回滚
+    const loadIdx = chatHistory.indexOf(loadingMsg);
+    if (loadIdx !== -1) chatHistory.splice(loadIdx, 1);
+    
+    const userIdx = chatHistory.indexOf(tempUserMsg);
+    if (userIdx !== -1) chatHistory.splice(userIdx, 1);
+    
+    // 添加系统错误提示
     chatHistory.push({ role: "system", name: "系统错误", avatar: "⚠️", text: `发送失败：${error.message}`, time: nowStr() });
     
-    // 提示用户恢复输入（不要静默丢弃）
-    toast(`发送失败，内容已保留在输入框，请检查网络或长度限制`, "danger");
+    // 恢复输入框内容
+    input.value = text;
+    updateChatCounter();
+    toast(`发送失败，内容已恢复至输入框`, "danger");
     
   } finally {
     isAiThinking = false;
