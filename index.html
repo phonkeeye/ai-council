@@ -33,6 +33,7 @@ h3{font-size:14px;margin:0 0 7px}
 textarea,input{width:100%;background:var(--input-bg);border:1px solid var(--input-border);border-radius:9px;color:var(--text);padding:12px;font-size:14px;margin:7px 0 4px;font-family:inherit}
 textarea{min-height:100px;resize:vertical}
 .counter{font-size:11px;color:var(--muted);text-align:right;margin:0 0 10px}
+.counter.danger{color:var(--danger);font-weight:bold;}
 button{border:0;border-radius:9px;padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer;margin:3px;transition:opacity .15s}
 .primary{background:var(--primary);color:#fff}
 .green{background:var(--green);color:#fff}
@@ -83,9 +84,9 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 .chat-msg.user .chat-bubble { background:var(--primary); color:#fff; border-radius:12px 0 12px 12px; }
 .chat-name { font-size:11px; color:var(--muted); margin-bottom:2px; }
 .chat-msg.user .chat-name { text-align:right; }
-.chat-input-area { display:flex; gap:8px; }
-.chat-input-area input { margin:0; flex:1; }
-.chat-input-area button { margin:0; padding:0 20px; }
+.chat-input-area { display:flex; gap:8px; align-items: flex-end; }
+.chat-input-area textarea { margin:0; flex:1; min-height: 44px; max-height: 250px; resize: vertical; }
+.chat-input-area button { margin:0; padding: 12px 20px; height: fit-content; }
 </style>
 </head>
 <body>
@@ -134,9 +135,10 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <p class="muted">当前已接入 <b>DeepSeek</b> 真实模型。请在下方输入问题与它讨论。</p>
 <div class="chat-container" id="chatContainer"></div>
 <div class="chat-input-area">
-  <input id="chatInput" maxlength="1000" placeholder="输入你的问题，按回车发送..." onkeydown="if(event.key==='Enter' && !event.isComposing) sendMessage()">
+  <textarea id="chatInput" placeholder="输入你的问题，按回车发送，Shift+回车换行..." onkeydown="handleChatKeydown(event)"></textarea>
   <button class="primary" id="sendBtn" onclick="sendMessage()">发送</button>
 </div>
+<div class="counter" id="chatInputCount" style="text-align:left; margin-bottom:10px;">0 / 15000</div>
 <div class="toolbar" style="margin-top:8px; flex-direction:column; gap:4px;">
   <div style="display:flex; gap:6px; width:100%;">
     <input id="proxyInput" placeholder="Cloudflare Worker URL" style="flex:1; margin:0;">
@@ -269,6 +271,7 @@ const STATUS_MAP = {
   "用户已拒绝": { cls: "rejected", label: "已拒绝" }
 };
 const RELATION = { REVISION: "revision", FOLLOWUP: "followup", REFERENCE: "reference" };
+const MAX_CHAT_LENGTH = 15000;
 
 /* ========== 安全读取 ========== */
 let storageBlocked = false;
@@ -783,6 +786,33 @@ function saveProxyUrl() {
   toast("代理地址已保存", "success");
 }
 
+function handleChatKeydown(event) {
+  if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    sendMessage();
+  }
+}
+
+function updateChatCounter() {
+  const input = $("chatInput");
+  const counter = $("chatInputCount");
+  const sendBtn = $("sendBtn");
+  if (!input || !counter || !sendBtn) return;
+  
+  const len = input.value.length;
+  counter.textContent = len + " / " + MAX_CHAT_LENGTH;
+  
+  if (len > MAX_CHAT_LENGTH) {
+    counter.className = "counter danger";
+    sendBtn.disabled = true;
+    counter.title = "内容过长，请精简后发送";
+  } else {
+    counter.className = "counter";
+    sendBtn.disabled = false;
+    counter.title = "";
+  }
+}
+
 async function sendMessage() {
   if (storageBlocked) { toast("保护模式：写操作已暂停", "danger"); return; }
   if (isAiThinking) { toast("AI 正在思考中，请稍候", "warning"); return; }
@@ -791,7 +821,14 @@ async function sendMessage() {
   const input = $("chatInput");
   const text = input.value.trim();
   if (!text) return;
+
+  if (text.length > MAX_CHAT_LENGTH) {
+    toast(`内容超过 ${MAX_CHAT_LENGTH} 字符限制，请精简后再发送`, "warning");
+    return;
+  }
+
   input.value = "";
+  updateChatCounter();
 
   chatHistory.push({ role: "user", name: "用户", avatar: "🧑‍💻", text, time: nowStr() });
   const loadingMsg = { role: "ai", name: "DeepSeek (🟠)", avatar: "🟠", text: "", isLoading: true, time: nowStr() };
@@ -1306,6 +1343,7 @@ function restoreApproval() {
 /* ========== 事件绑定与启动 ========== */
 function bindEvents() {
   ["project","reason","changes","risk"].forEach(id => { $(id).addEventListener("input", () => { scheduleSaveDraft(); updateCounter(id); }); });
+  $("chatInput").addEventListener("input", updateChatCounter);
   $("archiveSearch").addEventListener("input", e => { archiveSearchText = e.target.value.trim(); archivePage = 1; saveJSON(KEY.page, 1); renderArchive(); });
   $("archive").addEventListener("click", e => { const btn = e.target.closest("[data-edit-id]"); if (btn) editFromId(btn.dataset.editId); });
   $("sec-request").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); createRequest(); } });
@@ -1318,6 +1356,7 @@ function bindEvents() {
   bindEvents();
   renderHistory(); renderProjectList(); setFilter(archiveFilter); renderArchive();
   renderChat(); // 渲染聊天室
+  updateChatCounter(); // 初始化聊天字数
   renderMeetingHistory(); restoreApproval(); restoreDraft(); refreshDataInfo();
   applyProtectionModeToUI();
   if (!ok && storageBlocked) { toast("页面已进入只读保护模式，请按顶部提示处理损坏数据", "warning"); }
