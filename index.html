@@ -101,6 +101,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 </header>
 <nav class="anchor-nav">
 <a href="#sec-chat">💬 议会大厅</a>
+<a href="#sec-task-center">📋 任务中心</a> <!-- P1-A 新增 -->
 <a href="#sec-request">🛠️ 申请</a>
 <a href="#sec-approval">🔐 审批</a>
 <a href="#sec-archive">📚 档案</a>
@@ -148,6 +149,15 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
     <button class="gray" onclick="resetChat()" style="padding:6px 10px; font-size:12px; margin-top:6px;">清空讨论</button>
   </div>
 </div>
+</div>
+
+<!-- P1-A 新增独立任务中心 -->
+<div class="card" id="sec-task-center">
+  <h2>📋 AI 任务中心 (独立隔离)</h2>
+  <p class="muted">此入口仅用于独立任务提交，绝对不携带聊天历史，不会触发超限。</p>
+  <textarea id="taskInputArea" placeholder="输入独立任务，如：审查代码..." style="min-height:80px;"></textarea>
+  <button class="primary" onclick="submitIndependentTask()">提交独立任务</button>
+  <div style="margin-top:10px;font-size:13px;color:var(--text);line-height:1.5;" id="taskResultDisplay"></div>
 </div>
 
 <div class="card" id="sec-request">
@@ -847,12 +857,17 @@ async function sendMessage() {
   isAiThinking = true;
 
   try {
-    // 2. 提取并转换基础历史记录（排除当前发送的、排除 system）
+    // 2. 提取并转换基础历史记录（【已修正】精准排除本次发送的 tempUserMsg 和 loadingMsg）
     let historyToSend = chatHistory
-      .filter(m => m !== tempUserMsg && m !== loadingMsg && !m.isLoading && m.role !== 'system')
+      .filter(m => 
+        m !== tempUserMsg && 
+        m !== loadingMsg && 
+        (m.role === "user" || m.role === "ai") && 
+        !m.isLoading
+      )
       .map(m => ({
         role: m.role === "user" ? "user" : "assistant",
-        content: m.text
+        content: typeof m.text === "string" ? m.text : ""
       }));
 
     // 3. 构建当前输入的请求体（区分长短文本）
@@ -865,15 +880,16 @@ async function sendMessage() {
         content: "注意：用户接下来会发送被拆分的长文本片段。它们属于同一份完整输入，请务必等待接收完所有分段后，结合全部上下文统一进行分析。" 
       });
 
-      let start = 0;
-      const totalChunks = Math.ceil(text.length / SPLIT_CHUNK_SIZE);
+      // 【极度保守的切分】将每个切片限制在 6500 个 Unicode 码点，防止 UTF-16 长度爆表
+      const SAFE_SPLIT_SIZE = 6500; 
+      const chars = Array.from(text);
+      const totalChunks = Math.ceil(chars.length / SAFE_SPLIT_SIZE);
       for (let i = 0; i < totalChunks; i++) {
-        const chunk = safeSlice(text, start, start + SPLIT_CHUNK_SIZE);
+        const chunk = chars.slice(i * SAFE_SPLIT_SIZE, (i + 1) * SAFE_SPLIT_SIZE).join("");
         currentInputMsgs.push({ 
           role: "user", 
           content: `[Part ${i + 1}/${totalChunks}]\n${chunk}` 
         });
-        start += chunk.length;
       }
     } else {
       currentInputMsgs.push({ role: "user", content: text });
@@ -889,15 +905,19 @@ async function sendMessage() {
       historyToSend = historyToSend.slice(-availableHistorySlots);
     }
 
-    // 5. 防 AI 幻觉（超长历史单条替换为占位符）
+    // 5. 防 AI 幻觉（超长历史单条替换为占位符，并应用安全防御）
     historyToSend = historyToSend.map(m => {
-      if (m.content.length > 15000) {
+      const content = typeof m.content === "string" ? m.content : "";
+      if (content.length > 15000) {
         return {
           role: m.role,
-          content: `[系统提示：用户在此处发送了约 ${m.content.length} 字符的超长内容。由于限制，当前请求已省略其原文。你绝对不能假装记得或猜测此处代码的具体内容。如果用户询问相关细节，请明确告知用户“由于历史记录限制，我无法看到之前的完整代码，请重新提供需要分析的部分”。]`
+          content: `[系统提示：用户在此处发送了约 ${content.length} 字符的超长内容。由于限制，当前请求已省略其原文。你绝对不能假装记得或猜测此处内容。如果用户询问相关细节，请明确告知用户无法看到之前的完整内容，请重新提供需要分析的部分。]`
         };
       }
-      return m;
+      return {
+        role: m.role,
+        content: content
+      };
     });
 
     // 6. 组装最终的 messages 数组
@@ -911,7 +931,6 @@ async function sendMessage() {
     const SAFE_TOTAL_CHARS = 78000; 
     let currentTotalChars = messages.reduce((acc, m) => acc + m.content.length, 0);
     
-    // 丢弃最老的历史消息（保留 index 0 的基础 System 和最后的 currentInputMsgs）
     while (currentTotalChars > SAFE_TOTAL_CHARS && messages.length > 1 + currentInputMsgs.length) {
       const removed = messages.splice(1, 1)[0]; 
       currentTotalChars -= removed.content.length;
@@ -1459,6 +1478,114 @@ function bindEvents() {
   $("archive").addEventListener("click", e => { const btn = e.target.closest("[data-edit-id]"); if (btn) editFromId(btn.dataset.editId); });
   $("sec-request").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); createRequest(); } });
   document.querySelectorAll("[data-filter]").forEach(btn => { btn.style.outline = btn.dataset.filter === archiveFilter ? "2px solid var(--primary)" : "none"; });
+}
+
+/* ========== P1-A 独立任务中心逻辑 ========== */
+let currentPollTaskId = localStorage.getItem("council_poll_task_id") || null;
+
+function initTaskCenter() {
+  if (currentPollTaskId && $("taskResultDisplay")) {
+    $("taskResultDisplay").innerHTML = `<span style="color:var(--muted)">正在恢复上次的任务查询...</span>`;
+    startPollingTask(currentPollTaskId);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener("DOMContentLoaded", initTaskCenter);
+} else {
+  initTaskCenter();
+}
+
+async function submitIndependentTask() {
+  const input = $("taskInputArea");
+  const display = $("taskResultDisplay");
+  const taskText = input.value.trim();
+  
+  if (!taskText) { toast("任务内容不能为空", "warning"); return; }
+  
+  display.textContent = "任务创建中...";
+  
+  try {
+    const res = await fetch(proxyUrl + "/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task: taskText })
+    });
+    
+    if (!res.ok) {
+       const errData = await res.json().catch(()=>({error:"Unknown Error"}));
+       throw new Error(errData.error || `HTTP ${res.status}`);
+    }
+    
+    const data = await res.json();
+    currentPollTaskId = data.taskId;
+    
+    localStorage.setItem("council_poll_task_id", currentPollTaskId);
+    display.innerHTML = `<b>任务 ID：</b>${currentPollTaskId}<br><span style="color:var(--warn-text)">正在排队...</span>`;
+    toast("提交成功，已开启串行轮询", "success");
+    
+    startPollingTask(currentPollTaskId);
+    
+  } catch (error) {
+    display.textContent = "提交失败：" + error.message;
+    toast(error.message, "danger");
+  }
+}
+
+function startPollingTask(taskId) {
+  const display = $("taskResultDisplay");
+  let pollCount = 0;
+  const maxPolls = 60;
+  
+  const doPoll = async () => {
+    if (pollCount >= maxPolls) {
+      display.innerHTML += "<br><span style='color:var(--danger)'>⚠️ 已达本地查询上限，后台任务仍在运行。请稍后刷新。</span>";
+      return;
+    }
+    pollCount++;
+    
+    try {
+      const res = await fetch(proxyUrl + "/api/task/" + taskId);
+      
+      if (res.status === 404) {
+        localStorage.removeItem("council_poll_task_id");
+        display.innerHTML = "❌ 任务不存在 (可能已过期)。";
+        return;
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const data = await res.json();
+      
+      let html = `<b>任务 ID：</b>${taskId}<br>`;
+      if (data.timedOut && data.status === "running") {
+        html += `<b>状态：</b><span style="color:var(--warn-text);">仍在运行中（已超时，等待后台回调）</span>`;
+      } else {
+        const color = data.status === 'completed' ? 'var(--success)' : (['failed','cancelled'].includes(data.status) ? 'var(--danger)' : 'var(--primary)');
+        html += `<b>状态：</b><span style="color:${color}; font-weight:bold;">${data.status}</span>`;
+      }
+      
+      if (data.summary) {
+        html += `<br><b>结果：</b><div style="background:var(--bg); padding:8px; border-radius:5px; margin-top:5px; max-height:200px; overflow-y:auto;">${escapeHTML(data.summary)}</div>`;
+      }
+      display.innerHTML = html;
+      
+      const isFinal = ["completed", "failed", "cancelled"].includes(data.status);
+      if (isFinal) {
+        localStorage.removeItem("council_poll_task_id");
+        if (data.status === "completed") toast("任务执行完成", "success");
+        return;
+      }
+      
+      setTimeout(doPoll, 3000);
+      
+    } catch (e) {
+      console.error("轮询异常", e);
+      display.innerHTML += `<br><span style="color:var(--danger)">查询出错 (${e.message})，5秒后重试...</span>`;
+      setTimeout(doPoll, 5000);
+    }
+  };
+  
+  doPoll();
 }
 
 (function init() {
