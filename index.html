@@ -101,6 +101,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 </header>
 <nav class="anchor-nav">
 <a href="#sec-chat">💬 议会大厅</a>
+<a href="#sec-task-center">📋 任务中心</a> <!-- P1-A 新增 -->
 <a href="#sec-request">🛠️ 申请</a>
 <a href="#sec-approval">🔐 审批</a>
 <a href="#sec-archive">📚 档案</a>
@@ -148,6 +149,15 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
     <button class="gray" onclick="resetChat()" style="padding:6px 10px; font-size:12px; margin-top:6px;">清空讨论</button>
   </div>
 </div>
+</div>
+
+<!-- P1-A 新增独立任务中心 -->
+<div class="card" id="sec-task-center">
+  <h2>📋 AI 任务中心 (独立隔离)</h2>
+  <p class="muted">此入口仅用于独立任务提交，绝对不携带聊天历史，不会触发超限。</p>
+  <textarea id="taskInputArea" placeholder="输入独立任务，如：审查代码..." style="min-height:80px;"></textarea>
+  <button class="primary" onclick="submitIndependentTask()">提交独立任务</button>
+  <div style="margin-top:10px;font-size:13px;color:var(--text);line-height:1.5;" id="taskResultDisplay"></div>
 </div>
 
 <div class="card" id="sec-request">
@@ -1468,6 +1478,114 @@ function bindEvents() {
   $("archive").addEventListener("click", e => { const btn = e.target.closest("[data-edit-id]"); if (btn) editFromId(btn.dataset.editId); });
   $("sec-request").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); createRequest(); } });
   document.querySelectorAll("[data-filter]").forEach(btn => { btn.style.outline = btn.dataset.filter === archiveFilter ? "2px solid var(--primary)" : "none"; });
+}
+
+/* ========== P1-A 独立任务中心逻辑 ========== */
+let currentPollTaskId = localStorage.getItem("council_poll_task_id") || null;
+
+function initTaskCenter() {
+  if (currentPollTaskId && $("taskResultDisplay")) {
+    $("taskResultDisplay").innerHTML = `<span style="color:var(--muted)">正在恢复上次的任务查询...</span>`;
+    startPollingTask(currentPollTaskId);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener("DOMContentLoaded", initTaskCenter);
+} else {
+  initTaskCenter();
+}
+
+async function submitIndependentTask() {
+  const input = $("taskInputArea");
+  const display = $("taskResultDisplay");
+  const taskText = input.value.trim();
+  
+  if (!taskText) { toast("任务内容不能为空", "warning"); return; }
+  
+  display.textContent = "任务创建中...";
+  
+  try {
+    const res = await fetch(proxyUrl + "/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task: taskText })
+    });
+    
+    if (!res.ok) {
+       const errData = await res.json().catch(()=>({error:"Unknown Error"}));
+       throw new Error(errData.error || `HTTP ${res.status}`);
+    }
+    
+    const data = await res.json();
+    currentPollTaskId = data.taskId;
+    
+    localStorage.setItem("council_poll_task_id", currentPollTaskId);
+    display.innerHTML = `<b>任务 ID：</b>${currentPollTaskId}<br><span style="color:var(--warn-text)">正在排队...</span>`;
+    toast("提交成功，已开启串行轮询", "success");
+    
+    startPollingTask(currentPollTaskId);
+    
+  } catch (error) {
+    display.textContent = "提交失败：" + error.message;
+    toast(error.message, "danger");
+  }
+}
+
+function startPollingTask(taskId) {
+  const display = $("taskResultDisplay");
+  let pollCount = 0;
+  const maxPolls = 60;
+  
+  const doPoll = async () => {
+    if (pollCount >= maxPolls) {
+      display.innerHTML += "<br><span style='color:var(--danger)'>⚠️ 已达本地查询上限，后台任务仍在运行。请稍后刷新。</span>";
+      return;
+    }
+    pollCount++;
+    
+    try {
+      const res = await fetch(proxyUrl + "/api/task/" + taskId);
+      
+      if (res.status === 404) {
+        localStorage.removeItem("council_poll_task_id");
+        display.innerHTML = "❌ 任务不存在 (可能已过期)。";
+        return;
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const data = await res.json();
+      
+      let html = `<b>任务 ID：</b>${taskId}<br>`;
+      if (data.timedOut && data.status === "running") {
+        html += `<b>状态：</b><span style="color:var(--warn-text);">仍在运行中（已超时，等待后台回调）</span>`;
+      } else {
+        const color = data.status === 'completed' ? 'var(--success)' : (['failed','cancelled'].includes(data.status) ? 'var(--danger)' : 'var(--primary)');
+        html += `<b>状态：</b><span style="color:${color}; font-weight:bold;">${data.status}</span>`;
+      }
+      
+      if (data.summary) {
+        html += `<br><b>结果：</b><div style="background:var(--bg); padding:8px; border-radius:5px; margin-top:5px; max-height:200px; overflow-y:auto;">${escapeHTML(data.summary)}</div>`;
+      }
+      display.innerHTML = html;
+      
+      const isFinal = ["completed", "failed", "cancelled"].includes(data.status);
+      if (isFinal) {
+        localStorage.removeItem("council_poll_task_id");
+        if (data.status === "completed") toast("任务执行完成", "success");
+        return;
+      }
+      
+      setTimeout(doPoll, 3000);
+      
+    } catch (e) {
+      console.error("轮询异常", e);
+      display.innerHTML += `<br><span style="color:var(--danger)">查询出错 (${e.message})，5秒后重试...</span>`;
+      setTimeout(doPoll, 5000);
+    }
+  };
+  
+  doPoll();
 }
 
 (function init() {
