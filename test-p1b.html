@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>P1-B 并发测试</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #0b1020; color: #fff; }
+    input, button { padding: 10px; font-size: 16px; margin-top: 10px; width: 100%; box-sizing: border-box; }
+    button { background: #3978ed; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    pre { background: #1c2940; padding: 15px; border-radius: 5px; white-space: pre-wrap; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h2>P1-B 双模型并发测试</h2>
+  <p>此测试将验证：如果 GPT 挂了，DeepSeek 是否能正常返回（partial_completed）。</p>
+  
+  <input id="taskInput" value="请简短回复：双模型并发测试成功。" placeholder="输入任务内容">
+  <button onclick="test()">提交并发任务</button>
+  
+  <h3>状态查询结果：</h3>
+  <pre id="result">等待提交...</pre>
+
+  <script>
+    const workerUrl = "https://ai-council-proxy.1184313741.workers.dev";
+    
+    async function test() {
+      const task = document.getElementById("taskInput").value;
+      const resultPre = document.getElementById("result");
+      resultPre.innerText = "正在提交任务...";
+      
+      try {
+        // 1. 提交任务
+        const res = await fetch(workerUrl + "/api/council/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ task })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(JSON.stringify(data));
+        
+        const taskId = data.taskId;
+        resultPre.innerText = "任务已创建: " + taskId + "\n正在轮询结果...";
+        
+        // 2. 轮询结果
+        const interval = setInterval(async () => {
+          const statusRes = await fetch(workerUrl + "/api/council/status/" + taskId);
+          const statusData = await statusRes.json();
+          
+          resultPre.innerText = JSON.stringify(statusData, null, 2);
+          
+          if (statusData.status === "completed" || statusData.status === "partial_completed" || statusData.status === "failed") {
+            clearInterval(interval);
+            resultPre.innerText += "\n\n✅ 任务终态已达，轮询结束。";
+          }
+        }, 2000);
+        
+      } catch (e) {
+        resultPre.innerText = "请求错误: " + e.message;
+      }
+    }
+  </script>
+</body>
+</html>
