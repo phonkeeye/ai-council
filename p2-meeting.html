@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI COUNCIL - P2 交叉审查</title>
+<style>
+  :root {
+    --bg: #0b1020; --card: #141d30; --border: #293650; --text: #e8edf8;
+    --primary: #3978ed; --success: #10b981; --danger: #ef4444; --warn: #f59e0b;
+    --deepseek: #f97316; --gpt: #3b82f6;
+  }
+  * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--text); padding: 20px; }
+  h1 { text-align: center; font-size: 22px; margin-bottom: 20px; }
+  
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+  textarea { width: 100%; height: 70px; background: #0d1526; border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 6px; resize: vertical; margin-bottom: 10px; }
+  button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  .status-box { text-align: center; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; display: none; }
+  .status-box.running { background: rgba(57, 120, 237, 0.2); color: var(--primary); display: block; border: 1px solid var(--primary); }
+  .status-box.success { background: rgba(16, 185, 129, 0.2); color: var(--success); display: block; border: 1px solid var(--success); }
+  .status-box.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); display: block; border: 1px solid var(--danger); }
+
+  .section-title { font-size: 14px; color: var(--muted); margin-bottom: 10px; border-bottom: 1px dashed var(--border); padding-bottom: 5px; }
+  .model-block { margin-bottom: 10px; padding: 10px; background: #0d1526; border-left: 3px solid; border-radius: 4px; }
+  .model-block.ds { border-color: var(--deepseek); }
+  .model-block.gpt { border-color: var(--gpt); }
+  .model-block strong { display: block; margin-bottom: 5px; font-size: 14px; }
+  .content-pre { font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: #a9bad5; }
+
+  .approval-area { display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
+  .approval-area input { width: 100%; padding: 10px; margin-bottom: 10px; background: #0d1526; border: 1px solid var(--warn); color: var(--warn); border-radius: 6px; text-align: center; }
+  .btn-group { display: flex; gap: 10px; }
+  .btn-approve { background: var(--success); }
+  .btn-reject { background: var(--danger); }
+</style>
+</head>
+<body>
+
+<h1>🧠 P2 多模型交叉审查工作台</h1>
+
+<div class="card">
+  <textarea id="topicInput" placeholder="Felix ye，请输入本次议会讨论的议题..."></textarea>
+  <button id="startBtn" onclick="startMeeting()">召开三轮议会</button>
+</div>
+
+<div id="statusBox" class="status-box"></div>
+
+<div id="r1Section" class="card" style="display: none;">
+  <div class="section-title">第一轮：独立分析</div>
+  <div id="r1Content"></div>
+</div>
+
+<div id="r2Section" class="card" style="display: none;">
+  <div class="section-title">第二轮：交叉审查</div>
+  <div id="r2Content"></div>
+</div>
+
+<div id="r3Section" class="card" style="display: none;">
+  <div class="section-title">第三轮：最终决议 (GPT 主持)</div>
+  <div id="r3Content"></div>
+  
+  <div class="approval-area" id="approvalArea">
+    <input type="password" id="adminToken" placeholder="请输入审批 Token 以解锁操作">
+    <div class="btn-group">
+      <button class="btn-approve" onclick="approve('approve')">批准执行</button>
+      <button class="btn-reject" onclick="approve('reject')">拒绝决议</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = "https://ai-council-proxy.1184313741.workers.dev";
+let currentMeetingId = null;
+let pollTimer = null;
+
+async function startMeeting() {
+  const topic = document.getElementById("topicInput").value.trim();
+  if (!topic) return alert("Felix ye，请输入议题内容！");
+
+  document.getElementById("startBtn").disabled = true;
+  document.getElementById("startBtn").textContent = "议会召开中...";
+  document.getElementById("statusBox").className = "status-box running";
+  document.getElementById("statusBox").textContent = "⏳ 正在执行第一轮独立分析...";
+  
+  document.getElementById("r1Section").style.display = "none";
+  document.getElementById("r2Section").style.display = "none";
+  document.getElementById("r3Section").style.display = "none";
+  document.getElementById("approvalArea").style.display = "none";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/council/v2/meetings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "提交失败");
+
+    currentMeetingId = data.meetingId;
+    pollStatus(currentMeetingId);
+
+  } catch (error) {
+    document.getElementById("statusBox").className = "status-box danger";
+    document.getElementById("statusBox").textContent = "❌ 发起失败: " + error.message;
+    document.getElementById("startBtn").disabled = false;
+    document.getElementById("startBtn").textContent = "召开三轮议会";
+  }
+}
+
+async function pollStatus(meetingId) {
+  if (pollTimer) clearTimeout(pollTimer);
+
+  try {
+    const res = await fetch(`${API_BASE}/api/council/v2/status/${meetingId}`);
+    if (!res.ok) throw new Error("查询失败");
+    const data = await res.json();
+
+    renderResults(data);
+
+    if (["awaiting_approval", "failed", "decision_unavailable", "approved", "rejected"].includes(data.status)) {
+      document.getElementById("startBtn").disabled = false;
+      document.getElementById("startBtn").textContent = "召开新议会";
+      
+      if (data.status === 'awaiting_approval') {
+        document.getElementById("statusBox").className = "status-box success";
+        document.getElementById("statusBox").textContent = "✅ 决议已生成，请 Felix ye 审批";
+        document.getElementById("approvalArea").style.display = "block";
+      } else if (data.status === 'approved') {
+        document.getElementById("statusBox").className = "status-box success";
+        document.getElementById("statusBox").textContent = "🏆 决议已批准执行";
+        document.getElementById("approvalArea").style.display = "none";
+      } else {
+        document.getElementById("statusBox").className = "status-box danger";
+        document.getElementById("statusBox").textContent = `❌ 议会终止 (状态: ${data.status})`;
+      }
+      return;
+    }
+
+    document.getElementById("statusBox").textContent = `⏳ 议会进行中 (当前状态: ${data.status})...`;
+    pollTimer = setTimeout(() => pollStatus(meetingId), 3000);
+
+  } catch (error) {
+    console.error("轮询失败", error);
+    pollTimer = setTimeout(() => pollStatus(meetingId), 5000);
+  }
+}
+
+function renderResults(data) {
+  if (data.r1 && data.r1.length > 0) {
+    document.getElementById("r1Section").style.display = "block";
+    let html = "";
+    data.r1.forEach(item => {
+      const type = item.model === 'deepseek' ? 'ds' : 'gpt';
+      html += `<div class="model-block ${type}">
+        <strong>${item.model.toUpperCase()} (${item.status})</strong>
+        <div class="content-pre">${JSON.stringify(item.data, null, 2)}</div>
+      </div>`;
+    });
+    document.getElementById("r1Content").innerHTML = html;
+  }
+
+  if (data.r2 && data.r2.length > 0) {
+    document.getElementById("r2Section").style.display = "block";
+    let html = "";
+    data.r2.forEach(item => {
+      const type = item.reviewer === 'deepseek' ? 'ds' : 'gpt';
+      html += `<div class="model-block ${type}">
+        <strong>${item.reviewer.toUpperCase()} 审查 ${item.target.toUpperCase()}</strong>
+        <div class="content-pre">${JSON.stringify(item.data, null, 2)}</div>
+      </div>`;
+    });
+    document.getElementById("r2Content").innerHTML = html;
+  }
+
+  if (data.decision) {
+    document.getElementById("r3Section").style.display = "block";
+    document.getElementById("r3Content").innerHTML = `
+      <div class="model-block gpt" style="border-color: var(--warn);">
+        <strong>会议决议 (版本 v${data.version} · 状态: ${data.decision.status})</strong>
+        <div class="content-pre">${JSON.stringify(data.decision.data, null, 2)}</div>
+      </div>
+    `;
+  }
+}
+
+async function approve(action) {
+  const token = document.getElementById("adminToken").value.trim();
+  if (!token) return alert("请输入审批 Token！");
+
+  try {
+    const res = await fetch(`${API_BASE}/api/council/v2/approve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-token": token },
+      body: JSON.stringify({ meetingId: currentMeetingId, action })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "操作失败");
+
+    alert(action === 'approve' ? "✅ 批准成功！" : "❌ 拒绝成功！");
+    document.getElementById("approvalArea").style.display = "none";
+    pollStatus(currentMeetingId);
+
+  } catch (error) {
+    alert("审批失败: " + error.message);
+  }
+}
+</script>
+</body>
+</html>
