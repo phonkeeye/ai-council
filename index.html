@@ -87,6 +87,38 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 .chat-input-area { display:flex; gap:8px; align-items: flex-end; }
 .chat-input-area textarea { margin:0; flex:1; min-height: 44px; max-height: 250px; resize: vertical; }
 .chat-input-area button { margin:0; padding: 12px 20px; height: fit-content; }
+
+/* 🧠 三模型议会样式 */
+.council-input-area { background: var(--card2); padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
+.council-input-area textarea { width: 100%; height: 80px; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; resize: vertical; font-size: 14px; margin: 0 0 10px 0; }
+.council-btn { width: 100%; margin: 0; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+.council-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.council-banner { text-align: center; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; display: none; font-size: 13px; }
+.council-banner.running { background: rgba(57, 120, 237, 0.15); color: var(--primary); display: block; border: 1px solid var(--primary); }
+.council-banner.completed { background: rgba(22, 121, 77, 0.15); color: var(--success); display: block; border: 1px solid var(--success); }
+.council-banner.failed { background: rgba(155, 53, 69, 0.15); color: var(--danger); display: block; border: 1px solid var(--danger); }
+.council-banner.partial_completed { background: rgba(154, 104, 32, 0.15); color: var(--warn-text); display: block; border: 1px solid var(--warn-border); }
+.council-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 768px) { .council-grid { grid-template-columns: repeat(3, 1fr); } }
+.model-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.model-header { padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid; background: var(--card2); }
+.model-card.deepseek .model-header { border-bottom-color: #f97316; }
+.model-card.gpt .model-header { border-bottom-color: #3b82f6; }
+.model-card.kimi .model-header { border-bottom-color: #8b5cf6; }
+.model-title { font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.model-role { font-size: 10px; color: var(--muted); }
+.model-badge { padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; }
+.model-badge.pending { background: var(--gray); color: #fff; }
+.model-badge.running { background: var(--primary); color: #fff; animation: pulse 1.5s infinite; }
+.model-badge.success { background: var(--success); color: #fff; }
+.model-badge.failed { background: var(--danger); color: #fff; }
+.model-badge.not_configured { background: #475569; color: #fff; }
+.model-body { padding: 12px; }
+.model-time { font-size: 10px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.model-content { font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+.model-content.error { color: var(--danger); }
+.model-content.waiting { color: var(--muted); font-style: italic; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 </style>
 </head>
 <body>
@@ -94,14 +126,14 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="header-top">
 <div>
 <h1>⚡ AI COUNCIL</h1>
-<p>V2.0 · 真实 API 接入版</p>
+<p>V2.0 · 真实 API 接入版 | 董事长: <b style="color:var(--primary);">Felix ye</b></p>
 </div>
 <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="切换主题">🌙</button>
 </div>
 </header>
 <nav class="anchor-nav">
 <a href="#sec-chat">💬 议会大厅</a>
-<a href="#sec-task-center">📋 任务中心</a> <!-- P1-A 新增 -->
+<a href="#sec-council">🧠 三模型工作台</a>
 <a href="#sec-request">🛠️ 申请</a>
 <a href="#sec-approval">🔐 审批</a>
 <a href="#sec-archive">📚 档案</a>
@@ -109,7 +141,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <a href="#sec-history">📜 记录</a>
 <a href="#sec-data">💾 数据</a>
 </nav>
-<div class="demo-banner" id="demoBanner">🟢 真实模式 · 已接入 Cloudflare Worker 与 DeepSeek</div>
+<div class="demo-banner" id="demoBanner">🟢 真实模式 · 已接入 Cloudflare Worker、D1、DeepSeek、GPT、Kimi</div>
 
 <main>
 <div id="storageWarning" class="storage-warning" style="display:none">
@@ -124,7 +156,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 <div class="card">
 <h2>🤖 AI 团队</h2>
 <div class="grid">
-<div class="member"><strong>🟢 GPT</strong><span class="muted">总协调 · 待接入</span><br><span class="status">未连接</span></div>
+<div class="member"><strong>🟢 GPT</strong><span class="muted">总协调 · 待接入</span><br><span class="status">已接入 D1 调度</span></div>
 <div class="member"><strong>🟣 Claude</strong><span class="muted">代码审查 · 待接入</span><br><span class="status">未连接</span></div>
 <div class="member"><strong>🔵 Gemini</strong><span class="muted">数据分析 · 待接入</span><br><span class="status">未连接</span></div>
 <div class="member" style="border: 1px solid var(--primary);"><strong>🟠 DeepSeek</strong><span class="muted">量化研究 · 策略分析</span><br><span class="status success" id="dsStatus">已就绪 (可对话)</span></div>
@@ -151,13 +183,64 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 </div>
 </div>
 
-<!-- P1-A 新增独立任务中心 -->
-<div class="card" id="sec-task-center">
-  <h2>📋 AI 任务中心 (独立隔离)</h2>
-  <p class="muted">此入口仅用于独立任务提交，绝对不携带聊天历史，不会触发超限。</p>
-  <textarea id="taskInputArea" placeholder="输入独立任务，如：审查代码..." style="min-height:80px;"></textarea>
-  <button class="primary" onclick="submitIndependentTask()">提交独立任务</button>
-  <div style="margin-top:10px;font-size:13px;color:var(--text);line-height:1.5;" id="taskResultDisplay"></div>
+<!-- 🧠 三模型工作台 (全新融合区) -->
+<div class="card" id="sec-council">
+  <h2>🧠 三模型议会工作台</h2>
+  <p class="muted">三模型并发独立分析系统。绝不携带历史聊天记录，独立执行。</p>
+  
+  <div class="council-input-area">
+    <textarea id="councilTaskInput" placeholder="Felix ye，请输入本次会议议题..."></textarea>
+    <button id="councilSubmitBtn" class="council-btn" onclick="submitCouncilTask()">召开三模型会议</button>
+  </div>
+
+  <div id="councilStatusBanner" class="council-banner"></div>
+
+  <div class="council-grid">
+    <!-- DeepSeek -->
+    <div class="model-card deepseek" id="card-deepseek">
+      <div class="model-header">
+        <div>
+          <div class="model-title" style="color: #f97316;">🟠 DeepSeek</div>
+          <div class="model-role">技术审查官</div>
+        </div>
+        <span class="model-badge pending" id="status-deepseek">等待中</span>
+      </div>
+      <div class="model-body">
+        <div class="model-time" id="time-deepseek">未启动</div>
+        <div class="model-content waiting" id="content-deepseek">等待分配任务...</div>
+      </div>
+    </div>
+
+    <!-- GPT -->
+    <div class="model-card gpt" id="card-gpt">
+      <div class="model-header">
+        <div>
+          <div class="model-title" style="color: #3b82f6;">🔵 GPT</div>
+          <div class="model-role">总协调官</div>
+        </div>
+        <span class="model-badge pending" id="status-gpt">等待中</span>
+      </div>
+      <div class="model-body">
+        <div class="model-time" id="time-gpt">未启动</div>
+        <div class="model-content waiting" id="content-gpt">等待分配任务...</div>
+      </div>
+    </div>
+
+    <!-- Kimi -->
+    <div class="model-card kimi" id="card-kimi">
+      <div class="model-header">
+        <div>
+          <div class="model-title" style="color: #8b5cf6;">🟣 Kimi</div>
+          <div class="model-role">研究分析官</div>
+        </div>
+        <span class="model-badge pending" id="status-kimi">等待中</span>
+      </div>
+      <div class="model-body">
+        <div class="model-time" id="time-kimi">未启动</div>
+        <div class="model-content waiting" id="content-kimi">等待分配任务...</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="card" id="sec-request">
@@ -256,7 +339,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
 </div>
 </main>
 
-<footer>AI COUNCIL V2.0 · Your project, your decision.</footer>
+<footer>AI COUNCIL V2.0 · Your project, your decision. | Chairman: Felix ye</footer>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -847,8 +930,7 @@ async function sendMessage() {
     return;
   }
 
-  // 1. 先将用户输入追加到 UI 历史中（乐观更新，但不落库）
-  const tempUserMsg = { role: "user", name: "用户", avatar: "🧑‍💻", text, time: nowStr() };
+  const tempUserMsg = { role: "user", name: "Felix ye", avatar: "🧑‍💻", text, time: nowStr() };
   chatHistory.push(tempUserMsg);
   
   const loadingMsg = { role: "ai", name: "DeepSeek (🟠)", avatar: "🟠", text: "", isLoading: true, time: nowStr() };
@@ -857,7 +939,6 @@ async function sendMessage() {
   isAiThinking = true;
 
   try {
-    // 2. 提取并转换基础历史记录（【已修正】精准排除本次发送的 tempUserMsg 和 loadingMsg）
     let historyToSend = chatHistory
       .filter(m => 
         m !== tempUserMsg && 
@@ -870,7 +951,6 @@ async function sendMessage() {
         content: typeof m.text === "string" ? m.text : ""
       }));
 
-    // 3. 构建当前输入的请求体（区分长短文本）
     let currentInputMsgs = [];
     const isLongText = text.length > 15000;
 
@@ -880,7 +960,6 @@ async function sendMessage() {
         content: "注意：用户接下来会发送被拆分的长文本片段。它们属于同一份完整输入，请务必等待接收完所有分段后，结合全部上下文统一进行分析。" 
       });
 
-      // 【极度保守的切分】将每个切片限制在 6500 个 Unicode 码点，防止 UTF-16 长度爆表
       const SAFE_SPLIT_SIZE = 6500; 
       const chars = Array.from(text);
       const totalChunks = Math.ceil(chars.length / SAFE_SPLIT_SIZE);
@@ -895,7 +974,6 @@ async function sendMessage() {
       currentInputMsgs.push({ role: "user", content: text });
     }
 
-    // 4. 消息条数倒推计算 (确保总条数 ≤ 50)
     const MAX_WORKER_MSGS = 50;
     const availableHistorySlots = MAX_WORKER_MSGS - 1 - currentInputMsgs.length;
     
@@ -905,7 +983,6 @@ async function sendMessage() {
       historyToSend = historyToSend.slice(-availableHistorySlots);
     }
 
-    // 5. 防 AI 幻觉（超长历史单条替换为占位符，并应用安全防御）
     historyToSend = historyToSend.map(m => {
       const content = typeof m.content === "string" ? m.content : "";
       if (content.length > 15000) {
@@ -914,20 +991,15 @@ async function sendMessage() {
           content: `[系统提示：用户在此处发送了约 ${content.length} 字符的超长内容。由于限制，当前请求已省略其原文。你绝对不能假装记得或猜测此处内容。如果用户询问相关细节，请明确告知用户无法看到之前的完整内容，请重新提供需要分析的部分。]`
         };
       }
-      return {
-        role: m.role,
-        content: content
-      };
+      return { role: m.role, content: content };
     });
 
-    // 6. 组装最终的 messages 数组
     let messages = [
       { role: "system", content: "你是 AI COUNCIL 中的 DeepSeek，负责量化研究、策略分析和代码逻辑验证。请以专业、直接、务实的态度回答用户的问题。" },
       ...historyToSend,
       ...currentInputMsgs
     ];
 
-    // 7. 总字符数裁剪 (软目标 78000)
     const SAFE_TOTAL_CHARS = 78000; 
     let currentTotalChars = messages.reduce((acc, m) => acc + m.content.length, 0);
     
@@ -936,7 +1008,6 @@ async function sendMessage() {
       currentTotalChars -= removed.content.length;
     }
 
-    // 8. 【最终硬性拦截】统一使用 78000
     if (messages.length > 50) {
       throw new Error("消息数量超过 Worker 限制 (50条)，已阻止发送");
     }
@@ -947,7 +1018,6 @@ async function sendMessage() {
       throw new Error("对话总字符数超过安全限制 (78000)，已阻止发送");
     }
 
-    // 9. 发起请求
     const response = await fetch(proxyUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -968,7 +1038,6 @@ async function sendMessage() {
     const data = await response.json();
     const replyText = data.reply || (data.choices && data.choices[0]?.message?.content) || "未解析到回复内容";
 
-    // 成功更新 UI
     input.value = "";
     updateChatCounter();
     
@@ -979,17 +1048,14 @@ async function sendMessage() {
     saveChat();
 
   } catch (error) {
-    // 失败精准回滚
     const loadIdx = chatHistory.indexOf(loadingMsg);
     if (loadIdx !== -1) chatHistory.splice(loadIdx, 1);
     
     const userIdx = chatHistory.indexOf(tempUserMsg);
     if (userIdx !== -1) chatHistory.splice(userIdx, 1);
     
-    // 添加系统错误提示
     chatHistory.push({ role: "system", name: "系统错误", avatar: "⚠️", text: `发送失败：${error.message}`, time: nowStr() });
     
-    // 恢复输入框内容
     input.value = text;
     updateChatCounter();
     toast(`发送失败，内容已恢复至输入框`, "danger");
@@ -1005,6 +1071,161 @@ function resetChat() {
   if (!confirm("确定要清空讨论记录吗？")) return;
   chatHistory = [{ role: "system", text: "讨论已重置。", time: nowStr() }];
   renderChat(); saveChat();
+}
+
+/* ========== 🧠 三模型工作台逻辑 ========== */
+let pollTimer = null;
+let isPolling = false;
+let pollCount = 0;
+const MAX_POLLS = 45;
+
+async function submitCouncilTask() {
+  if (!proxyUrl) { toast("请先在上方保存 Worker 代理 URL", "warning"); return; }
+  
+  const input = $("councilTaskInput");
+  const btn = $("councilSubmitBtn");
+  const taskText = input.value.trim();
+
+  if (!taskText) {
+    alert("Felix ye，请输入议题内容！");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "会议发起中...";
+  if (pollTimer) clearTimeout(pollTimer);
+  isPolling = false;
+  pollCount = 0;
+
+  const banner = $("councilStatusBanner");
+  banner.className = "council-banner";
+  banner.style.display = "none";
+
+  const models = ["deepseek", "gpt", "kimi"];
+  models.forEach(m => {
+    $(`status-${m}`).className = "model-badge pending";
+    $(`status-${m}`).textContent = "等待中";
+    $(`time-${m}`).textContent = "未启动";
+    const contentDiv = $(`content-${m}`);
+    contentDiv.className = "model-content waiting";
+    contentDiv.textContent = "等待分配任务...";
+  });
+
+  try {
+    const res = await fetch(`${proxyUrl}/api/council/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task: taskText })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "提交失败");
+
+    banner.className = "council-banner running";
+    banner.textContent = "⏳ 议会进行中，等待各模型返回...";
+    isPolling = true;
+    pollCouncilStatus(data.taskId);
+
+  } catch (error) {
+    banner.className = "council-banner failed";
+    banner.textContent = "❌ 发起失败: " + error.message;
+    btn.disabled = false;
+    btn.textContent = "召开三模型会议";
+  }
+}
+
+async function pollCouncilStatus(taskId) {
+  if (!isPolling) return;
+  if (pollCount >= MAX_POLLS) {
+    isPolling = false;
+    $("councilStatusBanner").className = "council-banner failed";
+    $("councilStatusBanner").textContent = "⚠️ 轮询超时，请重新发起";
+    $("councilSubmitBtn").disabled = false;
+    $("councilSubmitBtn").textContent = "召开三模型会议";
+    return;
+  }
+
+  pollCount++;
+
+  try {
+    const res = await fetch(`${proxyUrl}/api/council/status/${taskId}`);
+    if (!res.ok) throw new Error("查询网络错误");
+    
+    const data = await res.json();
+    renderCouncilData(data);
+
+    const activeStates = ["pending", "queued", "running"];
+    if (activeStates.includes(data.status)) {
+      if (isPolling) {
+        pollTimer = setTimeout(() => pollCouncilStatus(taskId), 2000);
+      }
+    } else {
+      isPolling = false;
+      const banner = $("councilStatusBanner");
+      banner.className = `council-banner ${data.status}`;
+      
+      if (data.status === "completed") banner.textContent = "✅ 会议圆满结束 (全部成功)";
+      else if (data.status === "partial_completed") banner.textContent = "⚠️ 会议部分完成 (有模型失败)";
+      else banner.textContent = "❌ 会议失败 (全部模型异常)";
+
+      $("councilSubmitBtn").disabled = false;
+      $("councilSubmitBtn").textContent = "召开新会议";
+    }
+
+  } catch (error) {
+    console.error("轮询失败", error);
+    if (isPolling) pollTimer = setTimeout(() => pollCouncilStatus(taskId), 5000);
+  }
+}
+
+function renderCouncilData(data) {
+  const models = ["deepseek", "gpt", "kimi"];
+  
+  models.forEach(m => {
+    const runInfo = data.results.find(r => r.model_name === m);
+    
+    const badge = $(`status-${m}`);
+    const timeDiv = $(`time-${m}`);
+    const contentDiv = $(`content-${m}`);
+
+    if (!runInfo) {
+      badge.className = "model-badge pending";
+      badge.textContent = "排队中";
+      timeDiv.textContent = "等待启动";
+      contentDiv.className = "model-content waiting";
+      contentDiv.textContent = "模型正在准备中...";
+      return;
+    }
+
+    badge.className = `model-badge ${runInfo.status}`;
+    if (runInfo.status === "success") badge.textContent = "成功";
+    else if (runInfo.status === "failed") badge.textContent = "失败";
+    else if (runInfo.status === "not_configured") badge.textContent = "未配置";
+    else badge.textContent = "执行中";
+
+    if (runInfo.started_at && runInfo.finished_at) {
+      const duration = runInfo.finished_at - runInfo.started_at;
+      timeDiv.textContent = `耗时: ${duration} ms`;
+    } else if (runInfo.started_at && !runInfo.finished_at) {
+      const duration = Date.now() - runInfo.started_at;
+      timeDiv.textContent = `执行中: ${duration} ms+`;
+    } else {
+      timeDiv.textContent = "等待启动";
+    }
+
+    if (runInfo.summary) {
+      if (runInfo.status === "success") {
+        contentDiv.className = "model-content";
+        contentDiv.textContent = runInfo.summary;
+      } else {
+        contentDiv.className = "model-content error";
+        contentDiv.textContent = runInfo.summary;
+      }
+    } else {
+      contentDiv.className = "model-content waiting";
+      contentDiv.textContent = "暂无返回内容";
+    }
+  });
 }
 
 /* ========== Toast / 主题 ========== */
@@ -1478,114 +1699,6 @@ function bindEvents() {
   $("archive").addEventListener("click", e => { const btn = e.target.closest("[data-edit-id]"); if (btn) editFromId(btn.dataset.editId); });
   $("sec-request").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); createRequest(); } });
   document.querySelectorAll("[data-filter]").forEach(btn => { btn.style.outline = btn.dataset.filter === archiveFilter ? "2px solid var(--primary)" : "none"; });
-}
-
-/* ========== P1-A 独立任务中心逻辑 ========== */
-let currentPollTaskId = localStorage.getItem("council_poll_task_id") || null;
-
-function initTaskCenter() {
-  if (currentPollTaskId && $("taskResultDisplay")) {
-    $("taskResultDisplay").innerHTML = `<span style="color:var(--muted)">正在恢复上次的任务查询...</span>`;
-    startPollingTask(currentPollTaskId);
-  }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener("DOMContentLoaded", initTaskCenter);
-} else {
-  initTaskCenter();
-}
-
-async function submitIndependentTask() {
-  const input = $("taskInputArea");
-  const display = $("taskResultDisplay");
-  const taskText = input.value.trim();
-  
-  if (!taskText) { toast("任务内容不能为空", "warning"); return; }
-  
-  display.textContent = "任务创建中...";
-  
-  try {
-    const res = await fetch(proxyUrl + "/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ task: taskText })
-    });
-    
-    if (!res.ok) {
-       const errData = await res.json().catch(()=>({error:"Unknown Error"}));
-       throw new Error(errData.error || `HTTP ${res.status}`);
-    }
-    
-    const data = await res.json();
-    currentPollTaskId = data.taskId;
-    
-    localStorage.setItem("council_poll_task_id", currentPollTaskId);
-    display.innerHTML = `<b>任务 ID：</b>${currentPollTaskId}<br><span style="color:var(--warn-text)">正在排队...</span>`;
-    toast("提交成功，已开启串行轮询", "success");
-    
-    startPollingTask(currentPollTaskId);
-    
-  } catch (error) {
-    display.textContent = "提交失败：" + error.message;
-    toast(error.message, "danger");
-  }
-}
-
-function startPollingTask(taskId) {
-  const display = $("taskResultDisplay");
-  let pollCount = 0;
-  const maxPolls = 60;
-  
-  const doPoll = async () => {
-    if (pollCount >= maxPolls) {
-      display.innerHTML += "<br><span style='color:var(--danger)'>⚠️ 已达本地查询上限，后台任务仍在运行。请稍后刷新。</span>";
-      return;
-    }
-    pollCount++;
-    
-    try {
-      const res = await fetch(proxyUrl + "/api/task/" + taskId);
-      
-      if (res.status === 404) {
-        localStorage.removeItem("council_poll_task_id");
-        display.innerHTML = "❌ 任务不存在 (可能已过期)。";
-        return;
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
-      const data = await res.json();
-      
-      let html = `<b>任务 ID：</b>${taskId}<br>`;
-      if (data.timedOut && data.status === "running") {
-        html += `<b>状态：</b><span style="color:var(--warn-text);">仍在运行中（已超时，等待后台回调）</span>`;
-      } else {
-        const color = data.status === 'completed' ? 'var(--success)' : (['failed','cancelled'].includes(data.status) ? 'var(--danger)' : 'var(--primary)');
-        html += `<b>状态：</b><span style="color:${color}; font-weight:bold;">${data.status}</span>`;
-      }
-      
-      if (data.summary) {
-        html += `<br><b>结果：</b><div style="background:var(--bg); padding:8px; border-radius:5px; margin-top:5px; max-height:200px; overflow-y:auto;">${escapeHTML(data.summary)}</div>`;
-      }
-      display.innerHTML = html;
-      
-      const isFinal = ["completed", "failed", "cancelled"].includes(data.status);
-      if (isFinal) {
-        localStorage.removeItem("council_poll_task_id");
-        if (data.status === "completed") toast("任务执行完成", "success");
-        return;
-      }
-      
-      setTimeout(doPoll, 3000);
-      
-    } catch (e) {
-      console.error("轮询异常", e);
-      display.innerHTML += `<br><span style="color:var(--danger)">查询出错 (${e.message})，5秒后重试...</span>`;
-      setTimeout(doPoll, 5000);
-    }
-  };
-  
-  doPoll();
 }
 
 (function init() {
